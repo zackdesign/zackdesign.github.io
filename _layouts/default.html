@@ -30,9 +30,21 @@
     </div>
 
     <div class="container">
-
-    {{ content }}
-
+        <div class="jumbotron">
+            <h1>Stop, collaborate, and listen</h1>
+            <hr>
+            <p class="lead">{{ site.description }}</p>
+        </div>
+        <div class="well">
+            <div class="row">
+                <div class="col-sm-6">
+                    {{ content }}
+                </div>
+                <div class="col-sm-5 col-sm-offset-1">
+                    {% include sidebar.html %}
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="footer">

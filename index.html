@@ -2,44 +2,12 @@
 layout: default
 ---
 
+{% for post in site.posts %}
 
-	<div class="jumbotron">
-		<h1 class="text-center">Stop, collaborate and listen</h1>
-		<hr>
-        <p class="lead text-center">{{ site.description }}</p>
-	</div>
+    <div class="blog-post">
+        <h2 class="blog-post-title">{{ post.title }}</h2>
+        <p class="blog-post-meta">{{ post.date | date_to_string }}</p>
+        {{ post.content }}
+    </div>
 
-	<div class="jumbotron">
-
-		<div class="row">
-			<div class="col-md-6">
-				<blockquote>
-				<p><i class="fa fa-quote-left"></i> Zack Design rescued a huge project for MJ Penner consulting, re-building from scratch in only a couple of weeks what our previous contractor could not do in months. Isaac's leadership has allowed us to make smarter decisions that have saved us thousands of dollars on every project we've engaged together. <i class="fa fa-quote-right"></i></p>
-				<footer>Michael Penner, Director of <a href="http://michaelpenner.com/">MJ Penner Consulting</a></footer>
-				</blockquote>
-			</div>
-			<div class="col-md-6">
-				<blockquote>
-				<p><i class="fa fa-quote-left"></i> Isaac and his team at Zack Design have been an integral part of our online success. Their technical, functional and project management work is outstanding and I would not hesitate in recommending their services. <i class="fa fa-quote-right"></i></p>
-				<footer>Tomas Molloy, Director of <a href="http://isolar.com.au/">iSolar</a></footer>
-				</blockquote>
-			</div>
-		</div>
-	</div>
-
-	<div class="well">
-
-		<div class="row">
-			<div class="col-md-6">
-				<h3><a href="http://breederschoice.com.au">Breeder's Choice Packaged Woodshavings</a></h3>
-				<p>This website was commissioned most recently and involved Parallax, Bootstrap, Wordpress, and Font Awesome.</p>				
-			</div>
-			<div class="col-md-6">
-				<h3><a href="http://profiles.wordpress.org/zackdesign/">Zack Design Wordpress Plugins</a></h3>
-				<p>Zack Design has built several plugins for ecommerce, RSS, and categorisation.</p>
-				<p>If you came here looking for plugins, please visit <a href="http://profiles.wordpress.org/zackdesign/">Wordpress.org</a>.</p>
-				<p>If you are after help you can use the forums there or our Feedback and Support area.</p>
-			</div>
-		</div>
-	</div>
-
+{% endfor %}
