@@ -1,0 +1,12 @@
+name: Zack Design
+
+description: Web applications, consulting and project management
+
+google_analytics: UA-1437134-4
+
+url: https://zackdesign.biz
+
+exclude:
+    - Gemfile
+    - Gemfile.lock
+    - CNAME
