@@ -12,11 +12,11 @@ More technical information:
 * Cloudflare provides the Secure Socket Layer (SSL)
 * Bootstrap 3
 * FontAwesome
+* Individual post pages
 
 To come later:
 
 * Jekyll plugins such as the sitemap plugin
-* Individual post pages
 * Randomised background images on each site generation
 * SASS
 * Bootstrap 4
