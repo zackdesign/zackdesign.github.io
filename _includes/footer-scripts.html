@@ -1,3 +1,22 @@
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
-    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <script src="/bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="/bower_components/lodash/lodash.min.js"></script>
+    <script src="/bower_components/cloudinary-core/cloudinary-core.js"></script>
+    <script src="/bower_components/cloudinary-jquery/cloudinary-jquery.js"></script>
+    <script src="/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            var cl = cloudinary.Cloudinary.new();
+            var backgrounds = 10;
+            var width = $(window).width();
+            var height = $(window).height();
+            if (width > height) { 
+                height = width;
+            } else {
+                width = height;
+            }
+            var background = Math.floor((Math.random() * backgrounds) + 1);
+            cl.init();
+            var url = cl.url('zdbackground' + background, {width: width, height: height, crop: 'limit'});
+            $('body').css('background', 'url(' + url + ') 50% top');
+        });
+    </script>
