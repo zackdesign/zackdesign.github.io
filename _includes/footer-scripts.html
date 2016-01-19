@@ -8,15 +8,9 @@
             var cl = cloudinary.Cloudinary.new();
             var backgrounds = 10;
             var width = $(window).width();
-            var height = $(window).height();
-            if (width > height) { 
-                height = width;
-            } else {
-                width = height;
-            }
             var background = Math.floor((Math.random() * backgrounds) + 1);
             cl.init();
-            var url = cl.url('zdbackground' + background, {width: width, height: height, crop: 'limit'});
+            var url = cl.url('zdbackground' + background, {width: width, crop: 'limit'});
             $('body').css('background', 'url(' + url + ') 50% top');
         });
     </script>
