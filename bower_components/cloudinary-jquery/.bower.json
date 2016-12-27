@@ -1,6 +1,6 @@
 {
   "name": "cloudinary-jquery",
-  "version": "2.0.5",
+  "version": "2.0.9",
   "homepage": "http://cloudinary.com",
   "authors": [
     {
@@ -57,13 +57,13 @@
     "test",
     "tests"
   ],
-  "_release": "2.0.5",
+  "_release": "2.0.9",
   "_resolution": {
     "type": "version",
-    "tag": "2.0.5",
-    "commit": "e6bcaf4496a56531851846dfb4467a83c1c3ef32"
+    "tag": "2.0.9",
+    "commit": "0cd1bdac1ca2a6b19866803094f27f0c1882120b"
   },
-  "_source": "git://github.com/cloudinary/pkg-cloudinary-jquery.git",
+  "_source": "https://github.com/cloudinary/pkg-cloudinary-jquery.git",
   "_target": "~2.0.4",
   "_originalSource": "cloudinary-jquery"
 }

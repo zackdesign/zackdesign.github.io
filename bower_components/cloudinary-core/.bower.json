@@ -1,6 +1,6 @@
 {
   "name": "cloudinary-core",
-  "version": "2.0.5",
+  "version": "2.0.9",
   "homepage": "http://cloudinary.com",
   "authors": [
     {
@@ -53,16 +53,17 @@
     "**/.*",
     "node_modules",
     "bower_components",
+    "samples/",
     "test",
     "tests"
   ],
-  "_release": "2.0.5",
+  "_release": "2.0.9",
   "_resolution": {
     "type": "version",
-    "tag": "2.0.5",
-    "commit": "7646b7f7b15d5b720359d892b536fdaf126bc608"
+    "tag": "2.0.9",
+    "commit": "fd58a658cf3874f8e1ac05d3beb1671dfa5b8188"
   },
-  "_source": "git://github.com/cloudinary/pkg-cloudinary-core.git",
+  "_source": "https://github.com/cloudinary/pkg-cloudinary-core.git",
   "_target": "~2.0.4",
   "_originalSource": "cloudinary-core"
 }

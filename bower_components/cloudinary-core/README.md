@@ -31,13 +31,18 @@ Cloudinary provides URL and HTTP based APIs that can be easily integrated with a
    <script src="bower_components/cloudinary-core/cloudinary-core.js" type="text/javascript"></script>
    ```
 
+   If you do not intend to use `lodash` in your own code, you can instead use the shrinkwrap version which includes a subset
+   of the lodash functions. This reduces the loaded code by about 50%!
+
+   ```html
+   <script src="bower_components/cloudinary-core/cloudinary-core-shrinkwrap.js" type="text/javascript"></script>
+   ```
 ### NPM
 The following instructions describe the installation of the **client-side libraries**. For the server side NodeJS library, see https://github.com/cloudinary/cloudinary_npm
 
 1. Install the files using:
 
    ```shell
-   npm install lodash
    npm install cloudinary-core
    ```
 1. Include the javascript file in your HTML. For Example:
@@ -46,6 +51,8 @@ The following instructions describe the installation of the **client-side librar
    <script src="node_modules/lodash/lodash.js"                   type="text/javascript"></script>
    <script src="node_modules/cloudinary-core/cloudinary-core.js" type="text/javascript"></script>
    ```
+
+   See comment above regarding the shrinkwrap version.
 
 For the server side NPM library, please refer to https://github.com/cloudinary/cloudinary_npm.
 
