@@ -10,28 +10,26 @@
     {% include navigation.html %}
 
     <div class="container">
-        <div class="jumbotron">
-          	<h1>Stop, collaborate, and listen</h1>
-           	<hr>
+        <div class="jumbotron bg-light">
+          	<h1 class="display-3">Stop, collaborate, and listen</h1>
+           	<hr class="my-4">
         	<p class="lead">{{ site.description }}</p>
         </div>
-        <div class="well">
+        <div class="card">
+          <div class="card-body">
             <div class="row">
                 <div class="col-sm-5">
                     {% include sidebar.html %}
                 </div>
-                <div class="col-sm-6 col-sm-offset-1">
+                <div class="col-sm-6 offset-sm-1">
                     {{ content }}
                 </div>
             </div>
+          </div>
         </div>
     </div>
 
-    <div class="footer">
-      <div class="container">
-	  &copy; Zack Design - Using Github + Jekyll
-      </div>
-    </div>
+    {% include footer.html %}
 
     {% include analytics.html %}
     {% include footer-scripts.html %}
