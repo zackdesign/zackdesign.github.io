@@ -7,10 +7,11 @@ google_analytics: UA-1437134-4
 url: https://zackdesign.biz
 enforce_ssl: zackdesign.biz
 
-gems:
+plugins:
     - jekyll-sitemap
 
 exclude:
     - Gemfile
     - Gemfile.lock
     - CNAME
+    - vendor
