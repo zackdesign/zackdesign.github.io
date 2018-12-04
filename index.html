@@ -5,11 +5,11 @@ layout: default
 {% for post in site.posts %}
 
     <div class="blog-post">
-        <h2 class="blog-post-title"><a href="{{ post.url }}">{{ post.title }}</a></h2>
+        <h4 class="blog-post-title"><a href="{{ post.url }}">{{ post.title }}</a></h4>
         <p class="blog-post-meta"><i class="fa fa-calendar"></i> {{ post.date | date_to_string }}</p>
         {{ post.content | split:"<!-- more -->" | first | strip_html | truncate:400 }}
         {% if post.content | size > 400 %}
-            <a href="{{ post.url }}"><strong>more <i class="fa fa-angle-double-right"></i></strong></a>
+            <a href="{{ post.url }}"><strong>more <i class="fa fa-angle-double-right fa-xs"></i></strong></a>
         {% endif %}
     </div>
     <hr>
