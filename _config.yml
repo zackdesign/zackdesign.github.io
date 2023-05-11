@@ -2,16 +2,16 @@ name: Zack Design
 
 description: Web applications, consulting, and project management
 
-google_analytics: UA-1437134-4
+google_analytics: G-G929CKNR8F
 
 url: https://zackdesign.biz
 enforce_ssl: zackdesign.biz
 
 plugins:
-    - jekyll-sitemap
+  - jekyll-sitemap
 
 exclude:
-    - Gemfile
-    - Gemfile.lock
-    - CNAME
-    - vendor
+  - Gemfile
+  - Gemfile.lock
+  - CNAME
+  - vendor
