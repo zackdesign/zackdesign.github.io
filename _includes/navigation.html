@@ -1,19 +1,26 @@
-    <nav class="navbar navbar-expand-md navbar-light bg-light fixed-top" role="navigation">
-      <div class="container">
-        <a class="navbar-brand" href="/"><img src="/images/logo.png" alt="Zack Design" height="51" /></a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
+<nav class="navbar navbar-expand-lg navbar-light smaller-navbar py-1" role="navigation" aria-label="Main navigation">
+  <div class="container">
+    <a class="navbar-brand py-0" href="/" aria-label="Zack Design Home">
+      <img src="/images/logo.png" alt="Zack Design" height="50" width="auto">
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" 
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul class="navbar-nav mr-auto">
-            <li class="nav-item active">
-              <a class="nav-link" href="https://isaacrowntree.com">Isaac Rowntree</a>
-            </li>
-          </ul>
-          <ul class="navbar-nav navbar-right">
-            <li><a href="mailto:isaac@zackdesign.biz" class="nav-link mr-3"><i class="fa fa-envelope"></i> Email</a></li>
-          </ul>
-        </div>
-      </div>
-    </nav>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ms-auto" role="menubar">
+        <li class="nav-item" role="none">
+          <a class="nav-link px-3 py-1" href="https://isaacrowntree.com" aria-label="Isaac Rowntree personal site" role="menuitem">
+            <i class="fas fa-user me-1" aria-hidden="true"></i> Isaac Rowntree
+          </a>
+        </li>
+        <li class="nav-item" role="none">
+          <a href="mailto:isaac@zackdesign.biz" class="nav-link px-3 py-1" aria-label="Email contact" role="menuitem">
+            <i class="fas fa-envelope me-1" aria-hidden="true"></i> Email
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>

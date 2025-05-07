@@ -1,15 +1,143 @@
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cloudinary-core/2.11.4/cloudinary-core-shrinkwrap.min.js" integrity="sha512-tRrUhjKg6n9eE2OxOkZ6pPITzcBOyaVQwYABomTDemvbGbJDxLKhL5iQikW3Ht4mwlDbb7/v0TjaLs7ymnQi/w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script type="text/javascript">
-        $(document).ready(function() {
-            var cl = cloudinary.Cloudinary.new();
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js" integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cloudinary-core/2.13.1/cloudinary-core-shrinkwrap.js" integrity="sha512-O81/zueLJzorJhHKGYGaNBlFiHXw/iKhHzo+bWDXmhcLF2bH4WA9/Ts2qtFiqjpVnyQFQsnlxWYTugpOw7BtEw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Cloudinary
+            var cl = new cloudinary.Cloudinary({cloud_name: "dux48uumi", secure: true});
+            
+            // Set background image
             var backgrounds = 10;
-            var width = $(window).width();
+            var width = window.innerWidth;
+            var height = window.innerHeight;
             var background = Math.floor((Math.random() * backgrounds) + 1);
-            cl.init();
-            var url = cl.url('zdbackground' + background, {width: width, crop: 'limit'});
-            $('body').css('background', 'url(' + url + ') 50% top');
+            
+            // Build better quality background URL with correct options
+            var url = cl.url('zdbackground' + background, {
+                width: Math.max(width, 1920),
+                height: Math.max(height, 1080),
+                crop: 'fill',
+                gravity: 'auto',
+                quality: 90,
+                fetch_format: 'auto',
+                dpr: window.devicePixelRatio || 1
+            });
+            
+            // Apply background with better positioning
+            document.body.style.backgroundImage = 'url(' + url + ')';
+            
+            // Add smooth scrolling for all anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    if (this.getAttribute('href') !== "#") {
+                        e.preventDefault();
+                        
+                        document.querySelector(this.getAttribute('href')).scrollIntoView({
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+
+            // Initialize Bootstrap tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
         });
     </script>
+
+    <!-- Structured Data for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ProfessionalService",
+      "name": "{{ site.name }}",
+      "description": "{{ site.description }}",
+      "url": "{{ site.url }}",
+      "logo": "{{ site.url }}{{ site.logo }}",
+      "image": "{{ site.url }}{{ site.image }}",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Melbourne",
+        "addressRegion": "VIC",
+        "addressCountry": "AU"
+      },
+      "priceRange": "$$",
+      "telephone": "",
+      "email": "isaac@zackdesign.biz",
+      "sameAs": [
+        "https://github.com/isaacrowntree"
+      ],
+      "openingHoursSpecification": {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday"
+        ],
+        "opens": "09:00",
+        "closes": "17:00"
+      },
+      "founder": {
+        "@type": "Person",
+        "name": "Isaac Rowntree",
+        "url": "https://isaacrowntree.com"
+      },
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Digital Services",
+        "itemListElement": [
+          {
+            "@type": "Offer",
+            "name": "Web Development",
+            "description": "Custom websites and web applications built with modern technologies"
+          },
+          {
+            "@type": "Offer",
+            "name": "Digital Consulting",
+            "description": "Strategic advice to help businesses leverage technology"
+          },
+          {
+            "@type": "Offer",
+            "name": "Project Management",
+            "description": "Experienced oversight for digital projects"
+          }
+        ]
+      }
+    }
+    </script>
+
+    {% if page.layout == "post" %}
+    <!-- Structured Data for Blog Posts -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "{{ page.title }}",
+      "description": "{% if page.description %}{{ page.description }}{% else %}{{ site.description }}{% endif %}",
+      "image": "{% if page.og_image %}{{ site.url }}{{ page.og_image }}{% else %}{{ site.url }}{{ site.image }}{% endif %}",
+      "author": {
+        "@type": "Person",
+        "name": "{{ site.author.name }}",
+        "url": "{{ site.author.url }}"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "{{ site.name }}",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "{{ site.url }}{{ site.logo }}"
+        }
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "{{ site.url }}{{ page.url }}"
+      },
+      "datePublished": "{{ page.date | date_to_xmlschema }}",
+      "dateModified": "{% if page.last_modified_at %}{{ page.last_modified_at | date_to_xmlschema }}{% else %}{{ page.date | date_to_xmlschema }}{% endif %}"
+    }
+    </script>
+    {% endif %}

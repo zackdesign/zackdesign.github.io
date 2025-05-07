@@ -1,17 +1,37 @@
 name: Zack Design
+title: Zack Design
+description: Web development, consulting, and digital solutions by industry experts
+tagline: Expert web applications, consulting, and project management
+author:
+  name: Isaac Rowntree
+  email: isaac@zackdesign.biz
+  url: https://isaacrowntree.com
 
-description: Web applications, consulting, and project management
+logo: /images/logo.png
+image: /images/logo.png
 
 google_analytics: G-G929CKNR8F
 
 url: https://zackdesign.biz
 enforce_ssl: zackdesign.biz
+baseurl: ""
+permalink: /:title/
+
+social:
+  links:
+    - https://github.com/isaacrowntree
+
+lang: en_US
+locale: en_US
 
 plugins:
   - jekyll-sitemap
+  - jekyll-seo-tag
 
 exclude:
   - Gemfile
   - Gemfile.lock
   - CNAME
   - vendor
+  - README.md
+  - .git

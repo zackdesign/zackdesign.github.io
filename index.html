@@ -3,15 +3,77 @@ layout: default
 ---
 
 {% for post in site.posts %}
-
-    <div class="blog-post">
-        <h4 class="blog-post-title"><a href="{{ post.url }}">{{ post.title }}</a></h4>
-        <p class="blog-post-meta"><i class="fa fa-calendar"></i> {{ post.date | date_to_string }}</p>
-        {{ post.content | split:"<!-- more -->" | first | strip_html | truncate:400 }}
-        {% if post.content.size > 400 %}
-            <a href="{{ post.url }}"><strong>more <i class="fa fa-angle-double-right fa-xs"></i></strong></a>
-        {% endif %}
-    </div>
-    <hr>
-
+    <article class="blog-post mb-4 card shadow-sm">
+        <div class="card-body">
+            <h3 class="blog-post-title mb-2">{{ post.title }}</h3>
+            <div class="post-meta text-muted small mb-3">
+                <i class="far fa-calendar-alt me-1"></i> {{ post.date | date: "%B %d, %Y" }}
+            </div>
+            
+            <div class="blog-post-content">
+                <div class="blog-post-excerpt">
+                    {{ post.excerpt }}
+                </div>
+                
+                {% if post.content contains '<!-- more -->' %}
+                    <div class="accordion" id="postAccordion{{ forloop.index }}">
+                        <div class="accordion-item border-0">
+                            <h2 class="accordion-header" id="heading{{ forloop.index }}">
+                                <button class="read-more btn btn-link text-decoration-none collapsed p-0" 
+                                        type="button" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#collapse{{ forloop.index }}" 
+                                        aria-expanded="false" 
+                                        aria-controls="collapse{{ forloop.index }}">
+                                    <span class="when-collapsed">Read more <i class="fas fa-chevron-down ms-1"></i></span>
+                                    <span class="when-expanded">Read less <i class="fas fa-chevron-up ms-1"></i></span>
+                                </button>
+                            </h2>
+                            <div id="collapse{{ forloop.index }}" 
+                                 class="accordion-collapse collapse" 
+                                 aria-labelledby="heading{{ forloop.index }}" 
+                                 data-bs-parent="#postAccordion{{ forloop.index }}">
+                                <div class="accordion-body ps-0 pt-3">
+                                    {{ post.content | split:'<!-- more -->' | last }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </article>
+    {% unless forloop.last %}
+        <hr class="my-4">
+    {% endunless %}
 {% endfor %}
+
+<style>
+    .read-more .when-expanded {
+        display: none;
+    }
+    .read-more.collapsed .when-expanded {
+        display: none;
+    }
+    .read-more.collapsed .when-collapsed {
+        display: inline;
+    }
+    .read-more:not(.collapsed) .when-expanded {
+        display: inline;
+    }
+    .read-more:not(.collapsed) .when-collapsed {
+        display: none;
+    }
+    
+    .blog-post.card {
+        border: none;
+        background-color: #ffffff;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        margin-bottom: 1.5rem;
+    }
+    
+    .blog-post.card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+    }
+</style>

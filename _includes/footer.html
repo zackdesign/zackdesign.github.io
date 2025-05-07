@@ -1,5 +1,21 @@
-    <nav class="navbar navbar-light bg-light mt-4 text-center" role="navigation">
-      <div class="container text-center">
-         &copy; Zack Design - Using Github + Jekyll
+<footer class="footer mt-5 py-3" role="contentinfo">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-6">
+        <p class="mb-0">&copy; {% if site.time %}{{ site.time | date: '%Y' }}{% else %}2023{% endif %} Zack Design - {{ site.description }}</p>
       </div>
-    </nav>
+      <div class="col-md-6 text-md-end">
+        <ul class="list-inline mb-0">
+          <li class="list-inline-item">
+            <a href="https://github.com/isaacrowntree" class="text-decoration-none" aria-label="GitHub Profile">
+              <i class="fab fa-github" aria-hidden="true"></i>
+            </a>
+          </li>
+          <li class="list-inline-item ms-3">
+            <span>Built with <i class="fas fa-heart text-danger" aria-hidden="true"></i><span class="visually-hidden">love</span> using Jekyll</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
