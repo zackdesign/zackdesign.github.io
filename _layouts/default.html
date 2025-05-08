@@ -3,49 +3,365 @@
   <head>
     <meta charset="utf-8">
     <title>{% if page.title %}{{ page.title }} – {% endif %}{{ site.name }} – {{ site.description }}</title>
-    {% include header-scripts.html %}
     {% include meta.html %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/custom.css">
+    <link rel="icon" type="image/png" href="/images/zackdesign-logo-symbol.png">
   </head>
-  <body>
-    {% include navigation.html %}
-
-    <main class="main-content">
+  <body data-bs-spy="scroll" data-bs-target="#navbarNav" data-bs-offset="100">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
       <div class="container">
-        <!-- Hero Section -->
-        <div class="hero-section mb-4">
-          <div class="jumbotron text-center py-5">
-            <h1 class="display-4 fw-bold">Expert Web Solutions</h1>
+        <a class="navbar-brand d-flex align-items-center" href="#hero">
+          <img src="/images/zackdesign-logo-symbol.png" alt="{{ site.name }}" height="40" class="me-2">
+          <div class="logo-text">
+            <div class="logo-title">Zack Design</div>
+            <div class="logo-tagline">software engineering</div>
+          </div>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="#hero">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#services">Services</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#about">About</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#testimonials">Testimonials</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#blog">Blog</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#contact">Contact</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="hero" class="d-flex align-items-center">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-7 mx-auto text-center">
+            <h1 class="display-4 fw-bold text-white mb-3">Expert Web Solutions</h1>
             <div class="separator my-4"><span></span></div>
-            <p class="lead mb-0">{{ site.description }}</p>
+            <p class="lead text-white mb-5">{{ site.description }}</p>
+            <a href="#services" class="btn btn-primary btn-lg">Our Services</a>
+            <a href="#contact" class="btn btn-outline-light btn-lg ms-3">Contact Us</a>
           </div>
         </div>
-        
-        <!-- Main Content Card -->
-        <div class="card mb-5">
-          <div class="card-body p-md-4">
-            <div class="row g-4">
-              <!-- Sidebar -->
-              <div class="col-lg-4 order-lg-2 pt-5">
-                {% include sidebar.html %}
+      </div>
+    </section>
+
+    <!-- Main Content -->
+    <main id="main">
+      <!-- Services Section -->
+      <section id="services" class="section">
+        <div class="container">
+          <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+              <h2 class="section-title">Services</h2>
+              <p class="section-subtitle">We deliver high-quality web solutions tailored to your needs</p>
+            </div>
+          </div>
+          <div class="row g-4 mt-4">
+            <div class="col-md-4">
+              <div class="service-card">
+                <div class="service-icon">
+                  <i class="fas fa-code"></i>
+                </div>
+                <h3>Web Development</h3>
+                <p>Custom web applications built with modern technologies like React, TypeScript, and Node.js that scale with your business.</p>
               </div>
-              
-              <!-- Main Content -->
-              <div class="col-lg-8 order-lg-1">
-                <!-- Blog Section -->
-                <section id="blog" class="section">
-                  <h2 class="section-title">Latest Posts</h2>
-                  {{ content }}
-                </section>
+            </div>
+            <div class="col-md-4">
+              <div class="service-card">
+                <div class="service-icon">
+                  <i class="fas fa-cloud"></i>
+                </div>
+                <h3>Cloud & Serverless</h3>
+                <p>Modern cloud architecture using Cloudflare Workers, Vercel, AWS, and other cutting-edge serverless technologies.</p>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="service-card">
+                <div class="service-icon">
+                  <i class="fas fa-chart-line"></i>
+                </div>
+                <h3>Technical Consulting</h3>
+                <p>Strategic guidance and technical expertise to help you make smarter decisions and optimize your digital infrastructure.</p>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
+
+      <!-- About Section -->
+      <section id="about" class="section bg-light">
+        <div class="container">
+          <div class="row align-items-center">
+            <div class="col-lg-6">
+              <h2 class="section-title">About Us</h2>
+              <p>Zack Design specializes in delivering high-performance web applications and digital solutions for businesses of all sizes. Led by <a href="https://isaacrowntree.com" target="_blank">Isaac Rowntree</a>, we provide industry-leading expertise in web development, consulting, and project management.</p>
+              
+              <h4 class="mt-4">Leadership & Experience</h4>
+              <p>With over 20 years of experience in the tech industry, Isaac brings a wealth of knowledge from his roles as Head of Tech at CamperMate, Software Engineer at Redbubble, and Senior Developer at Ray White Group. His expertise spans:</p>
+              <ul>
+                <li>Building AI-powered vector search and RAG (Retrieval Augmented Generation) systems</li>
+                <li>Implementing serverless architecture with modern technologies</li>
+                <li>Remote team leadership and engineering culture development</li>
+                <li>Full-stack development with React, TypeScript, and Node.js</li>
+              </ul>
+              <a href="#contact" class="btn btn-primary mt-3">Work With Us</a>
+            </div>
+            <div class="col-lg-6">
+              <div class="about-image">
+                <img src="https://images.unsplash.com/photo-1552581234-26160f608093?q=80&w=1000&auto=format&fit=crop" alt="Modern Developer Workspace" class="img-fluid rounded shadow">
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Testimonials Section -->
+      <section id="testimonials" class="section">
+        <div class="container">
+          <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+              <h2 class="section-title">Testimonials</h2>
+              <p class="section-subtitle">What our clients say about us</p>
+            </div>
+          </div>
+          <div class="row g-4 mt-4">
+            <div class="col-lg-6">
+              <div class="testimonial-card">
+                <div class="testimonial-content">
+                  <p><i class="fas fa-quote-left"></i> Zack Design rescued a huge project for MJ Penner consulting, re-building from scratch in only a couple of weeks what our previous contractor could not do in months. Isaac's leadership has allowed us to make smarter decisions that have saved us thousands of dollars on every project we've engaged together.</p>
+                </div>
+                <div class="testimonial-author">
+                  <div class="testimonial-info">
+                    <h4>Michael Penner</h4>
+                    <p>Director of MJ Penner Consulting</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-6">
+              <div class="testimonial-card">
+                <div class="testimonial-content">
+                  <p><i class="fas fa-quote-left"></i> Isaac and his team at Zack Design have been an integral part of our online success. Their technical, functional and project management work is outstanding and I would not hesitate in recommending their services.</p>
+                </div>
+                <div class="testimonial-author">
+                  <div class="testimonial-info">
+                    <h4>Tomas Molloy</h4>
+                    <p>Director of iSolar</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Technologies Section -->
+      <section id="technologies" class="section bg-light">
+        <div class="container">
+          <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+              <h2 class="section-title">Our Technologies</h2>
+              <p class="section-subtitle">We use cutting-edge tools to deliver modern solutions</p>
+            </div>
+          </div>
+          <div class="row g-4 mt-4">
+            <div class="col-6 col-md-3 mb-4">
+              <div class="tech-card text-center">
+                <i class="fab fa-react fa-3x text-primary mb-3"></i>
+                <h5>React</h5>
+              </div>
+            </div>
+            <div class="col-6 col-md-3 mb-4">
+              <div class="tech-card text-center">
+                <i class="fab fa-node-js fa-3x text-primary mb-3"></i>
+                <h5>Node.js</h5>
+              </div>
+            </div>
+            <div class="col-6 col-md-3 mb-4">
+              <div class="tech-card text-center">
+                <i class="fab fa-js-square fa-3x text-primary mb-3"></i>
+                <h5>TypeScript</h5>
+              </div>
+            </div>
+            <div class="col-6 col-md-3 mb-4">
+              <div class="tech-card text-center">
+                <i class="fab fa-aws fa-3x text-primary mb-3"></i>
+                <h5>AWS</h5>
+              </div>
+            </div>
+            <div class="col-6 col-md-3 mb-4">
+              <div class="tech-card text-center">
+                <i class="fab fa-cloudflare fa-3x text-primary mb-3"></i>
+                <h5>Cloudflare</h5>
+              </div>
+            </div>
+            <div class="col-6 col-md-3 mb-4">
+              <div class="tech-card text-center">
+                <i class="fas fa-mobile-alt fa-3x text-primary mb-3"></i>
+                <h5>React Native</h5>
+              </div>
+            </div>
+            <div class="col-6 col-md-3 mb-4">
+              <div class="tech-card text-center">
+                <i class="fas fa-brain fa-3x text-primary mb-3"></i>
+                <h5>AI Integration</h5>
+              </div>
+            </div>
+            <div class="col-6 col-md-3 mb-4">
+              <div class="tech-card text-center">
+                <i class="fas fa-database fa-3x text-primary mb-3"></i>
+                <h5>Modern DBs</h5>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Blog Section -->
+      <section id="blog" class="section">
+        <div class="container">
+          <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+              <h2 class="section-title">Latest Posts</h2>
+              <p class="section-subtitle">Insights and updates from our team</p>
+            </div>
+          </div>
+          <div class="row g-4 mt-4">
+            {{ content }}
+          </div>
+        </div>
+      </section>
+
+      <!-- Contact Section -->
+      <section id="contact" class="section bg-light">
+        <div class="container">
+          <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+              <h2 class="section-title">Get In Touch</h2>
+              <p class="section-subtitle">Ready to start your next project? Contact us today!</p>
+            </div>
+          </div>
+          <div class="row justify-content-center mt-5">
+            <div class="col-md-8">
+              <div class="contact-card text-center py-5">
+                <div class="contact-icon mb-4">
+                  <i class="fas fa-envelope fa-3x text-primary"></i>
+                </div>
+                <h3 class="mb-4">Email Us</h3>
+                <p class="lead mb-4">For inquiries, proposals, or questions:</p>
+                <a href="mailto:isaac@zackdesign.biz" class="btn btn-primary btn-lg">isaac@zackdesign.biz</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
 
-    {% include footer.html %}
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="d-flex align-items-center mb-3">
+              <img src="/images/zackdesign-logo-symbol.png" alt="{{ site.name }}" height="40" class="me-2">
+              <div class="logo-text">
+                <div class="logo-title text-white">Zack Design</div>
+                <div class="logo-tagline">web & app development</div>
+              </div>
+            </div>
+            <p>Delivering high-performance web and app solutions for businesses of all sizes.</p>
+          </div>
+          <div class="col-md-6 text-md-end">
+            <div class="social-links">
+              <a href="https://github.com/zackdesign" target="_blank" aria-label="GitHub"><i class="fab fa-github"></i></a>
+              <a href="https://isaacrowntree.com" target="_blank" aria-label="Personal Site"><i class="fas fa-user"></i></a>
+            </div>
+            <p class="copyright">© {{ site.time | date: '%Y' }} {{ site.name }}. All rights reserved.</p>
+          </div>
+        </div>
+      </div>
+    </footer>
 
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // Smooth scrolling for anchor links
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+          e.preventDefault();
+          document.querySelector(this.getAttribute('href')).scrollIntoView({
+            behavior: 'smooth'
+          });
+        });
+      });
+      
+      // Navbar background change on scroll
+      window.addEventListener('scroll', function() {
+        const navbar = document.getElementById('mainNav');
+        if (window.scrollY > 50) {
+          navbar.classList.add('navbar-scrolled');
+        } else {
+          navbar.classList.remove('navbar-scrolled');
+        }
+      });
+      
+      // Blog post content management - collapse other posts when one is expanded
+      document.addEventListener('DOMContentLoaded', function() {
+        const blogCollapses = document.querySelectorAll('.blog-card .collapse');
+        const readMoreButtons = document.querySelectorAll('.read-more-btn');
+        
+        readMoreButtons.forEach(button => {
+          button.addEventListener('click', function(e) {
+            const targetId = this.getAttribute('href');
+            const targetCollapse = document.querySelector(targetId);
+            
+            // Check if the clicked collapse is already open
+            const isExpanded = this.getAttribute('aria-expanded') === 'true';
+            
+            // If opening a collapse, close all others in the same section
+            if (!isExpanded) {
+              const isInMainSection = targetId.includes('post-') && !targetId.includes('post-extra-');
+              const isInAllPosts = targetId.includes('post-extra-');
+              
+              // Close collapses in the same section
+              blogCollapses.forEach(collapse => {
+                const collapseId = '#' + collapse.id;
+                if (collapseId !== targetId) {
+                  // Only close collapses in the same section (main or all posts)
+                  if ((isInMainSection && !collapseId.includes('post-extra-')) || 
+                      (isInAllPosts && collapseId.includes('post-extra-'))) {
+                    const bsCollapse = bootstrap.Collapse.getInstance(collapse);
+                    if (bsCollapse) bsCollapse.hide();
+                  }
+                }
+              });
+            }
+          });
+        });
+      });
+    </script>
     {% include analytics.html %}
-    {% include footer-scripts.html %}
   </body>
 </html>

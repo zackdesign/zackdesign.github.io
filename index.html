@@ -2,78 +2,40 @@
 layout: default
 ---
 
-{% for post in site.posts %}
-    <article class="blog-post mb-4 card shadow-sm">
-        <div class="card-body">
-            <h3 class="blog-post-title mb-2">{{ post.title }}</h3>
-            <div class="post-meta text-muted small mb-3">
-                <i class="far fa-calendar-alt me-1"></i> {{ post.date | date: "%B %d, %Y" }}
-            </div>
-            
-            <div class="blog-post-content">
-                <div class="blog-post-excerpt">
-                    {{ post.excerpt }}
-                </div>
-                
-                {% if post.content contains '<!-- more -->' %}
-                    <div class="accordion" id="postAccordion{{ forloop.index }}">
-                        <div class="accordion-item border-0">
-                            <h2 class="accordion-header" id="heading{{ forloop.index }}">
-                                <button class="read-more btn btn-link text-decoration-none collapsed p-0" 
-                                        type="button" 
-                                        data-bs-toggle="collapse" 
-                                        data-bs-target="#collapse{{ forloop.index }}" 
-                                        aria-expanded="false" 
-                                        aria-controls="collapse{{ forloop.index }}">
-                                    <span class="when-collapsed">Read more <i class="fas fa-chevron-down ms-1"></i></span>
-                                    <span class="when-expanded">Read less <i class="fas fa-chevron-up ms-1"></i></span>
-                                </button>
-                            </h2>
-                            <div id="collapse{{ forloop.index }}" 
-                                 class="accordion-collapse collapse" 
-                                 aria-labelledby="heading{{ forloop.index }}" 
-                                 data-bs-parent="#postAccordion{{ forloop.index }}">
-                                <div class="accordion-body ps-0 pt-3">
-                                    {{ post.content | split:'<!-- more -->' | last }}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                {% endif %}
-            </div>
+<div class="row row-cols-1 row-cols-md-3 g-4">
+  {% for post in site.posts %}
+  <div class="col">
+    <div class="blog-card h-100">
+      <div class="card-body">
+        <div class="blog-date">
+          <span class="badge bg-light text-dark">{{ post.date | date: "%b %d, %Y" }}</span>
         </div>
-    </article>
-    {% unless forloop.last %}
-        <hr class="my-4">
-    {% endunless %}
-{% endfor %}
-
-<style>
-    .read-more .when-expanded {
-        display: none;
-    }
-    .read-more.collapsed .when-expanded {
-        display: none;
-    }
-    .read-more.collapsed .when-collapsed {
-        display: inline;
-    }
-    .read-more:not(.collapsed) .when-expanded {
-        display: inline;
-    }
-    .read-more:not(.collapsed) .when-collapsed {
-        display: none;
-    }
-    
-    .blog-post.card {
-        border: none;
-        background-color: #ffffff;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        margin-bottom: 1.5rem;
-    }
-    
-    .blog-post.card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
-    }
-</style>
+        <h4 class="blog-title">{{ post.title }}</h4>
+        <div class="blog-excerpt">
+          {{ post.excerpt | strip_html | truncatewords: 25 }}
+        </div>
+        
+        {% if post.content contains '<!-- more -->' %}
+        <div class="text-center">
+          <a href="#post-{{ forloop.index }}" class="read-more-btn btn btn-outline-primary" data-bs-toggle="collapse" aria-expanded="false" aria-controls="post-{{ forloop.index }}">
+            Read More <i class="fas fa-chevron-right ms-1"></i>
+          </a>
+        </div>
+        
+        <div class="collapse mt-4" id="post-{{ forloop.index }}">
+          <div class="post-content">
+            {{ post.content | split:'<!-- more -->' | last }}
+            
+            <div class="text-end mt-4">
+              <a href="#post-{{ forloop.index }}" class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" aria-expanded="true" aria-controls="post-{{ forloop.index }}">
+                <i class="fas fa-times me-1"></i> Close
+              </a>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
