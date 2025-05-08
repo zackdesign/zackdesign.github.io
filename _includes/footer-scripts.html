@@ -47,7 +47,7 @@
         });
     </script>
 
-    <!-- Structured Data for SEO -->
+    <!-- Additional Structured Data for Services - Complements the SEO tag output -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -64,11 +64,7 @@
         "addressCountry": "AU"
       },
       "priceRange": "$$",
-      "telephone": "",
       "email": "isaac@zackdesign.biz",
-      "sameAs": [
-        "https://github.com/isaacrowntree"
-      ],
       "openingHoursSpecification": {
         "@type": "OpeningHoursSpecification",
         "dayOfWeek": [
@@ -81,29 +77,39 @@
         "opens": "09:00",
         "closes": "17:00"
       },
-      "founder": {
-        "@type": "Person",
-        "name": "Isaac Rowntree",
-        "url": "https://isaacrowntree.com"
-      },
       "hasOfferCatalog": {
         "@type": "OfferCatalog",
-        "name": "Digital Services",
+        "name": "Software Engineering Services",
         "itemListElement": [
           {
             "@type": "Offer",
+            "name": "Software Engineering",
+            "description": "Full-stack development with modern engineering practices and scalable architecture design"
+          },
+          {
+            "@type": "Offer",
             "name": "Web Development",
-            "description": "Custom websites and web applications built with modern technologies"
+            "description": "High-performance web applications built with React, TypeScript, and Node.js"
           },
           {
             "@type": "Offer",
-            "name": "Digital Consulting",
-            "description": "Strategic advice to help businesses leverage technology"
+            "name": "App Development",
+            "description": "Native and cross-platform mobile applications built with React Native"
           },
           {
             "@type": "Offer",
-            "name": "Project Management",
-            "description": "Experienced oversight for digital projects"
+            "name": "Cloud Solutions",
+            "description": "Modern cloud architecture with serverless technologies and microservices"
+          },
+          {
+            "@type": "Offer",
+            "name": "AI Integration",
+            "description": "Implementing AI-powered features, vector search, and RAG systems"
+          },
+          {
+            "@type": "Offer",
+            "name": "Technical Consulting",
+            "description": "Strategic guidance and engineering team leadership"
           }
         ]
       }
@@ -111,7 +117,7 @@
     </script>
 
     {% if page.layout == "post" %}
-    <!-- Structured Data for Blog Posts -->
+    <!-- Structured Data for Blog Posts - Complements the SEO tag output -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -137,7 +143,8 @@
         "@id": "{{ site.url }}{{ page.url }}"
       },
       "datePublished": "{{ page.date | date_to_xmlschema }}",
-      "dateModified": "{% if page.last_modified_at %}{{ page.last_modified_at | date_to_xmlschema }}{% else %}{{ page.date | date_to_xmlschema }}{% endif %}"
+      "dateModified": "{% if page.last_modified_at %}{{ page.last_modified_at | date_to_xmlschema }}{% else %}{{ page.date | date_to_xmlschema }}{% endif %}",
+      "keywords": "{% if page.keywords %}{{ page.keywords }}{% else %}software engineering, web development, app development, {{ site.name }}{% endif %}"
     }
     </script>
     {% endif %}

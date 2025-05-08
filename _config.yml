@@ -7,8 +7,8 @@ author:
   email: isaac@zackdesign.biz
   url: https://isaacrowntree.com
 
-logo: /images/logo.png
-image: /images/logo.png
+logo: /images/zackdesign-logo-symbol.png
+image: /images/zackdesign-logo-symbol.png
 
 google_analytics: G-G929CKNR8F
 
@@ -17,13 +17,22 @@ enforce_ssl: zackdesign.biz
 baseurl: ""
 permalink: /:title/
 
+# SEO Tag Settings
+twitter:
+  username:
+  card: summary
+
 social:
+  name: Zack Design
   links:
+    - https://github.com/zackdesign
     - https://github.com/isaacrowntree
 
+# Locale settings
 lang: en_US
 locale: en_US
 
+# Jekyll plugins
 plugins:
   - jekyll-sitemap
   - jekyll-seo-tag
