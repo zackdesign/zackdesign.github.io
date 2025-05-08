@@ -16,6 +16,8 @@ body {
   color: var(--dark-color);
   overflow-x: hidden;
   scroll-behavior: smooth;
+  font-size: 16px;
+  line-height: 1.6;
 }
 
 a {
@@ -26,6 +28,19 @@ a {
 
 a:hover {
   color: var(--secondary-color);
+}
+
+.btn {
+  border-radius: 4px;
+  padding: 0.5rem 1.25rem;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.btn-lg {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
 }
 
 .btn-primary {
@@ -56,12 +71,12 @@ a:hover {
 
 .logo-title {
   font-weight: 700;
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   color: white;
 }
 
 .logo-tagline {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: rgba(255, 255, 255, 0.7);
@@ -78,9 +93,9 @@ a:hover {
 
 /* Navigation */
 #mainNav {
-  padding: 1rem 0;
+  padding: 0.75rem 0;
   transition: all 0.3s ease;
-  background-color: transparent;
+  background-color: rgba(33, 37, 41, 0.9);
 }
 
 #mainNav .navbar-brand {
@@ -90,8 +105,9 @@ a:hover {
 #mainNav .navbar-nav .nav-item .nav-link {
   color: rgba(255, 255, 255, 0.9);
   font-weight: 500;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.75rem;
   transition: all 0.3s ease;
+  font-size: 0.95rem;
 }
 
 #mainNav .navbar-nav .nav-item .nav-link:hover {
@@ -101,15 +117,18 @@ a:hover {
 #mainNav.navbar-scrolled {
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
   background-color: var(--dark-color);
-  padding: 0.75rem 0;
+  padding: 0.5rem 0;
 }
 
 /* Hero Section */
 #hero {
   background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
   color: white;
-  height: 100vh;
+  min-height: 100vh;
   position: relative;
+  display: flex;
+  align-items: center;
+  padding: 90px 0;
 }
 
 #hero .separator {
@@ -128,7 +147,7 @@ a:hover {
 
 /* Section Styling */
 .section {
-  padding: 100px 0;
+  padding: 60px 0;
 }
 
 .section-title {
@@ -136,10 +155,11 @@ a:hover {
   margin-bottom: 1rem;
   position: relative;
   text-align: center;
+  font-size: 1.75rem;
 }
 
 .section-subtitle {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   margin-bottom: 2rem;
   color: var(--gray-color);
   text-align: center;
@@ -148,7 +168,7 @@ a:hover {
 /* Services Cards */
 .service-card {
   background-color: white;
-  padding: 2.5rem 1.5rem;
+  padding: 1.75rem 1.25rem;
   border-radius: 0.5rem;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
@@ -162,19 +182,20 @@ a:hover {
 }
 
 .service-icon {
-  font-size: 2.5rem;
-  margin-bottom: 1.5rem;
+  font-size: 2.25rem;
+  margin-bottom: 1.25rem;
   color: var(--primary-color);
 }
 
 .service-card h3 {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
+  font-size: 1.35rem;
+  margin-bottom: 0.75rem;
   font-weight: 600;
 }
 
 .service-card p {
   color: var(--gray-color);
+  font-size: 0.95rem;
 }
 
 /* About Section */
@@ -183,6 +204,7 @@ a:hover {
   border-radius: 0.5rem;
   object-fit: cover;
   max-height: 500px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 #about .btn {
@@ -202,7 +224,7 @@ a:hover {
 /* Technologies Section */
 .tech-card {
   background-color: white;
-  padding: 1.5rem;
+  padding: 1.25rem;
   border-radius: 0.5rem;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
@@ -221,13 +243,15 @@ a:hover {
 .tech-card h5 {
   font-weight: 600;
   margin-bottom: 0;
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
 }
 
 /* Testimonials */
 .testimonial-card {
   background-color: white;
   border-radius: 0.5rem;
-  padding: 2rem;
+  padding: 1.75rem 1.25rem;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
   height: 100%;
   transition: all 0.3s ease;
@@ -245,11 +269,13 @@ a:hover {
 .testimonial-content p {
   font-style: italic;
   color: var(--dark-color);
+  font-size: 0.95rem;
+  line-height: 1.6;
 }
 
 .testimonial-content i {
   color: var(--primary-color);
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   margin-right: 0.5rem;
 }
 
@@ -265,7 +291,7 @@ a:hover {
 }
 
 .testimonial-info p {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--gray-color);
   margin-bottom: 0;
 }
@@ -288,7 +314,7 @@ a:hover {
 }
 
 .blog-card .card-body {
-  padding: 1.75rem;
+  padding: 1.5rem;
 }
 
 .blog-date {
@@ -297,15 +323,16 @@ a:hover {
 }
 
 .blog-date .badge {
-  padding: 0.4rem 0.8rem;
+  padding: 0.35rem 0.7rem;
   font-weight: 500;
   border: 1px solid rgba(0, 0, 0, 0.08);
+  font-size: 0.75rem;
 }
 
 .blog-title {
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 600;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   color: var(--dark-color);
   line-height: 1.4;
 }
@@ -318,16 +345,16 @@ a:hover {
 
 .blog-excerpt {
   color: var(--gray-color);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   line-height: 1.6;
   margin-bottom: 1.25rem;
 }
 
 .read-more-btn {
   font-weight: 500;
-  padding: 0.5rem 1rem;
+  padding: 0.4rem 0.9rem;
   border-radius: 2rem;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   display: inline-flex;
   align-items: center;
   transition: all 0.3s ease;
@@ -351,10 +378,10 @@ a:hover {
 
 .post-content {
   color: var(--dark-color);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   line-height: 1.7;
   background-color: rgba(0, 0, 0, 0.02);
-  padding: 1.5rem;
+  padding: 1.25rem;
   border-radius: 0.5rem;
   margin-top: 1rem;
 }
@@ -374,11 +401,11 @@ a:hover {
 }
 
 .post-content h2 {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
 }
 
 .post-content h3 {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
 }
 
 .post-content ul, 
@@ -410,7 +437,7 @@ a:hover {
   border-radius: 0.5rem;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
-  padding: 2rem;
+  padding: 1.75rem;
 }
 
 .contact-card:hover {
@@ -422,29 +449,31 @@ a:hover {
 }
 
 .contact-item {
-  margin-bottom: 2rem;
+  margin-bottom: 1.75rem;
   text-align: center;
 }
 
 .contact-item i {
-  font-size: 2rem;
+  font-size: 1.75rem;
   color: var(--primary-color);
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .contact-item h3 {
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
 }
 
 .contact-item p {
   color: var(--gray-color);
+  font-size: 0.95rem;
 }
 
 .form-control {
   padding: 0.75rem 1rem;
   border: 1px solid rgba(0, 0, 0, 0.1);
+  font-size: 0.95rem;
 }
 
 .form-control:focus {
@@ -456,11 +485,12 @@ a:hover {
 .footer {
   background-color: var(--dark-color);
   color: white;
-  padding: 3rem 0;
+  padding: 2.5rem 0;
 }
 
 .footer p {
   opacity: 0.8;
+  font-size: 0.9rem;
 }
 
 .social-links {
@@ -469,8 +499,8 @@ a:hover {
 
 .social-links a {
   color: white;
-  font-size: 1.5rem;
-  margin-left: 1rem;
+  font-size: 1.25rem;
+  margin-left: 0.75rem;
   opacity: 0.8;
   transition: all 0.3s ease;
 }
@@ -484,52 +514,266 @@ a:hover {
   font-size: 0.85rem;
 }
 
+/* Post Page Styles */
+.post-header {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  padding: 130px 0 80px;
+  margin-bottom: 50px;
+}
+
+.post-title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: 1rem;
+}
+
+.post-card {
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.post-body {
+  color: var(--dark-color);
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+.post-body p {
+  margin-bottom: 1.5rem;
+}
+
+.post-body h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-top: 2.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.post-body h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.post-body h4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.post-body ul, 
+.post-body ol {
+  margin-bottom: 1.5rem;
+  padding-left: 2rem;
+}
+
+.post-body li {
+  margin-bottom: 0.5rem;
+}
+
+.post-body img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 1.5rem 0;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+.post-body a {
+  color: var(--primary-color);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.post-body a:hover {
+  color: var(--secondary-color);
+}
+
+.post-body blockquote {
+  border-left: 4px solid var(--primary-color);
+  padding-left: 1.25rem;
+  margin-left: 0;
+  margin-bottom: 1.5rem;
+  font-style: italic;
+  color: var(--gray-color);
+}
+
+.post-footer {
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.social-share-link {
+  color: var(--dark-color);
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+}
+
+.social-share-link:hover {
+  color: var(--primary-color);
+}
+
+.post-content-section {
+  padding-bottom: 80px;
+}
+
 /* Media Queries */
-@media (max-width: 991.98px) {
+@media (min-width: 768px) {
+  body {
+    font-size: 16px;
+  }
+  
   .section {
     padding: 80px 0;
   }
   
   #hero {
-    height: auto;
-    padding: 120px 0;
+    min-height: 100vh;
+  }
+  
+  .section-title {
+    font-size: 2rem;
+  }
+  
+  .section-subtitle {
+    font-size: 1.15rem;
+  }
+  
+  .service-card {
+    padding: 2rem;
+  }
+  
+  .service-card h3 {
+    font-size: 1.4rem;
+  }
+  
+  .service-icon {
+    font-size: 2.5rem;
+  }
+  
+  .logo-title {
+    font-size: 1.25rem;
+  }
+  
+  .blog-title {
+    font-size: 1.25rem;
+  }
+  
+  .blog-card .card-body {
+    padding: 1.75rem;
+  }
+  
+  .testimonial-card {
+    padding: 2rem;
+  }
+}
+
+@media (min-width: 992px) {
+  #mainNav {
+    background-color: transparent;
+    padding: 1rem 0;
+  }
+  
+  #mainNav.navbar-scrolled {
+    padding: 0.75rem 0;
+  }
+  
+  .section {
+    padding: 100px 0;
   }
 }
 
 @media (max-width: 767.98px) {
-  .section {
-    padding: 60px 0;
-  }
-  
-  .service-card, 
-  .testimonial-card,
-  .blog-card,
-  .tech-card,
-  .contact-card {
-    padding: 1.5rem;
-  }
-  
   #hero {
-    padding: 100px 0;
+    text-align: center;
+    padding: 80px 0;
   }
   
-  .blog-title {
-    font-size: 1.1rem;
+  #hero h1 {
+    font-size: 2rem;
   }
   
-  .post-content h2 {
-    font-size: 1.3rem;
+  .navbar-collapse {
+    background-color: var(--dark-color);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-top: 0.5rem;
   }
   
-  .post-content h3 {
-    font-size: 1.1rem;
+  .navbar-nav {
+    padding-top: 0.5rem;
   }
   
-  .logo-title {
-    font-size: 1.1rem;
+  .about-image {
+    margin-top: 2rem;
   }
   
-  .logo-tagline {
-    font-size: 0.7rem;
+  .footer [class*="col-"] {
+    margin-bottom: 1.5rem;
+  }
+  
+  .footer .text-md-end {
+    text-align: center !important;
+  }
+  
+  .social-links {
+    text-align: center;
+    margin-top: 1rem;
+  }
+  
+  .social-links a {
+    margin: 0 0.5rem;
+  }
+  
+  .copyright {
+    text-align: center;
+  }
+  
+  .post-header {
+    padding: 110px 0 50px;
+    margin-bottom: 30px;
+  }
+  
+  .post-title {
+    font-size: 1.75rem;
+  }
+  
+  .post-card {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .post-body {
+    font-size: 1rem;
+  }
+  
+  .post-body h2 {
+    font-size: 1.6rem;
+    margin-top: 2rem;
+  }
+  
+  .post-body h3 {
+    font-size: 1.35rem;
+  }
+  
+  .post-body h4 {
+    font-size: 1.15rem;
+  }
+  
+  .post-footer {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .post-share {
+    align-self: flex-start;
   }
 } 
