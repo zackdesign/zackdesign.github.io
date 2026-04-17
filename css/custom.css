@@ -838,23 +838,13 @@ a:hover {
   box-shadow: 0 25px 60px rgba(67, 97, 238, 0.18);
 }
 
-.product-icon {
-  width: 120px;
-  height: 120px;
-  border-radius: 1.25rem;
+.product-wordmark {
+  width: 100%;
+  max-width: 280px;
+  height: auto;
+  border-radius: 0.875rem;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
-}
-
-.product-title {
-  font-size: 2rem;
-  font-weight: 800;
-  margin-top: 1.25rem;
-  margin-bottom: 0.5rem;
-  color: var(--primary-color);
-  background: linear-gradient(135deg, #4361ee, #4cc9f0);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  margin-bottom: 0.75rem;
 }
 
 .product-tagline {
