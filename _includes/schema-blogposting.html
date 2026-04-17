@@ -1,0 +1,49 @@
+{%- comment -%}
+  BlogPosting JSON-LD schema for a post page.
+  Extends what jekyll-seo-tag emits with richer fields.
+{%- endcomment -%}
+
+{%- assign words = page.content | number_of_words -%}
+{%- assign minutes = words | divided_by: 220 | at_least: 1 -%}
+{%- assign category = page.categories | first | default: "Writing" -%}
+{%- assign hero_image = page.image | default: "/images/zackdesign-logo-symbol.png" -%}
+{%- assign hero_image_abs = hero_image | absolute_url -%}
+{%- assign modified = page.last_modified_at | default: page.date -%}
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "@id": "{{ page.url | absolute_url }}#blogposting",
+  "headline": {{ page.title | jsonify }},
+  "description": {{ page.description | default: page.excerpt | strip_html | strip_newlines | truncate: 240 | jsonify }},
+  "image": [
+    "{{ hero_image_abs }}"
+  ],
+  "datePublished": "{{ page.date | date_to_xmlschema }}",
+  "dateModified": "{{ modified | date_to_xmlschema }}",
+  "author": {
+    "@type": "Person",
+    "name": "{{ page.author | default: site.author.name }}",
+    "url": "{{ site.author.url }}"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "{{ site.name }}",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "{{ site.logo | absolute_url }}"
+    }
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "{{ page.url | absolute_url }}"
+  },
+  "url": "{{ page.url | absolute_url }}",
+  "wordCount": {{ words }},
+  "timeRequired": "PT{{ minutes }}M",
+  "articleSection": {{ category | capitalize | jsonify }},
+  "keywords": {{ page.tags | default: page.keywords | join: ", " | jsonify }},
+  "inLanguage": "{{ site.lang | default: 'en_US' }}"
+}
+</script>

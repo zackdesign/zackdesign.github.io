@@ -17,10 +17,12 @@ enforce_ssl: zackdesign.biz
 baseurl: ""
 permalink: /:title/
 
+excerpt_separator: <!-- more -->
+
 # SEO Tag Settings
 twitter:
   username:
-  card: summary
+  card: summary_large_image
 
 social:
   name: Zack Design
@@ -32,10 +34,23 @@ social:
 lang: en_US
 locale: en_US
 
+# Defaults for posts
+defaults:
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: post
+      author: Isaac Rowntree
+
 # Jekyll plugins
 plugins:
   - jekyll-sitemap
   - jekyll-seo-tag
+  - jekyll-feed
+
+feed:
+  path: feed.xml
 
 exclude:
   - Gemfile

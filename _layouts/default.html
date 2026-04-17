@@ -1,395 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ site.lang | default: 'en' }}">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% if page.title %}{{ page.title }} – {% endif %}{{ site.name }} – {{ site.description }}</title>
+    <title>{% if page.title %}{{ page.title }} — {% endif %}{{ site.name }} — {{ site.description }}</title>
     {% include meta.html %}
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="/css/custom.css">
-    
+    {% include header-scripts.html %}
+
     <!-- Favicon -->
     <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
     <link rel="manifest" href="/favicon/site.webmanifest">
     <link rel="shortcut icon" href="/favicon/favicon.ico">
-    <meta name="theme-color" content="#3366ff">
+    <meta name="theme-color" content="#0A0A1A">
   </head>
-  <body data-bs-spy="scroll" data-bs-target="#navbarNav" data-bs-offset="100">
+  <body data-bs-spy="scroll" data-bs-target="#navbarNav" data-bs-offset="120">
+    <!-- Scroll progress -->
+    <div class="scroll-progress"><div class="scroll-progress__bar"></div></div>
+
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
       <div class="container">
-        <a class="navbar-brand d-flex align-items-center" href="#hero">
+        <a class="navbar-brand d-flex align-items-center" href="/">
           <img src="/images/zackdesign-logo-symbol.png" alt="{{ site.name }}" height="40" class="me-2">
           <div class="logo-text">
             <div class="logo-title">Zack Design</div>
             <div class="logo-tagline">software engineering</div>
           </div>
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ms-auto">
-            <li class="nav-item">
-              <a class="nav-link" href="#hero">Home</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#product">Product</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#services">Services</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#about">About</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#testimonials">Testimonials</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#blog">Blog</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#contact">Contact</a>
-            </li>
+            <li class="nav-item"><a class="nav-link" href="/#hero">Home</a></li>
+            <li class="nav-item"><a class="nav-link" href="/#product">Product</a></li>
+            <li class="nav-item"><a class="nav-link" href="/#services">Services</a></li>
+            <li class="nav-item"><a class="nav-link" href="/#visual">Visual</a></li>
+            <li class="nav-item"><a class="nav-link" href="/#about">About</a></li>
+            <li class="nav-item"><a class="nav-link{% if page.url contains '/blog' %} active{% endif %}" href="/blog/">Journal</a></li>
+            <li class="nav-item"><a class="nav-link" href="/#contact">Contact</a></li>
           </ul>
         </div>
       </div>
     </nav>
 
-    <!-- Hero Section -->
-    <section id="hero" class="d-flex align-items-center">
-      <div class="container">
-        <div class="row">
-          <div class="col-lg-9 col-xl-7 mx-auto text-center">
-            <h1 class="display-4 fw-bold text-white mb-3">Software Engineering Excellence</h1>
-            <div class="separator my-4"><span></span></div>
-            <p class="lead text-white mb-5">Expert software development, web applications, and digital solutions powered by modern technologies and engineering best practices</p>
-            <a href="#services" class="btn btn-primary btn-lg">Our Services</a>
-            <a href="#contact" class="btn btn-outline-light btn-lg ms-3">Get in Touch</a>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Main Content -->
     <main id="main">
-      <!-- Flagship Product: SessionHQ -->
-      <section id="product" class="section section-product">
-        <div class="container">
-          <div class="row">
-            <div class="col-lg-10 mx-auto text-center mb-5">
-              <span class="product-eyebrow">Flagship Product · Just launched</span>
-              <h2 class="section-title mt-3">Introducing SessionHQ</h2>
-              <p class="section-subtitle">A full-stack SaaS product built, shipped, and now running real customers.</p>
-            </div>
-          </div>
-          <div class="row align-items-center g-5">
-            <div class="col-lg-5 text-center">
-              <div class="product-showcase-card">
-                <span class="sessionhq-wordmark" aria-label="SessionHQ">Session<span class="sessionhq-hq">HQ</span></span>
-                <p class="product-tagline">Class check-ins, beautifully simple.</p>
-                <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center mt-2">
-                  <a href="https://sessionhq.org" target="_blank" rel="noopener" class="btn btn-primary btn-lg">
-                    <i class="fas fa-globe me-2"></i>Visit sessionhq.org
-                  </a>
-                  <a href="/sessionhq-launch/" class="btn btn-outline-primary btn-lg">
-                    Read the launch story
-                  </a>
-                </div>
-              </div>
-            </div>
-            <div class="col-lg-7">
-              <p class="lead">The modern check-in platform for dance studios, gyms, and martial arts schools. PIN pad, NFC tap, QR kiosk check-in, pass management, Square payments, real-time attendance — all in one multi-tenant SaaS.</p>
-              <div class="row g-3 my-4">
-                <div class="col-sm-6">
-                  <div class="product-feature">
-                    <div class="product-feature-icon"><i class="fas fa-bolt"></i></div>
-                    <div><strong>Instant check-in</strong><div class="small text-muted">PIN · NFC · QR · multi-class</div></div>
-                  </div>
-                </div>
-                <div class="col-sm-6">
-                  <div class="product-feature">
-                    <div class="product-feature-icon"><i class="fas fa-credit-card"></i></div>
-                    <div><strong>Square payments</strong><div class="small text-muted">Cards-on-file · auto-renew</div></div>
-                  </div>
-                </div>
-                <div class="col-sm-6">
-                  <div class="product-feature">
-                    <div class="product-feature-icon"><i class="fas fa-lock"></i></div>
-                    <div><strong>Multi-tenant secure</strong><div class="small text-muted">Postgres RLS · per-studio isolation</div></div>
-                  </div>
-                </div>
-                <div class="col-sm-6">
-                  <div class="product-feature">
-                    <div class="product-feature-icon"><i class="fas fa-chart-line"></i></div>
-                    <div><strong>Real-time analytics</strong><div class="small text-muted">Revenue · LTV · retention</div></div>
-                  </div>
-                </div>
-              </div>
-              <div class="product-stack mb-4">
-                <span class="product-stack-label">Built with</span>
-                <span class="product-stack-badge">Next.js 16</span>
-                <span class="product-stack-badge">React 19</span>
-                <span class="product-stack-badge">Cloudflare Workers</span>
-                <span class="product-stack-badge">Supabase</span>
-                <span class="product-stack-badge">Square</span>
-                <span class="product-stack-badge">Tailwind 4</span>
-                <span class="product-stack-badge">Sentry</span>
-                <span class="product-stack-badge">Playwright</span>
-              </div>
-              <div class="product-partner p-3 rounded">
-                <div class="small text-uppercase text-primary fw-semibold mb-1">Founding partner</div>
-                <a href="https://www.havanahastingsdance.com.au/" target="_blank" rel="noopener" class="fw-semibold text-decoration-none">Havana on the Hastings</a>
-                — Port Macquarie's Latin dance community (Cuban salsa, bachata, urban kiz, rueda).
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Services Section -->
-      <section id="services" class="section">
-        <div class="container">
-          <div class="row">
-            <div class="col-lg-8 mx-auto text-center">
-              <h2 class="section-title">Our Services</h2>
-              <p class="section-subtitle">Delivering high-quality software solutions with engineering excellence</p>
-            </div>
-          </div>
-          <div class="row g-4 mt-4">
-            <div class="col-md-4">
-              <div class="service-card">
-                <div class="service-icon">
-                  <i class="fas fa-code"></i>
-                </div>
-                <h3>Software Engineering</h3>
-                <p>Full-stack development with modern engineering practices, code quality focus, and scalable architecture design for complex business needs.</p>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="service-card">
-                <div class="service-icon">
-                  <i class="fas fa-laptop-code"></i>
-                </div>
-                <h3>Web Development</h3>
-                <p>Crafting high-performance web applications using React, TypeScript, and Node.js with responsive design and exceptional user experience.</p>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="service-card">
-                <div class="service-icon">
-                  <i class="fas fa-mobile-alt"></i>
-                </div>
-                <h3>App Development</h3>
-                <p>Native and cross-platform mobile applications built with React Native, delivering native-quality experiences across iOS and Android.</p>
-              </div>
-            </div>
-            <div class="col-md-4 mt-4">
-              <div class="service-card">
-                <div class="service-icon">
-                  <i class="fas fa-cloud"></i>
-                </div>
-                <h3>Cloud Solutions</h3>
-                <p>Modern cloud architecture with serverless technologies, microservices, and infrastructure as code on AWS, Cloudflare, and Vercel.</p>
-              </div>
-            </div>
-            <div class="col-md-4 mt-4">
-              <div class="service-card">
-                <div class="service-icon">
-                  <i class="fas fa-brain"></i>
-                </div>
-                <h3>AI Integration</h3>
-                <p>Implementing AI-powered features, vector search, RAG systems, and smart automation to transform your applications with intelligence.</p>
-              </div>
-            </div>
-            <div class="col-md-4 mt-4">
-              <div class="service-card">
-                <div class="service-icon">
-                  <i class="fas fa-chart-line"></i>
-                </div>
-                <h3>Technical Consulting</h3>
-                <p>Strategic guidance, engineering team leadership, and technical expertise to help optimize your digital infrastructure and processes.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- About Section -->
-      <section id="about" class="section bg-light">
-        <div class="container">
-          <div class="row align-items-center">
-            <div class="col-lg-6">
-              <h2 class="section-title">About Us</h2>
-              <p>Zack Design specializes in delivering high-performance software solutions built with engineering excellence. Led by <a href="https://isaacrowntree.com" target="_blank">Isaac Rowntree</a>, we provide industry-leading expertise in software engineering, web development, and technical consulting.</p>
-              
-              <h4 class="mt-4">Engineering Leadership</h4>
-              <p>With over 20 years of experience in the tech industry, Isaac brings a wealth of knowledge from his roles as Head of Tech at CamperMate, Software Engineer at Redbubble, and Senior Developer at Ray White Group. His engineering expertise spans:</p>
-              <ul>
-                <li>Software architecture design and implementation for scalable systems</li>
-                <li>Full-stack development with modern technologies and frameworks</li>
-                <li>AI integration, including vector search and RAG systems</li>
-                <li>Cloud-native application development and DevOps practices</li>
-                <li>Remote engineering team leadership and technical mentoring</li>
-              </ul>
-              <a href="#contact" class="btn btn-primary mt-3">Work With Us</a>
-            </div>
-            <div class="col-lg-6">
-              <div class="about-image">
-                <img src="https://images.unsplash.com/photo-1552581234-26160f608093?q=80&w=1000&auto=format&fit=crop" alt="Modern Software Engineering Workspace" class="img-fluid rounded shadow">
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Testimonials Section -->
-      <section id="testimonials" class="section">
-        <div class="container">
-          <div class="row">
-            <div class="col-lg-8 mx-auto text-center">
-              <h2 class="section-title">Client Testimonials</h2>
-              <p class="section-subtitle">What our clients say about our engineering expertise</p>
-            </div>
-          </div>
-          <div class="row g-4 mt-4">
-            <div class="col-lg-6">
-              <div class="testimonial-card">
-                <div class="testimonial-content">
-                  <p><i class="fas fa-quote-left"></i> Zack Design rescued a huge project for MJ Penner consulting, re-building from scratch in only a couple of weeks what our previous contractor could not do in months. Isaac's engineering leadership has allowed us to make smarter decisions that have saved us thousands of dollars on every project we've engaged together.</p>
-                </div>
-                <div class="testimonial-author">
-                  <div class="testimonial-info">
-                    <h4>Michael Penner</h4>
-                    <p>Director of MJ Penner Consulting</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-lg-6">
-              <div class="testimonial-card">
-                <div class="testimonial-content">
-                  <p><i class="fas fa-quote-left"></i> Isaac and his team at Zack Design have been an integral part of our online success. Their technical expertise, software development skills, and project management work is outstanding. I would not hesitate in recommending their services.</p>
-                </div>
-                <div class="testimonial-author">
-                  <div class="testimonial-info">
-                    <h4>Tomas Molloy</h4>
-                    <p>Director of iSolar</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Technologies Section -->
-      <section id="technologies" class="section bg-light">
-        <div class="container">
-          <div class="row">
-            <div class="col-lg-8 mx-auto text-center">
-              <h2 class="section-title">Our Tech Stack</h2>
-              <p class="section-subtitle">We use modern engineering tools and technologies</p>
-            </div>
-          </div>
-          <div class="row g-4 mt-4">
-            <div class="col-6 col-md-3 mb-4">
-              <div class="tech-card text-center">
-                <i class="fab fa-react fa-3x text-primary mb-3"></i>
-                <h5>React</h5>
-              </div>
-            </div>
-            <div class="col-6 col-md-3 mb-4">
-              <div class="tech-card text-center">
-                <i class="fab fa-node-js fa-3x text-primary mb-3"></i>
-                <h5>Node.js</h5>
-              </div>
-            </div>
-            <div class="col-6 col-md-3 mb-4">
-              <div class="tech-card text-center">
-                <i class="fab fa-js-square fa-3x text-primary mb-3"></i>
-                <h5>TypeScript</h5>
-              </div>
-            </div>
-            <div class="col-6 col-md-3 mb-4">
-              <div class="tech-card text-center">
-                <i class="fab fa-aws fa-3x text-primary mb-3"></i>
-                <h5>AWS</h5>
-              </div>
-            </div>
-            <div class="col-6 col-md-3 mb-4">
-              <div class="tech-card text-center">
-                <i class="fab fa-cloudflare fa-3x text-primary mb-3"></i>
-                <h5>Cloudflare</h5>
-              </div>
-            </div>
-            <div class="col-6 col-md-3 mb-4">
-              <div class="tech-card text-center">
-                <i class="fas fa-mobile-alt fa-3x text-primary mb-3"></i>
-                <h5>React Native</h5>
-              </div>
-            </div>
-            <div class="col-6 col-md-3 mb-4">
-              <div class="tech-card text-center">
-                <i class="fas fa-brain fa-3x text-primary mb-3"></i>
-                <h5>AI Integration</h5>
-              </div>
-            </div>
-            <div class="col-6 col-md-3 mb-4">
-              <div class="tech-card text-center">
-                <i class="fas fa-database fa-3x text-primary mb-3"></i>
-                <h5>Modern DBs</h5>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Blog Section -->
-      <section id="blog" class="section">
-        <div class="container">
-          <div class="row">
-            <div class="col-lg-8 mx-auto text-center">
-              <h2 class="section-title">Latest Posts</h2>
-              <p class="section-subtitle">Insights and updates from our engineering team</p>
-            </div>
-          </div>
-          <div class="row g-4 mt-4">
-            {{ content }}
-          </div>
-        </div>
-      </section>
-
-      <!-- Contact Section -->
-      <section id="contact" class="section bg-light">
-        <div class="container">
-          <div class="row">
-            <div class="col-lg-8 mx-auto text-center">
-              <h2 class="section-title">Get In Touch</h2>
-              <p class="section-subtitle">Ready to start your next software project? Contact us today!</p>
-            </div>
-          </div>
-          <div class="row justify-content-center mt-5">
-            <div class="col-md-8">
-              <div class="contact-card text-center py-5">
-                <div class="contact-icon mb-4">
-                  <i class="fas fa-envelope fa-3x text-primary"></i>
-                </div>
-                <h3 class="mb-4">Email Us</h3>
-                <p class="lead mb-4">For inquiries, proposals, or questions about your software project:</p>
-                <a href="mailto:isaac@zackdesign.biz" class="btn btn-primary btn-lg">isaac@zackdesign.biz</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {{ content }}
     </main>
 
     <!-- Footer -->
@@ -400,81 +58,30 @@
             <div class="d-flex align-items-center mb-3">
               <img src="/images/zackdesign-logo-symbol.png" alt="{{ site.name }}" height="40" class="me-2">
               <div class="logo-text">
-                <div class="logo-title text-white">Zack Design</div>
+                <div class="logo-title">Zack Design</div>
                 <div class="logo-tagline">software engineering</div>
               </div>
             </div>
-            <p>Delivering high-performance software engineering solutions for businesses of all sizes.</p>
+            <p>Software engineering, web development, and digital solutions built with engineering excellence.</p>
           </div>
           <div class="col-md-6 text-md-end">
+            <ul class="footer-links justify-content-md-end mb-3">
+              <li><a href="/#services">Services</a></li>
+              <li><a href="/blog/">Journal</a></li>
+              <li><a href="/feed.xml">RSS</a></li>
+              <li><a href="/#contact">Contact</a></li>
+            </ul>
             <div class="social-links">
-              <a href="https://github.com/zackdesign" target="_blank" aria-label="GitHub"><i class="fab fa-github"></i></a>
-              <a href="https://isaacrowntree.com" target="_blank" aria-label="Personal Site"><i class="fas fa-user"></i></a>
+              <a href="https://github.com/zackdesign" target="_blank" rel="noopener" aria-label="GitHub"><i class="fab fa-github"></i></a>
+              <a href="https://isaacrowntree.com" target="_blank" rel="noopener" aria-label="Personal Site"><i class="fas fa-user"></i></a>
             </div>
-            <p class="copyright">© {{ site.time | date: '%Y' }} {{ site.name }}. All rights reserved.</p>
+            <p class="copyright">© {{ site.time | date: '%Y' }} {{ site.name }} · All rights reserved</p>
           </div>
         </div>
       </div>
     </footer>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-      // Smooth scrolling for anchor links
-      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-          e.preventDefault();
-          document.querySelector(this.getAttribute('href')).scrollIntoView({
-            behavior: 'smooth'
-          });
-        });
-      });
-      
-      // Navbar background change on scroll
-      window.addEventListener('scroll', function() {
-        const navbar = document.getElementById('mainNav');
-        if (window.scrollY > 50) {
-          navbar.classList.add('navbar-scrolled');
-        } else {
-          navbar.classList.remove('navbar-scrolled');
-        }
-      });
-      
-      // Blog post content management - collapse other posts when one is expanded
-      document.addEventListener('DOMContentLoaded', function() {
-        const blogCollapses = document.querySelectorAll('.blog-card .collapse');
-        const readMoreButtons = document.querySelectorAll('.read-more-btn');
-        
-        readMoreButtons.forEach(button => {
-          button.addEventListener('click', function(e) {
-            const targetId = this.getAttribute('href');
-            const targetCollapse = document.querySelector(targetId);
-            
-            // Check if the clicked collapse is already open
-            const isExpanded = this.getAttribute('aria-expanded') === 'true';
-            
-            // If opening a collapse, close all others in the same section
-            if (!isExpanded) {
-              const isInMainSection = targetId.includes('post-') && !targetId.includes('post-extra-');
-              const isInAllPosts = targetId.includes('post-extra-');
-              
-              // Close collapses in the same section
-              blogCollapses.forEach(collapse => {
-                const collapseId = '#' + collapse.id;
-                if (collapseId !== targetId) {
-                  // Only close collapses in the same section (main or all posts)
-                  if ((isInMainSection && !collapseId.includes('post-extra-')) || 
-                      (isInAllPosts && collapseId.includes('post-extra-'))) {
-                    const bsCollapse = bootstrap.Collapse.getInstance(collapse);
-                    if (bsCollapse) bsCollapse.hide();
-                  }
-                }
-              });
-            }
-          });
-        });
-      });
-    </script>
+    {% include footer-scripts.html %}
     {% include analytics.html %}
   </body>
 </html>

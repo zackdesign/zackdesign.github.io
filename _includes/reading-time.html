@@ -1,0 +1,7 @@
+{%- comment -%}
+  Reading-time estimate. Pass:
+    include.content — the post content (required)
+  Returns the plain number of minutes as a string.
+{%- endcomment -%}
+{%- assign words = include.content | number_of_words -%}
+{%- assign minutes = words | divided_by: 220 | at_least: 1 -%}{{ minutes }}

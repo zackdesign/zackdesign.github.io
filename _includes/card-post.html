@@ -1,0 +1,46 @@
+{%- comment -%}
+  Post card — used on home Journal section and /blog index.
+
+  Params:
+    include.post      — the post object (required)
+    include.featured  — true to render the large featured variant (optional)
+{%- endcomment -%}
+
+{%- assign p = include.post -%}
+{%- assign category = p.categories | first | default: "Writing" | capitalize -%}
+{%- assign img = p.image | default: "/images/blog/default.jpg" -%}
+{%- assign alt = p.image_alt | default: p.title -%}
+{%- assign words = p.content | number_of_words -%}
+{%- assign minutes = words | divided_by: 220 | at_least: 1 -%}
+
+<a href="{{ p.url | relative_url }}" class="post-card-link reveal" aria-label="Read: {{ p.title | escape }}">
+  <article class="post-card{% if include.featured %} post-card--featured{% endif %}">
+    <div class="post-card__media" data-parallax>
+      <img
+        src="{{ img | relative_url }}"
+        alt="{{ alt | escape }}"
+        loading="{% if include.featured %}eager{% else %}lazy{% endif %}"
+        decoding="async"
+        width="1600"
+        height="900">
+    </div>
+    <div class="post-card__body">
+      <div class="post-card__meta">
+        <span class="post-card__category">{{ category }}</span>
+        <span class="post-card__dot"></span>
+        <time datetime="{{ p.date | date_to_xmlschema }}">{{ p.date | date: "%b %-d, %Y" }}</time>
+        <span class="post-card__dot"></span>
+        <span>{{ minutes }} min read</span>
+      </div>
+      <h3 class="post-card__title">{{ p.title }}</h3>
+      <p class="post-card__excerpt">
+        {%- if p.excerpt and p.excerpt != "" -%}
+          {{ p.excerpt | strip_html | strip_newlines | truncate: 180 }}
+        {%- else -%}
+          {{ p.content | strip_html | strip_newlines | truncate: 180 }}
+        {%- endif -%}
+      </p>
+      <span class="post-card__readmore">Read article <i class="fas fa-arrow-right"></i></span>
+    </div>
+  </article>
+</a>

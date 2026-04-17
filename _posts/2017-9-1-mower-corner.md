@@ -1,11 +1,15 @@
 ---
 layout: post
-title: Mobile-Optimized Website Boosts Mower Corner's Customer Engagement
-description: How our responsive website redesign for Mower Corner improved mobile user experience, enhanced security with SSL, and significantly increased conversion rates.
-keywords: responsive web design, mobile optimization, SSL security, conversion rate optimization, small business websites, outdoor power equipment, lawn mowers, chainsaws
+title: "Mower Corner — mobile-first refresh lifts conversions"
+description: "Responsive, SSL-secured website redesign for Mower Corner's outdoor power equipment business in Colac, Victoria — measurable lift in conversion rate."
+excerpt: "A mobile-first, SSL-secured redesign for Mower Corner's Stihl/Toro/Victa equipment shop in Colac — and a measurable lift in conversions."
+image: /images/blog/mower-corner.jpg
+image_alt: Clean workspace with a MacBook reviewing a responsive web design
+date: 2017-09-01
+last_modified_at: 2017-09-01
+categories: [engineering]
+tags: [responsive-design, mobile, ssl, conversion, bootstrap, client-work]
 ---
-
-# Enhancing User Experience for a Specialty Equipment Retailer
 
 [Mower Corner](https://mowercorner.com.au), a leading specialist in lawn care and outdoor power equipment in Colac, Victoria, partnered with Zack Design to revitalize their digital presence. Our comprehensive redesign focused on improving accessibility, enhancing the mobile experience, and implementing modern security standards to better showcase their extensive product range.
 

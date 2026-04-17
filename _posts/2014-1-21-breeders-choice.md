@@ -1,11 +1,15 @@
 ---
 layout: post
-title: Premium Website Design for Animal Bedding Specialists
-description: How Zack Design created modern, SEO-optimized websites for Breeder's Choice and Superior Shavings with responsive design and enhanced user experience.
-keywords: website redesign, responsive design, single page website, bootstrap, parallax scrolling, pet industry websites, animal bedding, Superior Shavings
+title: "Breeder's Choice & Superior Shavings — premium web design"
+description: "Modern, SEO-optimised, responsive websites for premium Australian animal-bedding brands Breeder's Choice and Superior Shavings."
+excerpt: "Modern, SEO-optimised, responsive websites for two premium Australian animal-bedding brands — immersive parallax on Breeder's Choice, clean info on Superior Shavings."
+image: /images/blog/breeders-choice.jpg
+image_alt: Warm minimalist workspace with a laptop on a wooden desk
+date: 2014-01-21
+last_modified_at: 2014-01-21
+categories: [engineering]
+tags: [responsive-design, parallax, bootstrap, pet-industry, client-work]
 ---
-
-# Transforming Pet Industry Brands Online
 
 Our work with premium animal bedding providers has established Zack Design as a trusted partner in this specialized industry. We've delivered comprehensive digital solutions for leading brands including [Breeder's Choice Packaged Woodshavings](https://breederschoice.com.au) and [Superior Shavings](https://superiorshavings.com.au), helping them effectively showcase their premium pet bedding products.
 

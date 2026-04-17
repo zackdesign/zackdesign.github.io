@@ -1,20 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ site.lang | default: 'en' }}">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% if page.title %}{{ page.title }} – {% endif %}{{ site.name }} – {{ site.description }}</title>
-    {% include header-scripts.html %}
+    <title>{{ page.title }} — {{ site.name }}</title>
     {% include meta.html %}
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="/css/custom.css">
-    <link rel="icon" type="image/png" href="/images/zackdesign-logo-symbol.png">
+    {% include header-scripts.html %}
+
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/favicon/site.webmanifest">
+    <link rel="shortcut icon" href="/favicon/favicon.ico">
+    <meta name="theme-color" content="#0A0A1A">
+
+    {% include schema-blogposting.html %}
+    {% include schema-breadcrumb.html section="Journal" section_url="/blog/" current=page.title %}
   </head>
   <body>
+    <!-- Reading progress -->
+    <div class="reading-progress"><div class="reading-progress__bar"></div></div>
+
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
       <div class="container">
@@ -25,75 +31,101 @@
             <div class="logo-tagline">software engineering</div>
           </div>
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ms-auto">
-            <li class="nav-item">
-              <a class="nav-link" href="/#hero">Home</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/#services">Services</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/#about">About</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/#testimonials">Testimonials</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link active" href="/#blog">Blog</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/#contact">Contact</a>
-            </li>
+            <li class="nav-item"><a class="nav-link" href="/#hero">Home</a></li>
+            <li class="nav-item"><a class="nav-link" href="/#product">Product</a></li>
+            <li class="nav-item"><a class="nav-link" href="/#services">Services</a></li>
+            <li class="nav-item"><a class="nav-link" href="/#visual">Visual</a></li>
+            <li class="nav-item"><a class="nav-link" href="/#about">About</a></li>
+            <li class="nav-item"><a class="nav-link active" href="/blog/">Journal</a></li>
+            <li class="nav-item"><a class="nav-link" href="/#contact">Contact</a></li>
           </ul>
         </div>
       </div>
     </nav>
 
-    <!-- Post Header -->
-    <section class="post-header d-flex align-items-center">
+    {%- assign category = page.categories | first | default: "Writing" | capitalize -%}
+    {%- assign hero_image = page.image | default: "/images/blog/default.jpg" -%}
+    {%- assign hero_alt = page.image_alt | default: page.title -%}
+    {%- assign words = page.content | number_of_words -%}
+    {%- assign minutes = words | divided_by: 220 | at_least: 1 -%}
+
+    <!-- Post hero -->
+    <header class="post-hero" data-parallax>
+      <div class="post-hero__photo parallax-post-photo" style="background-image: url('{{ hero_image | relative_url }}');" role="img" aria-label="{{ hero_alt | escape }}"></div>
+      <div class="post-hero__wash"></div>
       <div class="container">
-        <div class="row">
-          <div class="col-lg-10 col-xl-8 mx-auto text-center">
-            <div class="blog-date mb-3">
-              <span class="badge bg-light text-dark">{{ page.date | date: "%b %d, %Y" }}</span>
-            </div>
-            <h1 class="post-title mb-4">{{ page.title }}</h1>
-            <div class="separator my-4"><span></span></div>
+        <div class="post-hero__content">
+          <span class="post-hero__category reveal">{{ category }}</span>
+          <h1 class="post-hero__title reveal" style="--reveal-delay: 100ms;">{{ page.title }}</h1>
+          <div class="post-hero__meta reveal" style="--reveal-delay: 200ms;">
+            <time datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: "%b %-d, %Y" }}</time>
+            <span class="dot"></span>
+            <span>{{ minutes }} min read</span>
+            <span class="dot"></span>
+            <span>{{ page.author | default: site.author.name }}</span>
           </div>
         </div>
       </div>
-    </section>
+    </header>
 
-    <!-- Post Content -->
-    <main class="post-content-section">
+    <!-- Post article -->
+    <main class="post-article">
       <div class="container">
-        <div class="row">
-          <div class="col-lg-10 col-xl-8 mx-auto">
-            <div class="post-card">
-              <div class="post-body">
-                {{ content }}
-              </div>
-              
-              <div class="post-footer d-flex justify-content-between align-items-center mt-5">
-                <a href="/" class="btn btn-primary">
-                  <i class="fas fa-arrow-left me-2"></i>Back to Home
-                </a>
-                <div class="post-share">
-                  <span class="me-2">Share:</span>
-                  <a href="https://twitter.com/intent/tweet?url={{ site.url }}{{ page.url }}&text={{ page.title }}" target="_blank" class="social-share-link">
-                    <i class="fab fa-twitter"></i>
-                  </a>
-                  <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ site.url }}{{ page.url }}" target="_blank" class="social-share-link ms-2">
-                    <i class="fab fa-linkedin-in"></i>
-                  </a>
+        <div class="row justify-content-center">
+          <div class="col-lg-11 col-xl-10">
+            <article class="post-card-article">
+              <div class="row g-4 g-lg-5">
+                <div class="col-lg-3 d-none d-lg-block">
+                  {% include toc.html %}
+                </div>
+                <div class="col-lg-9">
+                  <div class="post-body">
+                    {{ content }}
+                  </div>
+
+                  <footer class="post-footer">
+                    <a href="/blog/" class="btn btn-outline-primary">
+                      <i class="fas fa-arrow-left me-2"></i>All writing
+                    </a>
+                    <div class="post-share" aria-label="Share this post">
+                      <span>Share</span>
+                      <a href="https://twitter.com/intent/tweet?url={{ page.url | absolute_url | url_encode }}&text={{ page.title | url_encode }}" target="_blank" rel="noopener" class="social-share-link" aria-label="Share on Twitter">
+                        <i class="fab fa-x-twitter"></i>
+                      </a>
+                      <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ page.url | absolute_url | url_encode }}" target="_blank" rel="noopener" class="social-share-link" aria-label="Share on LinkedIn">
+                        <i class="fab fa-linkedin-in"></i>
+                      </a>
+                      <button type="button" class="social-share-link" data-copy-url="{{ page.url | absolute_url }}" aria-label="Copy link">
+                        <i class="fas fa-link"></i>
+                      </button>
+                    </div>
+                  </footer>
                 </div>
               </div>
-            </div>
+            </article>
+
+            <!-- Prev / next -->
+            <nav class="post-nav" aria-label="Post navigation">
+              {% if page.previous %}
+                <a class="post-nav__link post-nav__link--prev" href="{{ page.previous.url | relative_url }}">
+                  <span class="post-nav__label">← Previous</span>
+                  <span class="post-nav__title">{{ page.previous.title }}</span>
+                </a>
+              {% else %}<span></span>{% endif %}
+
+              {% if page.next %}
+                <a class="post-nav__link post-nav__link--next" href="{{ page.next.url | relative_url }}">
+                  <span class="post-nav__label">Next →</span>
+                  <span class="post-nav__title">{{ page.next.title }}</span>
+                </a>
+              {% else %}<span></span>{% endif %}
+            </nav>
           </div>
         </div>
       </div>
@@ -107,36 +139,30 @@
             <div class="d-flex align-items-center mb-3">
               <img src="/images/zackdesign-logo-symbol.png" alt="{{ site.name }}" height="40" class="me-2">
               <div class="logo-text">
-                <div class="logo-title text-white">Zack Design</div>
+                <div class="logo-title">Zack Design</div>
                 <div class="logo-tagline">software engineering</div>
               </div>
             </div>
-            <p>Delivering high-performance software engineering solutions for businesses of all sizes.</p>
+            <p>Software engineering, web development, and digital solutions built with engineering excellence.</p>
           </div>
           <div class="col-md-6 text-md-end">
+            <ul class="footer-links justify-content-md-end mb-3">
+              <li><a href="/#services">Services</a></li>
+              <li><a href="/blog/">Journal</a></li>
+              <li><a href="/feed.xml">RSS</a></li>
+              <li><a href="/#contact">Contact</a></li>
+            </ul>
             <div class="social-links">
-              <a href="https://github.com/zackdesign" target="_blank" aria-label="GitHub"><i class="fab fa-github"></i></a>
-              <a href="https://isaacrowntree.com" target="_blank" aria-label="Personal Site"><i class="fas fa-user"></i></a>
+              <a href="https://github.com/zackdesign" target="_blank" rel="noopener" aria-label="GitHub"><i class="fab fa-github"></i></a>
+              <a href="https://isaacrowntree.com" target="_blank" rel="noopener" aria-label="Personal Site"><i class="fas fa-user"></i></a>
             </div>
-            <p class="copyright">© {{ site.time | date: '%Y' }} {{ site.name }}. All rights reserved.</p>
+            <p class="copyright">© {{ site.time | date: '%Y' }} {{ site.name }} · All rights reserved</p>
           </div>
         </div>
       </div>
     </footer>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-      // Navbar background change on scroll
-      window.addEventListener('scroll', function() {
-        const navbar = document.getElementById('mainNav');
-        if (window.scrollY > 50) {
-          navbar.classList.add('navbar-scrolled');
-        } else {
-          navbar.classList.remove('navbar-scrolled');
-        }
-      });
-    </script>
+    {% include footer-scripts.html %}
     {% include analytics.html %}
   </body>
 </html>

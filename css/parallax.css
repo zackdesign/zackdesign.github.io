@@ -1,0 +1,183 @@
+/* =========================================================================
+   parallax.css — layered transform system
+   Driven by --scroll-progress (0–1) set per element via IntersectionObserver.
+   All transforms respect --parallax-intensity (halved on mobile).
+   ========================================================================= */
+
+:root {
+  --parallax-intensity: 1;
+}
+
+@media (max-width: 767.98px) {
+  :root {
+    --parallax-intensity: 0.5;
+  }
+}
+
+/* Elements opting into scroll progress tracking */
+[data-parallax] {
+  --scroll-progress: 0;
+}
+
+/* -------------------------------------------------------------------------
+   Parallax translate utilities
+   ------------------------------------------------------------------------- */
+
+/* Background layer drifts DOWN slightly as section scrolls up (slower than fg) */
+.parallax-bg-deep {
+  will-change: transform;
+  transform: translate3d(0, calc(var(--scroll-progress, 0) * 100px * var(--parallax-intensity)), 0) scale(1.08);
+}
+
+.parallax-bg-slow {
+  will-change: transform;
+  transform: translate3d(0, calc(var(--scroll-progress, 0) * 60px * var(--parallax-intensity)), 0);
+}
+
+/* Foreground drifts opposite direction for depth */
+.parallax-fg-lift {
+  will-change: transform;
+  transform: translate3d(0, calc(var(--scroll-progress, 0) * -40px * var(--parallax-intensity)), 0);
+}
+
+.parallax-fg-lift-soft {
+  will-change: transform;
+  transform: translate3d(0, calc(var(--scroll-progress, 0) * -20px * var(--parallax-intensity)), 0);
+}
+
+/* Horizontal drifts */
+.parallax-drift-left {
+  will-change: transform;
+  transform: translate3d(calc(var(--scroll-progress, 0) * -24px * var(--parallax-intensity)), 0, 0);
+}
+
+.parallax-drift-right {
+  will-change: transform;
+  transform: translate3d(calc(var(--scroll-progress, 0) * 24px * var(--parallax-intensity)), 0, 0);
+}
+
+/* Subtle opposite-column (for About section split) */
+.parallax-col-a {
+  will-change: transform;
+  transform: translate3d(0, calc(var(--scroll-progress, 0) * -28px * var(--parallax-intensity)), 0);
+}
+
+.parallax-col-b {
+  will-change: transform;
+  transform: translate3d(0, calc(var(--scroll-progress, 0) * 28px * var(--parallax-intensity)), 0);
+}
+
+/* Hero photo — subtle zoom + drift */
+.parallax-hero-photo {
+  will-change: transform;
+  transform: translate3d(0, calc(var(--scroll-progress, 0) * 120px), 0) scale(1.08);
+}
+
+/* Post hero photo — larger drift (post pages have longer hero) */
+.parallax-post-photo {
+  will-change: transform;
+  transform: translate3d(0, calc(var(--scroll-progress, 0) * 80px * var(--parallax-intensity)), 0) scale(1.08);
+}
+
+/* Tech tile tiny float (combines per-tile offset + scroll) */
+.parallax-tile-float {
+  will-change: transform;
+  transform: translate3d(
+    0,
+    calc(var(--tile-offset, 0) * 1px + var(--scroll-progress, 0) * 12px * var(--parallax-intensity)),
+    0
+  );
+}
+
+/* -------------------------------------------------------------------------
+   Reveal / stagger entrance animations
+   ------------------------------------------------------------------------- */
+.reveal {
+  opacity: 0;
+  transform: translate3d(0, 28px, 0);
+  transition: opacity 0.9s var(--ease), transform 0.9s var(--ease);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+
+.reveal.is-revealed {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.reveal-left {
+  opacity: 0;
+  transform: translate3d(-28px, 0, 0);
+  transition: opacity 0.9s var(--ease), transform 0.9s var(--ease);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.reveal-left.is-revealed {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.reveal-right {
+  opacity: 0;
+  transform: translate3d(28px, 0, 0);
+  transition: opacity 0.9s var(--ease), transform 0.9s var(--ease);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.reveal-right.is-revealed {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.reveal-scale {
+  opacity: 0;
+  transform: translate3d(0, 16px, 0) scale(0.96);
+  transition: opacity 0.9s var(--ease), transform 0.9s var(--ease);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.reveal-scale.is-revealed {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+/* Stagger convenience — apply to a parent grid of .reveal children.
+   JS writes --reveal-delay on each child via data-stagger. */
+[data-stagger] > .reveal,
+[data-stagger] > .reveal-left,
+[data-stagger] > .reveal-right,
+[data-stagger] > .reveal-scale,
+[data-stagger] > * > .reveal,
+[data-stagger] > * > .reveal-left,
+[data-stagger] > * > .reveal-right,
+[data-stagger] > * > .reveal-scale {
+  /* delay is set by JS via --reveal-delay */
+}
+
+/* -------------------------------------------------------------------------
+   Reduced motion
+   ------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  [data-parallax],
+  .parallax-bg-deep,
+  .parallax-bg-slow,
+  .parallax-fg-lift,
+  .parallax-fg-lift-soft,
+  .parallax-drift-left,
+  .parallax-drift-right,
+  .parallax-col-a,
+  .parallax-col-b,
+  .parallax-hero-photo,
+  .parallax-post-photo,
+  .parallax-tile-float {
+    transform: none !important;
+  }
+
+  .reveal,
+  .reveal-left,
+  .reveal-right,
+  .reveal-scale {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

@@ -1,0 +1,60 @@
+---
+layout: default
+title: Journal
+description: Notes on software engineering, shipping products, and lessons from the field by Isaac Rowntree.
+permalink: /blog/
+---
+
+<header class="blog-index-hero">
+  <div class="container">
+    <span class="blog-index-hero__eyebrow reveal">Journal</span>
+    <h1 class="blog-index-hero__title reveal" style="--reveal-delay: 100ms;">Writing from the field.</h1>
+    <p class="blog-index-hero__lead reveal" style="--reveal-delay: 180ms;">
+      Engineering notes, product launch stories, and notes from the field — shipped over a decade of building software.
+    </p>
+  </div>
+</header>
+
+<section class="blog-index-grid">
+  <div class="container">
+    <div class="row g-4" data-stagger="80">
+      {%- assign posts = site.posts -%}
+      {%- assign featured = posts | first -%}
+      {%- assign rest = posts | slice: 1, 99 -%}
+
+      {%- if featured -%}
+      <div class="col-12">{% include card-post.html post=featured featured=true %}</div>
+      {%- endif -%}
+
+      {%- for post in rest -%}
+        <div class="col-md-6 col-lg-4">{% include card-post.html post=post %}</div>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "@id": "{{ page.url | absolute_url }}",
+  "name": "Journal — {{ site.name }}",
+  "description": {{ page.description | jsonify }},
+  "url": "{{ page.url | absolute_url }}",
+  "mainEntity": {
+    "@type": "ItemList",
+    "itemListOrder": "https://schema.org/ItemListOrderDescending",
+    "numberOfItems": {{ site.posts.size }},
+    "itemListElement": [
+      {%- for post in site.posts -%}
+      {
+        "@type": "ListItem",
+        "position": {{ forloop.index }},
+        "url": "{{ post.url | absolute_url }}",
+        "name": {{ post.title | jsonify }}
+      }{% unless forloop.last %},{% endunless %}
+      {%- endfor -%}
+    ]
+  }
+}
+</script>

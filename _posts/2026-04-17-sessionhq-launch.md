@@ -1,13 +1,15 @@
 ---
 layout: post
-title: Introducing SessionHQ — Our Flagship SaaS Product
-description: Zack Design's flagship SaaS product — a modern, multi-tenant class check-in platform for dance studios, gyms, and martial arts schools, launching with founding partner Havana on the Hastings in Port Macquarie.
-keywords: SessionHQ, SaaS product launch, class check-in software, dance studio software, gym management, Next.js, Cloudflare Workers, Supabase, Square payments, multi-tenant SaaS, Havana on the Hastings, Port Macquarie
-og_image: /images/sessionhq-icon.png
+title: "Introducing SessionHQ — our flagship SaaS"
+description: "SessionHQ — our modern multi-tenant check-in platform for dance studios, gyms, and martial arts schools — is live, with founding partner Havana on the Hastings."
+excerpt: "After months of engineering and iteration with real studio operators, our flagship SaaS is live — running nightly check-ins for dance, gym and martial-arts studios."
+image: /images/blog/sessionhq-launch.jpg
+image_alt: Studio operator checking members in with the SessionHQ platform
 date: 2026-04-17
+last_modified_at: 2026-04-17
+categories: [product]
+tags: [sessionhq, saas, nextjs, supabase, cloudflare, square, product-launch]
 ---
-
-# Introducing SessionHQ
 
 After months of design, engineering, and iteration with real studio operators, Zack Design is proud to launch **[SessionHQ](https://sessionhq.org)** — the modern check-in platform for class-based studios. It is the most ambitious product we have ever shipped, and it now runs nightly check-ins at our founding partner [Havana on the Hastings](https://www.havanahastingsdance.com.au/) in Port Macquarie.
 

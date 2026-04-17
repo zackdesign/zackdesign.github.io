@@ -1,13 +1,15 @@
 ---
 layout: post
-title: Recent Website Cleanups & Enhancements for Australian Businesses
-description: Overview of recent improvements to client websites, focusing on SEO, accessibility, product catalogs, and visual styling.
-keywords: website cleanup, brochure website, product catalog, SEO improvement, accessibility, visual styling, web development, AC Parts, Superior Shavings, Mower Corner, Breeder's Choice
-og_image: /images/website-updates.jpg # Assuming a generic image, or you can specify a new one
+title: "Client website refreshes — four Australian businesses"
+description: "SEO, accessibility, product catalogs and visual refreshes shipped for AC Parts, Superior Shavings, Breeder's Choice and Mower Corner across Australia."
+excerpt: "A round-up of recent client work: SEO, accessibility and catalog improvements for four established Australian businesses across agriculture, retail and bedding."
+image: /images/blog/recent-website-updates.jpg
+image_alt: Designer workspace with multiple browser tabs and code open for a web refresh
 date: 2025-05-07
+last_modified_at: 2025-05-07
+categories: [engineering]
+tags: [web-development, seo, accessibility, client-work, australia]
 ---
-
-# Enhancing Client Websites for Australian Businesses
 
 At Zack Design, we've recently completed a series of cleanups and enhancements for several client websites. Our focus has been on improving the overall user experience, search engine visibility, and modernizing the visual appeal of key Australian businesses.
 
