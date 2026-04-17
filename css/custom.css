@@ -838,13 +838,26 @@ a:hover {
   box-shadow: 0 25px 60px rgba(67, 97, 238, 0.18);
 }
 
-.product-wordmark {
-  width: 100%;
-  max-width: 280px;
-  height: auto;
+/* SessionHQ wordmark — mirrors the live product logo (font-bold, tracking-tight, gradient HQ on dark pill). */
+.sessionhq-wordmark {
+  display: inline-block;
+  padding: 0.6rem 1.25rem;
+  background: linear-gradient(135deg, #0a0a0f, #16161e);
   border-radius: 0.875rem;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  font-size: 2rem;
+  line-height: 1;
+  color: #ffffff;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   margin-bottom: 0.75rem;
+}
+.sessionhq-hq {
+  background: linear-gradient(to right, #818cf8, #60a5fa, #22d3ee);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .product-tagline {
