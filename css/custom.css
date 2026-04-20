@@ -1674,6 +1674,10 @@ a:hover { color: var(--accent-hover); }
   border-radius: 50%;
   border: 1px solid var(--border-soft);
   color: var(--pearl-soft);
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
   display: inline-flex;
   align-items: center;
   justify-content: center;
