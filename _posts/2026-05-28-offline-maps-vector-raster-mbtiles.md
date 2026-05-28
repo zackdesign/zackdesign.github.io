@@ -179,33 +179,59 @@ Two practical insights drove the file layout:
 
 I shipped NZ at z15 (full Apple-Maps-style detail: trail heads, suburb names, motorway shields) and AU at z14 with overzoom (one zoom level lower native + the patch stretches z14 tiles for higher display zooms). The asymmetry is deliberate — NZ is small enough that z15 doesn't blow up storage; AU is so big that z14 is a 4× saving across an entire continent, and Australian campervan users mostly need road navigation rather than dense urban POI detail.
 
-| Region | Native max-z | Real size | Real users download |
-|---|---|---|---|
-| NZ North | z15 | **3.5 GB** | "I'm doing North Island" |
-| NZ South | z15 | ~3 GB (est.) | "I'm doing South Island" |
-| AU TAS | z14 | ~250 MB (est.) | Tasmania loop |
-| AU VIC | z14 | ~700 MB (est.) | Melbourne + Great Ocean Rd |
-| AU SA  | z14 | ~500 MB (est.) | Adelaide + Flinders |
-| AU NT  | z14 | ~400 MB (est.) | Darwin + Uluru + Stuart Hwy |
-| AU WA  | z14 | ~900 MB (est.) | Perth → Margaret River → Pilbara |
-| AU NSW (+ACT) | z14 | ~1 GB (est.) | Sydney trip |
-| AU QLD | z14 | ~1.2 GB (est.) | Brisbane → Cairns |
-| **Total** | | **~12 GB on R2** | One region per trip |
+| Region | Native max-z | Flat schema | Dedup schema | Real users download |
+|---|---|---|---|---|
+| NZ North | z15 | 3.9 GB | **1.9 GB** | "I'm doing North Island" |
+| NZ South | z15 | 4.2 GB | **1.8 GB** | "I'm doing South Island" |
+| AU TAS | z14 | — | 376 MB | Tasmania loop |
+| AU VIC | z14 | — | 964 MB | Melbourne + Great Ocean Rd |
+| AU SA  | z14 | — | ~600 MB (est.) | Adelaide + Flinders |
+| AU NT  | z14 | — | ~500 MB (est.) | Darwin + Uluru + Stuart Hwy |
+| AU WA  | z14 | — | ~1.2 GB (est.) | Perth → Margaret River → Pilbara |
+| AU NSW (+ACT) | z14 | — | ~1.3 GB (est.) | Sydney trip |
+| AU QLD | z14 | — | ~1.5 GB (est.) | Brisbane → Cairns |
+| **Total** | | | **~10 GB on R2** | One region per trip |
 
-(The z15 NZ tiles came in 3–4× bigger than my first-pass estimate. Lesson: OpenMapTiles + OSM Bright produces dense, inked tiles for populated regions, and "small region scaled linearly" is not a safe extrapolation. The AU z14 numbers are post-NZ recalibrated.)
+(First-pass z15 NZ files came in at 3–4× my naive estimate — OpenMapTiles + OSM Bright produces dense, inked tiles for populated regions, and "small region scaled linearly" isn't a safe extrapolation. Switching to dedup schema then **halved** both NZ files: 8.1 GB → 3.7 GB. AU sizes are estimates from the in-flight queue; first two states have come in close to projection.)
 
-R2 cost: **~$0.20/month storage**, and **egress to devices is free** — the killer feature R2 has over S3. A user who only ever visits Tasmania downloads 250 MB once, free, and never pays storage either. A worst-case "I'm doing all of NSW" download is ~1 GB — acceptable on Wi-Fi as a one-time op.
+## The dedup schema — 50% savings for free
+
+The MBTiles spec defines two acceptable schemas. The naive one — a single `tiles(zoom_level, tile_column, tile_row, tile_data)` table — is what most ad-hoc scripts produce. The normalised one trades a tiny bit of read complexity for **massive** storage savings:
+
+```sql
+CREATE TABLE images (tile_id TEXT PRIMARY KEY, tile_data BLOB);
+CREATE TABLE map (zoom_level, tile_column, tile_row, tile_id);
+CREATE UNIQUE INDEX map_index ON map (zoom_level, tile_column, tile_row);
+CREATE VIEW tiles AS
+  SELECT map.zoom_level, map.tile_column, map.tile_row, images.tile_data
+  FROM map JOIN images ON images.tile_id = map.tile_id;
+```
+
+`tile_id` is `sha1(tile_data)`. Identical tiles — every "pure ocean" tile, every patch of empty desert at mid-zoom, every uniform Southern Alps slope at z15 — collapse to one row in `images`, with many rows in `map` pointing at the same tile_id.
+
+The `tiles` VIEW makes this completely transparent to consumers. Any `SELECT tile_data FROM tiles WHERE zoom_level=? AND tile_column=? AND tile_row=?` works identically against either schema.
+
+The measured impact on NZ:
+
+- **nz-north**: 716,859 tiles → 1.9 GB on disk (51% saving)
+- **nz-south**: 859,891 tiles → 242,217 unique blobs (**71.8% tile dedup rate**), 1.8 GB on disk (57% saving)
+
+Why so high? A region the size of New Zealand has *enormous* repetition at mid-zooms — endless ocean tiles, identical bush-cover tiles in the Fiordland interior, hundreds of identical "purple Southern Alps shading" tiles. Dense urban tiles (Auckland CBD) are all unique and don't dedup, but they're a small fraction of any region's total tile count.
+
+Hashing every tile during pack adds CPU but it's microseconds per tile — invisible compared to the actual rendering time. Reading via the VIEW adds one indexed JOIN which doesn't measurably affect tile-fetch latency on mobile.
+
+R2 cost: **~$0.15/month storage**, and **egress to devices is free** — the killer feature R2 has over S3. A user who only ever visits Tasmania downloads 376 MB once, free, and never pays storage either. The "I'm doing all of NSW" worst case is ~1.3 GB — acceptable on Wi-Fi as a one-time op.
 
 ## The native zoom vs overzoom decision
 
 The native max zoom is the most consequential single parameter. Each level quadruples tile count, and the real-world size on a populated region is bigger than the math suggests because inked tiles compress less efficiently:
 
-| Native max-z | NZ North actual / projected | Trail head labels visible? |
+| Native max-z | NZ North on disk (dedup) | Trail head labels visible? |
 |---|---|---|
-| z14 | ~900 MB | Geometry yes, names usually no |
-| **z15** | **3.5 GB** (measured) | Yes |
-| z16 | ~14 GB | Yes (overkill) |
-| z17 | ~55 GB | Definitely overkill |
+| z14 | ~500 MB (projected) | Geometry yes, names usually no |
+| **z15** | **1.9 GB** (measured) | Yes |
+| z16 | ~7 GB (projected) | Yes (overkill) |
+| z17 | ~28 GB (projected) | Definitely overkill |
 
 z15 is the sweet spot for an Apple Maps replacement when storage isn't a constraint — trail head POIs, road names, settlement labels are all rendered. For continent-scale coverage (Australia), **z14 with overzoom is the practical compromise**: 4× cheaper storage, road names still readable, dense urban POI detail is the only thing lost. Above the native max the device overzooms — stretches the largest available tile up to z18 — which looks blocky at street zoom but is recognisable enough for orientation.
 
