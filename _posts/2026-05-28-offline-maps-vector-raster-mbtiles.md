@@ -13,9 +13,7 @@ tags: [offline-maps, mbtiles, openmaptiles, openstreetmap, planetiler, tileserve
 
 Most "offline maps" tutorials route you through one of two corners. **Corner A** is a 2013-era Mapnik stack rendering OSM-Carto — beautiful in its day, but the day is over. **Corner B** is a paid Mapbox or MapTiler subscription that solves the aesthetic problem and bills you for the privilege. There's a third corner that no tutorial walks you to: a fully self-hosted vector-to-raster pipeline using modern open-source tools, producing tiles that look like Mapbox or Apple Maps, hosted on object storage with free egress.
 
-This is the pipeline I built to ship offline basemaps for [CamperMate](https://campermate.com) — the camping and free-camping app I work on at [Triptech Travel](https://triptechtravel.com). Users are in Fiordland, Kakadu, the Pilbara, the Tasmanian highlands. Cell coverage is a luxury, not a baseline. If the map doesn't work without bars, the app doesn't work. The pipeline below is platform-agnostic — the output is a `.mbtiles` SQLite file that any client can read. I'll walk through how it ships in a React Native consumer at the end, but the pipeline itself is independent of where the bytes are rendered.
-
-No MapLibre migration. No Mapbox bill. No awful Mapnik-from-2013 cartography.
+This is the pipeline I built to ship offline basemaps for [CamperMate](https://campermate.com) — the go-to free-camping and campground app across Australia and New Zealand, [iOS](https://apps.apple.com/app/campermate/id578975305) and [Android](https://play.google.com/store/apps/details?id=nz.co.campermate.app), 1M+ downloads, made at [Triptech Travel](https://triptechtravel.com). Users are in Fiordland, Kakadu, the Pilbara, the Tasmanian highlands. Cell coverage is a luxury, not a baseline. If the map doesn't work without bars, the app doesn't work. The pipeline below is platform-agnostic — the output is a `.mbtiles` SQLite file that any client can read. I'll walk through how it ships in a React Native consumer at the end, but the pipeline itself is independent of where the bytes are rendered.
 
 <!-- more -->
 
@@ -102,35 +100,10 @@ python3 render_and_pack.py nz-south '166.4,-47.3,174.5,-40.4' 15
 
 A few non-obvious things that took me a day to learn:
 
-### Planetiler needs Java 21+
-
-If you have Zulu 17 installed for Android development, you'll see `UnsupportedClassVersionError: class file version 65.0`. Either install a second JDK or run planetiler from its Docker image (`ghcr.io/onthegomap/planetiler:latest`). I picked Docker — pinned runtime, no JDK juggling.
-
-### OpenMapTiles styles ship with Maptiler-hosted source URLs
-
-The default Positron `style.json` references `api.maptiler.com` and needs an API key. For local rendering, rewrite the style's `sources.openmaptiles.url` to `mbtiles://{openmaptiles}` and let tileserver-gl resolve it from the local MBTiles via its config:
-
-```bash
-jq '.sources.openmaptiles = { type: "vector", url: "mbtiles://{openmaptiles}" }' \
-  positron.json > positron.local.json
-```
-
-### Fonts are not in the `openmaptiles/fonts` master branch
-
-`master` only has the TTF source files. The pre-built PBF glyph ranges are in the [v2.0 release asset](https://github.com/openmaptiles/fonts/releases/tag/v2.0). Without those, tileserver-gl 500s on every tile that contains a label — which is everything past zoom 4. Took me a 1652-error run to figure that out.
-
-### Planetiler writes `bounds` and `center` metadata that breaks MapLibre GL Native
-
-Strip them after planetiler runs:
-
-```bash
-sqlite3 nz-south-vector.mbtiles \
-  "DELETE FROM metadata WHERE name IN ('bounds', 'center');"
-```
-
-### The `vt-raster-converter` README is misleading
-
-There's no published Docker image. `docker pull ghcr.io/smart-mapping/vt-raster-converter:latest` returns `manifest unknown`. The README says "build locally with `docker compose up --build`" — but `tileserver-gl` (which uses the same MapLibre GL Native engine) has a real published image and a render endpoint at `/styles/<id>/{z}/{x}/{y}.png`. Use that instead and `curl`-loop the tiles out.
+- **Planetiler needs Java 21+.** If you have Zulu 17 installed for Android dev you'll see `UnsupportedClassVersionError: class file version 65.0`. The Docker image avoids the JDK juggle.
+- **OpenMapTiles styles ship with Maptiler-hosted source URLs.** The default Positron `style.json` points at `api.maptiler.com` and needs a key. Rewrite `sources.openmaptiles.url` to `mbtiles://{openmaptiles}` and let tileserver-gl resolve it from the local MBTiles: `jq '.sources.openmaptiles = { type: "vector", url: "mbtiles://{openmaptiles}" }' positron.json > positron.local.json`.
+- **Fonts are not in the `openmaptiles/fonts` master branch.** Master ships only TTF sources. The pre-built PBF glyph ranges are in the [v2.0 release asset](https://github.com/openmaptiles/fonts/releases/tag/v2.0). Without them tileserver-gl 500s on every tile containing a label, which is everything past z4.
+- **Planetiler writes `bounds` and `center` metadata that breaks MapLibre GL Native.** Strip them after planetiler runs: `sqlite3 *.mbtiles "DELETE FROM metadata WHERE name IN ('bounds', 'center');"`.
 
 ## Shipping it in a React Native app
 
@@ -159,40 +132,13 @@ The fourth option — and the one I shipped — is a **small native patch** to `
 />
 ```
 
-The patch is ~700 lines across iOS and Android, applied via [`patch-package`](https://github.com/ds300/patch-package). It teaches `MapTileProvider` (Android) and `AIRMapUrlTile` (iOS) to detect the `mbtiles://` URL scheme and route to a new SQLite-backed tile reader instead of the HTTP path.
+The patch is ~750 lines across iOS and Android, applied via [`patch-package`](https://github.com/ds300/patch-package). It teaches `MapTileProvider` (Android) and `AIRMapUrlTile` (iOS) to detect the `mbtiles://` URL scheme and route to a new SQLite-backed tile reader instead of the HTTP path. The internals — connection caching, TMS y-flip, overzoom via in-memory parent-bitmap reuse — are a separate post. The user-facing surface is exactly the snippet above. I'll open-source the patch once it's been in production for a few weeks; [issue #5863](https://github.com/react-native-maps/react-native-maps/issues/5863) tracks it.
 
-Highlights:
+## Region splits and zoom levels
 
-- **Android (`MBTilesReader.java`):** LRU connection pool capped at 3 open SQLite handles, TMS y-flip per the MBTiles spec, vector-format gate (rejects `.pbf` archives with a clear log because MapKit/Google Maps can't render vector), `OutOfMemory`/`SQLiteException` recovery, stale-handle eviction.
-- **iOS (`AIRMapMBTilesOverlay.m`):** `MKTileOverlay` subclass with a cached prepared statement per connection, `@synchronized`-protected stmt access (so concurrent tile fetches share one connection safely), CoreImage-based overzoom for `z > maximumNativeZ` (because MapKit's built-in overzoom isn't reliable for arbitrary `MKTileOverlay` subclasses).
-- **JSX:** unchanged. Same `<UrlTile>` component, just a different URL scheme.
+Two practical decisions shape the file layout. **Where to split** comes from how Geofabrik ships data: country-level PBFs for NZ (split by bbox into north/south islands with `osmium extract`), per-state PBFs for AU (no slicing needed). The split should also match how users travel — for a campervan app, per-island and per-state is the right grain because that's what people fly between.
 
-I'll open-source the patch on GitHub once it's been in production for a few weeks. Until then, the [react-native-maps issue #5863](https://github.com/react-native-maps/react-native-maps/issues/5863) and PR #5878 give the context.
-
-## Per-region strategy
-
-Two practical insights drove the file layout:
-
-**For NZ:** Geofabrik only ships a country-level PBF. The North/South Island split is done with `osmium extract --bbox=...` from the country PBF, then planetiler runs against the slice. Two files (`nz-north.mbtiles`, `nz-south.mbtiles`) match how campervan trips actually work — most trips are one island, and the Cook Strait ferry costs $200+ for a camper so people fly + swap vehicles. There's no point forcing a combined download when one island will do.
-
-**For AU:** Geofabrik already publishes per-state PBFs (`australia-oceania/australia/queensland`, etc.). No osmium step. Seven state files (NSW + ACT bundled together per Geofabrik's grouping), each downloaded independently. Again, this matches reality: campervan users fly between Australian states, they don't drive Sydney to Perth.
-
-I shipped NZ at z15 (full Apple-Maps-style detail: trail heads, suburb names, motorway shields) and AU at z14 with overzoom (one zoom level lower native + the patch stretches z14 tiles for higher display zooms). The asymmetry is deliberate — NZ is small enough that z15 doesn't blow up storage; AU is so big that z14 is a 4× saving across an entire continent, and Australian campervan users mostly need road navigation rather than dense urban POI detail.
-
-| Region | Native max-z | Flat schema | Dedup schema | Real users download |
-|---|---|---|---|---|
-| NZ North | z15 | 3.9 GB | **1.9 GB** | "I'm doing North Island" |
-| NZ South | z15 | 4.2 GB | **1.8 GB** | "I'm doing South Island" |
-| AU TAS | z14 | — | 376 MB | Tasmania loop |
-| AU VIC | z14 | — | 964 MB | Melbourne + Great Ocean Rd |
-| AU SA  | z14 | — | ~600 MB (est.) | Adelaide + Flinders |
-| AU NT  | z14 | — | ~500 MB (est.) | Darwin + Uluru + Stuart Hwy |
-| AU WA  | z14 | — | ~1.2 GB (est.) | Perth → Margaret River → Pilbara |
-| AU NSW (+ACT) | z14 | — | ~1.3 GB (est.) | Sydney trip |
-| AU QLD | z14 | — | ~1.5 GB (est.) | Brisbane → Cairns |
-| **Total** | | | **~10 GB on R2** | One region per trip |
-
-(First-pass z15 NZ files came in at 3–4× my naive estimate — OpenMapTiles + OSM Bright produces dense, inked tiles for populated regions, and "small region scaled linearly" isn't a safe extrapolation. Switching to dedup schema then **halved** both NZ files: 8.1 GB → 3.7 GB. AU sizes are estimates from the in-flight queue; first two states have come in close to projection.)
+**How deep to render** is the other consequential decision. Each zoom level quadruples tile count, and real-world size grows faster than the math suggests because inked tiles compress worse than empty ones. I shipped NZ at native z15 (full Apple-Maps-style detail: trail heads, suburb names, motorway shields, ~1.8 GB per island after dedup). AU at native z14 with overzoom (the patch stretches the largest available tile up to z18) is a 4× saving across an entire continent — road names still readable, dense urban POI labels the only loss. The asymmetry is deliberate: NZ is small enough that z15 doesn't blow up storage, AU isn't.
 
 ## The dedup schema — 50% savings for free
 
@@ -222,52 +168,21 @@ Hashing every tile during pack adds CPU but it's microseconds per tile — invis
 
 R2 cost: **~$0.15/month storage**, and **egress to devices is free** — the killer feature R2 has over S3. A user who only ever visits Tasmania downloads 376 MB once, free, and never pays storage either. The "I'm doing all of NSW" worst case is ~1.3 GB — acceptable on Wi-Fi as a one-time op.
 
-## The native zoom vs overzoom decision
-
-The native max zoom is the most consequential single parameter. Each level quadruples tile count, and the real-world size on a populated region is bigger than the math suggests because inked tiles compress less efficiently:
-
-| Native max-z | NZ North on disk (dedup) | Trail head labels visible? |
-|---|---|---|
-| z14 | ~500 MB (projected) | Geometry yes, names usually no |
-| **z15** | **1.9 GB** (measured) | Yes |
-| z16 | ~7 GB (projected) | Yes (overkill) |
-| z17 | ~28 GB (projected) | Definitely overkill |
-
-z15 is the sweet spot for an Apple Maps replacement when storage isn't a constraint — trail head POIs, road names, settlement labels are all rendered. For continent-scale coverage (Australia), **z14 with overzoom is the practical compromise**: 4× cheaper storage, road names still readable, dense urban POI detail is the only thing lost. Above the native max the device overzooms — stretches the largest available tile up to z18 — which looks blocky at street zoom but is recognisable enough for orientation.
-
-The on-device overzoom is implemented in the native patch (not relying on MapKit's built-in behaviour, which is unreliable for `MKTileOverlay` subclasses). On Android the patch reads the parent z15 tile from SQLite and upscales via `Bitmap` + `Canvas`. On iOS it does the same via `CoreImage`. Same logic both platforms.
-
 ## Style picks
 
-For CamperMate I tested four free MapLibre styles. All free, all open-licensed, all render against the same vector MBTiles:
+For CamperMate I tested the free OpenMapTiles styles. All open-licensed, all render against the same vector MBTiles:
 
 - **Positron** — minimal, white, designed as a backdrop for *other* content. Beautiful but wrong for an "offline map replacement" use case where the map *is* the content.
 - **OSM Bright** — what I shipped with. Coloured roads, green parks, blue water, motorway shields, full POI labels. Reads like Apple Maps in light mode.
-- **Voyager** — middle ground; not actually hosted by OpenMapTiles, lives on CartoDB's repo.
-- **Dark Matter** — dark mode equivalent of Positron. Future option for a night-mode toggle.
+- **Dark Matter** — dark-mode equivalent of Positron. Future option for a night-mode toggle.
 
 The aesthetic decision changes which file you ship to users; it doesn't change anything upstream. Vector MBTiles → re-render → upload. Hours, not days.
 
-## What CamperMate ships
+## Wrapping up
 
-[CamperMate](https://campermate.com) is on iOS and Android — the go-to free-camping and campground app across Australia and New Zealand. Offline maps are an opt-in feature: users pick a region, the app downloads the appropriate `.mbtiles` file from R2 (free egress, attribution-required), and the `mbtiles://` UrlTile renders it directly with no network round-trips.
+If you're building any kind of outdoor, overland, or regional travel app and your users care about offline coverage, this pipeline is repeatable. The tools are mature, the licensing is permissive (OSM is ODbL, the styles are BSD/MIT, planetiler is Apache-2, tileserver-gl is BSD-2), the storage is cheap, and the aesthetic is finally something you can put in a shipping app without an apology.
 
-If you're building any kind of outdoor / overland / regional travel app on React Native and your users care about offline coverage, this pipeline is repeatable. The tools are mature, the licensing is permissive (OSM is ODbL, the styles are BSD/MIT, planetiler is Apache-2, tileserver-gl is BSD-2), the storage is cheap, and the aesthetic is finally something you can put in a shipping app without an apology.
-
-If you want to reproduce the pipeline, the gist is:
-
-1. `docker pull ghcr.io/onthegomap/planetiler:latest`
-2. `docker pull maptiler/tileserver-gl:latest`
-3. Download the [openmaptiles/fonts v2.0 release zip](https://github.com/openmaptiles/fonts/releases/tag/v2.0)
-4. Download an OpenMapTiles style JSON (Positron or OSM Bright)
-5. Get an OSM PBF from Geofabrik
-6. Run planetiler, then tileserver-gl, then `curl`-loop the bbox
-7. Pack the resulting PNGs into a SQLite MBTiles file
-8. Upload to R2 (or any object store with free or cheap egress)
-
-And if you ship on React Native, [patch `react-native-maps`](https://github.com/react-native-maps/react-native-maps/pulls?q=is%3Apr+author%3Aisaacrowntree) to grok `mbtiles://`. Or wait for me to upstream it.
-
-Either way — your offline maps don't have to look like 2013 anymore.
+If you're heading to Australia or New Zealand and want to see the pipeline in production, [grab CamperMate on iOS](https://apps.apple.com/app/campermate/id578975305) or [Android](https://play.google.com/store/apps/details?id=nz.co.campermate.app) — free, no account required, offline maps under the "Downloads" tab. Your offline maps don't have to look like 2013 anymore.
 
 ---
 
