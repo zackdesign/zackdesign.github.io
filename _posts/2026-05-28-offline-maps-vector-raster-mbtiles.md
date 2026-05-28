@@ -173,37 +173,41 @@ I'll open-source the patch on GitHub once it's been in production for a few week
 
 Two practical insights drove the file layout:
 
-**For NZ:** Geofabrik only ships a country-level PBF. The North/South Island split is done with `osmium extract --bbox=...` from the country PBF, then planetiler runs against the slice. Two files (`nz-north.mbtiles`, `nz-south.mbtiles`) match how campervan trips actually work — most trips are one island, and the Cook Strait ferry costs $200+ for a camper so people fly + swap vehicles. There's no point forcing a 2 GB combined download when 1 GB will do.
+**For NZ:** Geofabrik only ships a country-level PBF. The North/South Island split is done with `osmium extract --bbox=...` from the country PBF, then planetiler runs against the slice. Two files (`nz-north.mbtiles`, `nz-south.mbtiles`) match how campervan trips actually work — most trips are one island, and the Cook Strait ferry costs $200+ for a camper so people fly + swap vehicles. There's no point forcing a combined download when one island will do.
 
-**For AU:** Geofabrik already publishes per-state PBFs (`australia-oceania/australia/queensland`, etc.). No osmium step. Seven files — one per state, with ACT bundled into NSW per Geofabrik's grouping. Again, this matches reality: campervan users fly between Australian states, they don't drive Sydney to Perth.
+**For AU:** Geofabrik already publishes per-state PBFs (`australia-oceania/australia/queensland`, etc.). No osmium step. Seven state files (NSW + ACT bundled together per Geofabrik's grouping), each downloaded independently. Again, this matches reality: campervan users fly between Australian states, they don't drive Sydney to Perth.
 
-| Region | Native max-z | Est. size | Real users download |
+I shipped NZ at z15 (full Apple-Maps-style detail: trail heads, suburb names, motorway shields) and AU at z14 with overzoom (one zoom level lower native + the patch stretches z14 tiles for higher display zooms). The asymmetry is deliberate — NZ is small enough that z15 doesn't blow up storage; AU is so big that z14 is a 4× saving across an entire continent, and Australian campervan users mostly need road navigation rather than dense urban POI detail.
+
+| Region | Native max-z | Real size | Real users download |
 |---|---|---|---|
-| NZ North | z15 | ~1 GB | "I'm doing North Island" |
-| NZ South | z15 | ~1 GB | "I'm doing South Island" |
-| AU NSW (+ACT) | z15 | ~1.2 GB | Sydney trip |
-| AU VIC | z15 | ~600 MB | Melbourne + Great Ocean Rd |
-| AU QLD | z15 | ~1 GB | Brisbane → Cairns |
-| AU SA | z15 | ~400 MB | Adelaide + Flinders |
-| AU WA | z15 | ~900 MB | Perth → Margaret River → Pilbara |
-| AU TAS | z15 | ~250 MB | Tasmania loop |
-| AU NT | z15 | ~350 MB | Darwin + Uluru + Stuart Hwy |
-| **Total** | | **~7 GB on R2** | One state per trip |
+| NZ North | z15 | **3.5 GB** | "I'm doing North Island" |
+| NZ South | z15 | ~3 GB (est.) | "I'm doing South Island" |
+| AU TAS | z14 | ~250 MB (est.) | Tasmania loop |
+| AU VIC | z14 | ~700 MB (est.) | Melbourne + Great Ocean Rd |
+| AU SA  | z14 | ~500 MB (est.) | Adelaide + Flinders |
+| AU NT  | z14 | ~400 MB (est.) | Darwin + Uluru + Stuart Hwy |
+| AU WA  | z14 | ~900 MB (est.) | Perth → Margaret River → Pilbara |
+| AU NSW (+ACT) | z14 | ~1 GB (est.) | Sydney trip |
+| AU QLD | z14 | ~1.2 GB (est.) | Brisbane → Cairns |
+| **Total** | | **~12 GB on R2** | One region per trip |
 
-R2 cost: **~$0.10/month storage**, and **egress to devices is free** — the killer feature R2 has over S3. A user who only ever visits Tasmania downloads 250 MB once, free, and never pays storage either.
+(The z15 NZ tiles came in 3–4× bigger than my first-pass estimate. Lesson: OpenMapTiles + OSM Bright produces dense, inked tiles for populated regions, and "small region scaled linearly" is not a safe extrapolation. The AU z14 numbers are post-NZ recalibrated.)
+
+R2 cost: **~$0.20/month storage**, and **egress to devices is free** — the killer feature R2 has over S3. A user who only ever visits Tasmania downloads 250 MB once, free, and never pays storage either. A worst-case "I'm doing all of NSW" download is ~1 GB — acceptable on Wi-Fi as a one-time op.
 
 ## The native zoom vs overzoom decision
 
-The native max zoom is the most consequential single parameter. Each level quadruples tile count:
+The native max zoom is the most consequential single parameter. Each level quadruples tile count, and the real-world size on a populated region is bigger than the math suggests because inked tiles compress less efficiently:
 
-| Native max-z | NZ South storage | Trail head labels visible? |
+| Native max-z | NZ North actual / projected | Trail head labels visible? |
 |---|---|---|
-| z14 | ~300 MB | Geometry yes, names usually no |
-| **z15** | ~1.2 GB | Yes |
-| z16 | ~5 GB | Yes (overkill) |
-| z17 | ~20 GB | Definitely overkill |
+| z14 | ~900 MB | Geometry yes, names usually no |
+| **z15** | **3.5 GB** (measured) | Yes |
+| z16 | ~14 GB | Yes (overkill) |
+| z17 | ~55 GB | Definitely overkill |
 
-z15 is the sweet spot for an Apple Maps replacement. Trail head POIs, road names, settlement labels are all rendered. Above z15 the device overzooms — stretches the z15 tile up to z18 — which looks blocky at street zoom but is recognisable enough for orientation.
+z15 is the sweet spot for an Apple Maps replacement when storage isn't a constraint — trail head POIs, road names, settlement labels are all rendered. For continent-scale coverage (Australia), **z14 with overzoom is the practical compromise**: 4× cheaper storage, road names still readable, dense urban POI detail is the only thing lost. Above the native max the device overzooms — stretches the largest available tile up to z18 — which looks blocky at street zoom but is recognisable enough for orientation.
 
 The on-device overzoom is implemented in the native patch (not relying on MapKit's built-in behaviour, which is unreliable for `MKTileOverlay` subclasses). On Android the patch reads the parent z15 tile from SQLite and upscales via `Bitmap` + `Canvas`. On iOS it does the same via `CoreImage`. Same logic both platforms.
 
