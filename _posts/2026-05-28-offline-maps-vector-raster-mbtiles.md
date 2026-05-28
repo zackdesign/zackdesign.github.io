@@ -51,6 +51,7 @@ The rendering engine is [MapLibre GL Native](https://github.com/maplibre/maplibr
 | [`osmium-tool`](https://osmcode.org/osmium-tool/) | Slice country PBFs into city/region bboxes | GPL-3 |
 | [`planetiler`](https://github.com/onthegomap/planetiler) | OSM PBF → vector MBTiles (OpenMapTiles schema) | Apache-2 |
 | [`tileserver-gl`](https://github.com/maptiler/tileserver-gl) | Vector MBTiles + GL style → raster PNG via MapLibre GL Native | BSD-2 |
+| [`cwebp`](https://developers.google.com/speed/webp) (libwebp) | Re-encode rendered PNGs to WebP q80 — ~5× smaller (see below) | BSD |
 | [OpenMapTiles fonts](https://github.com/openmaptiles/fonts) | Pre-built glyph PBFs for label rendering | OFL |
 | [OpenMapTiles styles](https://github.com/openmaptiles) | Free MapLibre GL styles (Positron, OSM Bright, Dark Matter) | BSD-3 |
 
@@ -138,7 +139,7 @@ The patch is ~750 lines across iOS and Android, applied via [`patch-package`](ht
 
 Two practical decisions shape the file layout. **Where to split** comes from how Geofabrik ships data: country-level PBFs for NZ (split by bbox into north/south islands with `osmium extract`), per-state PBFs for AU (no slicing needed). The split should also match how users travel — for a campervan app, per-island and per-state is the right grain because that's what people fly between.
 
-**How deep to render** is the other consequential decision. Each zoom level quadruples tile count, and real-world size grows faster than the math suggests because inked tiles compress worse than empty ones. I shipped NZ at native z15 (full Apple-Maps-style detail: trail heads, suburb names, motorway shields, ~1.8 GB per island after dedup). AU at native z14 with overzoom (the patch stretches the largest available tile up to z18) is a 4× saving across an entire continent — road names still readable, dense urban POI labels the only loss. The asymmetry is deliberate: NZ is small enough that z15 doesn't blow up storage, AU isn't.
+**How deep to render** is the other consequential decision. Each zoom level quadruples tile count, and real-world size grows faster than the math suggests because inked tiles compress worse than empty ones. I shipped NZ at native z15 (full Apple-Maps-style detail: trail heads, suburb names, motorway shields, ~420 MB per island after the optimisations below). AU at native z14 with overzoom (the patch stretches the largest available tile up to z18) is a 4× saving across an entire continent — road names still readable, dense urban POI labels the only loss. The asymmetry is deliberate: NZ is small enough that z15 doesn't blow up storage, AU isn't.
 
 ## The dedup schema — 50% savings for free
 
@@ -157,16 +158,45 @@ CREATE VIEW tiles AS
 
 The `tiles` VIEW makes this completely transparent to consumers. Any `SELECT tile_data FROM tiles WHERE zoom_level=? AND tile_column=? AND tile_row=?` works identically against either schema.
 
-The measured impact on NZ:
+The measured impact on NZ (PNG tiles, before the WebP step below):
 
-- **nz-north**: 716,859 tiles → 1.9 GB on disk (51% saving)
+- **nz-north**: 716,859 tiles → 1.9 GB on disk (51% saving over flat schema)
 - **nz-south**: 859,891 tiles → 242,217 unique blobs (**71.8% tile dedup rate**), 1.8 GB on disk (57% saving)
 
 Why so high? A region the size of New Zealand has *enormous* repetition at mid-zooms — endless ocean tiles, identical bush-cover tiles in the Fiordland interior, hundreds of identical "purple Southern Alps shading" tiles. Dense urban tiles (Auckland CBD) are all unique and don't dedup, but they're a small fraction of any region's total tile count.
 
 Hashing every tile during pack adds CPU but it's microseconds per tile — invisible compared to the actual rendering time. Reading via the VIEW adds one indexed JOIN which doesn't measurably affect tile-fetch latency on mobile.
 
-R2 cost: **~$0.15/month storage**, and **egress to devices is free** — the killer feature R2 has over S3. A user who only ever visits Tasmania downloads 376 MB once, free, and never pays storage either. The "I'm doing all of NSW" worst case is ~1.3 GB — acceptable on Wi-Fi as a one-time op.
+## WebP, not PNG — another ~5× shrink
+
+The next surprise was the format choice. PNG is what tileserver-gl emits and what every MBTiles tutorial uses, but PNG is the wrong codec for inked map tiles. Roads, anti-aliased coastlines, gradient hillshading, transparent green parks — none of it palettises well, which is what PNG's compression relies on. WebP's lossy mode is designed for exactly this kind of mixed graphical content.
+
+I sampled 1,000 random unique tiles from the dedup-packed TAS archive and compressed each as PNG (baseline), `pngquant --quality 75-95`, and WebP at four qualities:
+
+| Codec | Size vs PNG |
+|---|---:|
+| PNG (baseline) | 100% |
+| pngquant 75–95 | 29% |
+| WebP q75 | 16% |
+| **WebP q80** | **19%** |
+| WebP q85 | 26% |
+| WebP q90 | 38% |
+
+WebP at q80 beats pngquant at every setting tested. The visual difference at street zoom is invisible — labels stay crisp, terrain shading stays smooth. The end-to-end re-render of TAS confirmed it: **376 MB → 61 MB**.
+
+The pipeline change is one line: after fetching the rendered PNG from tileserver-gl, pipe it through `cwebp -q 80` before hashing and inserting into the `images` table. Update the MBTiles `format` metadata from `png` to `webp` so the spec stays honest; consumers that ignore that field (like my native patch, which passes raw bytes straight to `UIImage` / `BitmapFactory`) don't notice the change. Both platforms have decoded WebP natively for years — iOS 14+, Android API 14+.
+
+End-to-end size for all 9 ANZ regions, walking through the optimisations:
+
+| Pipeline state | Total |
+|---|---:|
+| Flat schema, PNG (naive baseline, projected) | ~21 GB |
+| Dedup schema, PNG | 10.7 GB |
+| **Dedup schema, WebP q80** | **2.3 GB** |
+
+About 9× smaller than the naive starting point, and within rounding error of the legacy ZIP-tier total CamperMate already shipped — the "5× bigger download" story is gone.
+
+R2 cost: **~$0.04/month storage** for the whole tier, and **egress to devices is free** — the killer feature R2 has over S3. A user who only ever visits Tasmania downloads 61 MB once, free, never pays storage either. The "I'm doing all of NSW" worst case is now 305 MB. The biggest single download in the tier is the North Island at 444 MB.
 
 ## Style picks
 
