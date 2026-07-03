@@ -357,7 +357,8 @@ a:hover { color: var(--accent-hover); }
 
 .hero-photo {
   position: absolute;
-  inset: 0;
+  /* Top extends past the parallax drift (up to 120px down-translate) */
+  inset: -130px 0 0;
   background-image: url("/images/sections/hero.svg");
   background-size: cover;
   background-position: center;
@@ -1422,7 +1423,9 @@ a:hover { color: var(--accent-hover); }
 
 .post-hero__photo {
   position: absolute;
-  inset: 0;
+  /* Top extends past the parallax drift (up to 80px down-translate) so the
+     photo never pulls away from the top edge of the hero */
+  inset: -90px 0 0;
   z-index: 0;
   transform: scale(1.06);
   will-change: transform;
