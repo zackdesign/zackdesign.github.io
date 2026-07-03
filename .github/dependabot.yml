@@ -1,0 +1,20 @@
+version: 2
+updates:
+  # Keep Gemfile.lock on the latest allowed gem versions
+  - package-ecosystem: bundler
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      # One weekly PR bumping everything, instead of one PR per gem
+      all-gems:
+        patterns:
+          - "*"
+
+  # Keep any GitHub Actions workflows current too
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
