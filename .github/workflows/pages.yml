@@ -22,7 +22,7 @@ jobs:
 
       # jekyll_picture_tag needs libvips to generate responsive image variants
       - name: Install libvips
-        run: sudo apt-get update -q && sudo apt-get install -yq --no-install-recommends libvips
+        run: sudo apt-get update -q && sudo apt-get install -yq --no-install-recommends libvips-tools
 
       - uses: ruby/setup-ruby@v1
         with:
