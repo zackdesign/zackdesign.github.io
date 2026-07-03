@@ -1,0 +1,31 @@
+media_queries:
+  mobile: "max-width: 768px"
+
+presets:
+  # Post-card thumbnails (blog index + home Journal section)
+  card:
+    formats: [webp, original]
+    widths: [400, 700, 1000, 1400]
+    sizes:
+      mobile: 100vw
+    size: 640px
+    quality: 80
+    dimension_attributes: true
+
+  # Full-bleed post hero (LCP element on post pages)
+  hero:
+    formats: [webp, original]
+    widths: [768, 1200, 1600, 2200]
+    size: 100vw
+    quality: 80
+    dimension_attributes: true
+
+  # Homepage section images (product shot, about figure)
+  section:
+    formats: [webp, original]
+    widths: [500, 900, 1400, 1920]
+    sizes:
+      mobile: 100vw
+    size: 900px
+    quality: 80
+    dimension_attributes: true

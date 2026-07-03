@@ -15,14 +15,11 @@
 
 <a href="{{ p.url | relative_url }}" class="post-card-link reveal" aria-label="Read: {{ p.title | escape }}">
   <article class="post-card{% if include.featured %} post-card--featured{% endif %}">
+    {%- assign img_rel = img | remove_first: "/" -%}
+    {%- assign load = "lazy" -%}
+    {%- if include.featured -%}{%- assign load = "eager" -%}{%- endif -%}
     <div class="post-card__media" data-parallax>
-      <img
-        src="{{ img | relative_url }}"
-        alt="{{ alt | escape }}"
-        loading="{% if include.featured %}eager{% else %}lazy{% endif %}"
-        decoding="async"
-        width="1600"
-        height="900">
+      {% picture card "{{ img_rel }}" --alt {{ alt | escape }} --img loading="{{ load }}" decoding="async" %}
     </div>
     <div class="post-card__body">
       <div class="post-card__meta">

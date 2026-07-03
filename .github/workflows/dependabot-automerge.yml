@@ -13,6 +13,8 @@ jobs:
     steps:
       # Build the site with the PR's Gemfile.lock so a broken bump never merges
       - uses: actions/checkout@v7
+      - name: Install libvips
+        run: sudo apt-get update -q && sudo apt-get install -yq --no-install-recommends libvips
       - uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true

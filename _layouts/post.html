@@ -57,7 +57,10 @@
 
     <!-- Post hero -->
     <header class="post-hero" data-parallax>
-      <div class="post-hero__photo parallax-post-photo" style="background-image: url('{{ hero_image | relative_url }}');" role="img" aria-label="{{ hero_alt | escape }}"></div>
+      {%- assign hero_rel = hero_image | remove_first: "/" -%}
+      <div class="post-hero__photo parallax-post-photo">
+        {% picture hero "{{ hero_rel }}" --alt {{ hero_alt | escape }} --img loading="eager" fetchpriority="high" decoding="async" %}
+      </div>
       <div class="post-hero__wash"></div>
       <div class="container">
         <div class="post-hero__content">

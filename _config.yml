@@ -48,6 +48,7 @@ plugins:
   - jekyll-sitemap
   - jekyll-seo-tag
   - jekyll-feed
+  - jekyll_picture_tag
 
 feed:
   path: feed.xml
