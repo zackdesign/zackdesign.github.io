@@ -1,17 +1,19 @@
 ---
 layout: post
-title: "bike-shock-planner — test-driven MTB shock fitment modelling"
-description: "A TypeScript framework for modelling rear-shock fitment, coil conversions, ebike spring rates, and global parts sourcing for any mountain bike — starting with a 2013 Trek Fuel EX 5."
-excerpt: "A TypeScript framework for modelling rear-shock fitment, coil conversions, ebike spring rates, and global parts sourcing for any mountain bike — tests, recipes, and real catalog data."
-image: /images/blog/bike-shock-planner.jpg
+title: "bike-part-planner — test-driven MTB part fitment modelling"
+description: "A TypeScript framework for modelling bike part fitment — rear shocks, forks, ebike motors & batteries, and more — with coil conversions, spring rates, and global parts sourcing for any mountain bike. Started with a 2013 Trek Fuel EX 5."
+excerpt: "A TypeScript framework for modelling bike part fitment — rear shocks, forks, ebike motors & batteries — with coil conversions, spring rates, and real catalog data. Tests, recipes, and code-as-data."
+image: /images/blog/bike-part-planner.jpg
 image_alt: Mountain biker riding a trail through a lush green forest
 date: 2026-04-12
 last_modified_at: 2026-04-12
 categories: [open-source]
 tags: [typescript, bikes, mtb, suspension, testing, open-source]
+redirect_from:
+  - /bike-shock-planner/
 ---
 
-Zack Design has published [`bike-shock-planner`](https://github.com/isaacrowntree/bike-shock-planner) — a **test-driven, code-as-data** planner for mountain bike rear shock replacements, coil conversions, and ebike suspension builds. It began as "can I fit a coil shock to a 2013 Trek Fuel EX 5 ebike conversion?" and grew into a reusable framework that models rear suspension geometry, shock fitment, spring rates, frame clearance, conversion hardware, and global sourcing paths for *any* bike.
+Zack Design has published [`bike-part-planner`](https://github.com/isaacrowntree/bike-part-planner) — a **test-driven, code-as-data** engine for mountain bike part fitment. It began as "can I fit a coil shock to a 2013 Trek Fuel EX 5 ebike conversion?" — hence the original `bike-shock-planner` name — and grew into a reusable framework that models suspension geometry, per-component fitment, spring rates, frame clearance, conversion hardware, and global sourcing paths for *any* bike. Rear-shock fitment was the first module; forks, ebike motors and batteries, and other parts followed.
 
 <!-- more -->
 
@@ -46,4 +48,4 @@ Primarily a **2013 Trek Fuel EX 5** model. The coil catalog includes Push Eleven
 
 ## Why code-as-data
 
-Because every existing shock "compatibility chart" is a PDF, and PDFs cannot be run against a test suite. If you model the data in TypeScript, the test suite can assert things like "no reservoir clash on any frame in the catalog", "every link in the research library is reachable", and "every catalog entry has a spring rate range if it is a coil". That turns a messy research task into something a contributor can submit a pull request against. Source on [GitHub](https://github.com/isaacrowntree/bike-shock-planner).
+Because every existing shock "compatibility chart" is a PDF, and PDFs cannot be run against a test suite. If you model the data in TypeScript, the test suite can assert things like "no reservoir clash on any frame in the catalog", "every link in the research library is reachable", and "every catalog entry has a spring rate range if it is a coil". That turns a messy research task into something a contributor can submit a pull request against. Source on [GitHub](https://github.com/isaacrowntree/bike-part-planner).
