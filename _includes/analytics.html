@@ -1,4 +1,7 @@
-{% if site.google_analytics %}
+{%- comment -%}
+  GA4 — gated to production builds so local serves never hit the property.
+{%- endcomment -%}
+{% if jekyll.environment == "production" and site.google_analytics %}
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id={{ site.google_analytics }}"></script>
 <script>

@@ -2,7 +2,7 @@
 <html lang="{{ site.lang | default: 'en' }}">
   <head>
     <meta charset="utf-8">
-    <title>{% if page.title %}{{ page.title }} — {% endif %}{{ site.name }} — {{ site.description }}</title>
+    <title>{% if page.title %}{{ page.title }} — {{ site.name }}{% else %}{{ site.name }} — {{ site.tagline }}{% endif %}</title>
     {% include meta.html %}
     {% include header-scripts.html %}
 
@@ -15,71 +15,13 @@
     <meta name="theme-color" content="#0A0A1A">
   </head>
   <body data-bs-spy="scroll" data-bs-target="#navbarNav" data-bs-offset="120">
-    <!-- Scroll progress -->
-    <div class="scroll-progress"><div class="scroll-progress__bar"></div></div>
-
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
-      <div class="container">
-        <a class="navbar-brand d-flex align-items-center" href="/">
-          <img src="/images/zackdesign-logo-symbol.png" alt="{{ site.name }}" height="40" class="me-2">
-          <div class="logo-text">
-            <div class="logo-title">Zack Design</div>
-            <div class="logo-tagline">software engineering</div>
-          </div>
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav ms-auto">
-            <li class="nav-item"><a class="nav-link" href="/#hero">Home</a></li>
-            <li class="nav-item"><a class="nav-link" href="/#product">Product</a></li>
-            <li class="nav-item"><a class="nav-link" href="/#services">Services</a></li>
-            <li class="nav-item"><a class="nav-link" href="/#visual">Visual</a></li>
-            <li class="nav-item"><a class="nav-link" href="/#about">About</a></li>
-            <li class="nav-item"><a class="nav-link{% if page.url contains '/blog' %} active{% endif %}" href="/blog/">Journal</a></li>
-            <li class="nav-item"><a class="nav-link" href="/#contact">Contact</a></li>
-          </ul>
-        </div>
-      </div>
-    </nav>
+    {% include navbar.html %}
 
     <main id="main">
       {{ content }}
     </main>
 
-    <!-- Footer -->
-    <footer class="footer">
-      <div class="container">
-        <div class="row">
-          <div class="col-md-6">
-            <div class="d-flex align-items-center mb-3">
-              <img src="/images/zackdesign-logo-symbol.png" alt="{{ site.name }}" height="40" class="me-2">
-              <div class="logo-text">
-                <div class="logo-title">Zack Design</div>
-                <div class="logo-tagline">software engineering</div>
-              </div>
-            </div>
-            <p>Software engineering, web development, and digital solutions built with engineering excellence.</p>
-          </div>
-          <div class="col-md-6 text-md-end">
-            <ul class="footer-links justify-content-md-end mb-3">
-              <li><a href="/#services">Services</a></li>
-              <li><a href="/blog/">Journal</a></li>
-              <li><a href="/feed.xml">RSS</a></li>
-              <li><a href="/#contact">Contact</a></li>
-            </ul>
-            <div class="social-links">
-              <a href="https://github.com/zackdesign" target="_blank" rel="noopener" aria-label="GitHub"><i class="fab fa-github"></i></a>
-              <a href="https://isaacrowntree.com" target="_blank" rel="noopener" aria-label="Personal Site"><i class="fas fa-user"></i></a>
-            </div>
-            <p class="copyright">© {{ site.time | date: '%Y' }} {{ site.name }} · All rights reserved</p>
-          </div>
-        </div>
-      </div>
-    </footer>
+    {% include site-footer.html %}
 
     {% include footer-scripts.html %}
     {% include analytics.html %}

@@ -10,8 +10,10 @@
 <!-- SEO keywords (legacy; search engines largely ignore) -->
 <meta name="keywords" content="software engineering, web development, React, TypeScript, Node.js, app development, React Native, cloud solutions, AI integration, SaaS, Melbourne, Australia">
 
-<!-- jekyll-seo-tag emits canonical, og, twitter card, basic JSON-LD -->
-{% seo %}
+<!-- jekyll-seo-tag emits canonical, og, twitter card, basic JSON-LD.
+     title=false: the layouts render their own <title>; without it the page
+     would carry two title tags. -->
+{% seo title=false %}
 
 <!-- jekyll-feed emits <link rel="alternate"> so browsers/readers can auto-discover the Atom feed -->
 {% feed_meta %}

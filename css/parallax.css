@@ -79,16 +79,6 @@
   transform: translate3d(0, calc(var(--scroll-progress, 0) * 80px * var(--parallax-intensity)), 0) scale(1.08);
 }
 
-/* Tech tile tiny float (combines per-tile offset + scroll) */
-.parallax-tile-float {
-  will-change: transform;
-  transform: translate3d(
-    0,
-    calc(var(--tile-offset, 0) * 1px + var(--scroll-progress, 0) * 12px * var(--parallax-intensity)),
-    0
-  );
-}
-
 /* -------------------------------------------------------------------------
    Reveal / stagger entrance animations
    ------------------------------------------------------------------------- */
@@ -168,8 +158,7 @@
   .parallax-col-a,
   .parallax-col-b,
   .parallax-hero-photo,
-  .parallax-post-photo,
-  .parallax-tile-float {
+  .parallax-post-photo {
     transform: none !important;
   }
 

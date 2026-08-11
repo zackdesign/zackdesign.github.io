@@ -1,0 +1,27 @@
+{%- comment -%}
+  Client-work card. Param: include.work — one entry from _data/work.yml.
+  The swatch strip renders the client's real production CSS tokens.
+{%- endcomment -%}
+{%- assign w = include.work -%}
+<article class="work-card">
+  <div class="work-card__swatches" role="img" aria-label="{{ w.client }} palette: {% for s in w.swatches %}{{ s.name }}{% unless forloop.last %}, {% endunless %}{% endfor %}">
+    {%- for s in w.swatches -%}
+    <span style="background: {{ s.hex }};"></span>
+    {%- endfor -%}
+  </div>
+  <div class="work-card__body">
+    <div class="work-card__head">
+      <h3 class="work-card__client">{{ w.client }}</h3>
+      <span class="work-card__status{% if w.status == 'Live' %} work-card__status--live{% endif %}">{{ w.status }}</span>
+    </div>
+    <p class="work-card__note">{{ w.note }}</p>
+    <dl class="work-card__spec">
+      <div><dt>Trade</dt><dd>{{ w.trade }}</dd></div>
+      <div><dt>Concept</dt><dd>“{{ w.concept }}”</dd></div>
+      <div><dt>Stack</dt><dd>{{ w.stack }}</dd></div>
+      {%- if w.url -%}
+      <div><dt>Live at</dt><dd><a href="{{ w.url }}" target="_blank" rel="noopener">{{ w.url_label }}</a></dd></div>
+      {%- endif -%}
+    </dl>
+  </div>
+</article>

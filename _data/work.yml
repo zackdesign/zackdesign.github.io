@@ -1,0 +1,76 @@
+# Client work dockets — the swatches are the real CSS custom properties
+# shipped in each site's production stylesheet. Don't invent values here:
+# lift them from the repo (main.css :root) when a project is added.
+- id: mowercorner
+  client: Mower Corner
+  trade: Mower & chainsaw shop — Colac, VIC
+  concept: spec plate
+  status: Live
+  url: https://mowercorner.com.au
+  url_label: mowercorner.com.au
+  stack: Jekyll · hand-written CSS · GitHub Pages · Cloudflare
+  note: >-
+    Their 90s mark — a condensed wordmark standing in a strip of grass — was
+    genuine equity, so we traced it from poster art and rebuilt the site around
+    it: riveted spec plates carrying the shop's own data, a live open/closed
+    readout in Melbourne time, and four service pages written from real search
+    demand.
+  swatches:
+    - { hex: "#14181A", name: cast iron }
+    - { hex: "#F2600C", name: safety orange }
+    - { hex: "#2B7134", name: grass }
+    - { hex: "#E7E8E3", name: galvanised zinc }
+
+- id: acparts
+  client: AC Service & Parts
+  trade: Farm machinery parts — Colac, VIC
+  concept: paddock palette
+  status: Live
+  url: https://acparts.com.au
+  url_label: acparts.com.au
+  stack: Jekyll · Contentful · GitHub Pages
+  note: >-
+    A refine-not-replace job. The paddock palette and harvest photography were
+    already working, so the budget went where it counted: contrast fixed to AA
+    on every ground, claims softened to what's verifiable, structured data
+    repaired, heroes self-hosted — and the logo's teal finally let out of
+    quarantine.
+  swatches:
+    - { hex: "#F4F1EA", name: bone }
+    - { hex: "#2C4A3E", name: forest }
+    - { hex: "#C76A3E", name: terracotta }
+    - { hex: "#3D8681", name: teal }
+
+- id: breederschoice
+  client: Breeder's Choice
+  trade: Pine-shavings bedding — Colac, VIC
+  concept: the bale and the spec
+  status: In client review
+  stack: Jekyll · hand-written CSS · GitHub Pages
+  note: >-
+    A 14 kg bale with a moisture spec is a real product, so the product leads:
+    a kraft bale-label tag carries the spec the way the printed wrap does,
+    all 407 stockists render as indexable HTML with the map as enhancement,
+    and every marketing claim was audited against a source before it shipped.
+  swatches:
+    - { hex: "#0B4423", name: forest }
+    - { hex: "#0F6B36", name: logo green }
+    - { hex: "#E3D5B3", name: kraft }
+    - { hex: "#F4F1E8", name: cream }
+
+- id: superiorshavings
+  client: Superior Shavings
+  trade: Pine-shavings plant — Tumut, NSW
+  concept: mill-side
+  status: In client review
+  stack: Jekyll · hand-written CSS · GitHub Pages
+  note: >-
+    Sister plant to Breeder's Choice, so it got a deliberately different
+    register: iron greys and the logo's red, a numbered mill line from saw to
+    baler, and the product spec set as a bale ticket. Same structure, different
+    plant — the two sites cross-link instead of competing.
+  swatches:
+    - { hex: "#1F2224", name: iron }
+    - { hex: "#BF2025", name: logo red }
+    - { hex: "#F0EEEA", name: smoke }
+    - { hex: "#E8B891", name: timber }

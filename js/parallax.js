@@ -1,11 +1,10 @@
 /*
   parallax.js — zack design
   - Navbar scrolled state
-  - Scroll + reading progress bars
+  - Reading progress bar (post pages)
   - Per-element --scroll-progress via IntersectionObserver + rAF
   - Reveal entrance + stagger
   - Hero orb cursor drift (desktop)
-  - Custom cursor (desktop)
   - Smooth anchor scrolling
   - TOC active-section highlight (post pages)
 */
@@ -26,8 +25,8 @@
     window.addEventListener('scroll', updateNav, { passive: true });
   }
 
-  // ---------------------------------------------------------------- Progress bar
-  const progressBars = document.querySelectorAll('.scroll-progress__bar, .reading-progress__bar');
+  // ---------------------------------------------------------------- Reading progress (posts)
+  const progressBars = document.querySelectorAll('.reading-progress__bar');
   if (progressBars.length) {
     const updateProgress = () => {
       const scrollable = document.documentElement.scrollHeight - window.innerHeight;
@@ -127,14 +126,6 @@
       window.addEventListener('resize', schedule, { passive: true });
     }
 
-    // -------------------------------------------------------------- Tech tile random offsets
-    document.querySelectorAll('[data-tile-float]').forEach((el) => {
-      const min = -3;
-      const max = 3;
-      const offset = Math.random() * (max - min) + min;
-      el.style.setProperty('--tile-offset', offset.toFixed(2));
-    });
-
     // -------------------------------------------------------------- Hero orb mouse drift
     if (isFinePointer) {
       const orbs = document.querySelectorAll('.hero-orb');
@@ -158,63 +149,6 @@
           requestAnimationFrame(tick);
         };
         requestAnimationFrame(tick);
-      }
-
-      // ------------------------------------------------------------ Custom cursor
-      if (!document.body.classList.contains('no-custom-cursor')) {
-        const dot = document.createElement('div');
-        dot.className = 'cursor-dot';
-        dot.style.marginLeft = '-3px';
-        dot.style.marginTop = '-3px';
-        dot.style.left = '0';
-        dot.style.top = '0';
-
-        const ring = document.createElement('div');
-        ring.className = 'cursor-ring';
-        ring.style.marginLeft = '-16px';
-        ring.style.marginTop = '-16px';
-        ring.style.left = '0';
-        ring.style.top = '0';
-
-        document.body.appendChild(dot);
-        document.body.appendChild(ring);
-        document.body.classList.add('has-custom-cursor');
-
-        let dx = 0, dy = 0, rx = 0, ry = 0;
-        document.addEventListener(
-          'mousemove',
-          (e) => {
-            dx = e.clientX;
-            dy = e.clientY;
-            dot.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
-          },
-          { passive: true }
-        );
-        const ringTick = () => {
-          rx += (dx - rx) * 0.18;
-          ry += (dy - ry) * 0.18;
-          ring.style.transform = `translate3d(${rx.toFixed(2)}px, ${ry.toFixed(2)}px, 0)`;
-          requestAnimationFrame(ringTick);
-        };
-        requestAnimationFrame(ringTick);
-
-        const hoverSel = 'a, button, .btn, input, textarea, [data-cursor-hover]';
-        document.addEventListener('mouseover', (e) => {
-          if (e.target.closest(hoverSel)) ring.classList.add('is-hover');
-        });
-        document.addEventListener('mouseout', (e) => {
-          if (e.target.closest(hoverSel)) ring.classList.remove('is-hover');
-        });
-
-        // Hide cursor when leaving window
-        document.addEventListener('mouseleave', () => {
-          dot.style.opacity = '0';
-          ring.style.opacity = '0';
-        });
-        document.addEventListener('mouseenter', () => {
-          dot.style.opacity = '1';
-          ring.style.opacity = '1';
-        });
       }
     }
   }
@@ -285,7 +219,8 @@
       const url = btn.dataset.copyUrl || window.location.href;
       navigator.clipboard?.writeText(url).then(() => {
         const original = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-check"></i>';
+        btn.innerHTML =
+          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>';
         setTimeout(() => {
           btn.innerHTML = original;
         }, 1600);

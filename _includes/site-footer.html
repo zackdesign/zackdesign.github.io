@@ -1,0 +1,33 @@
+{%- comment -%}
+  Site footer — shared by default.html and post.html so the two can't drift.
+{%- endcomment -%}
+<!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="d-flex align-items-center mb-3">
+              <img src="/images/zackdesign-logo-symbol.png" alt="{{ site.name }}" height="40" class="me-2">
+              <div class="logo-text">
+                <div class="logo-title">Zack Design</div>
+                <div class="logo-tagline">software engineering</div>
+              </div>
+            </div>
+            <p>Software engineering, web development, and digital solutions built with engineering excellence.</p>
+          </div>
+          <div class="col-md-6 text-md-end">
+            <ul class="footer-links justify-content-md-end mb-3">
+              <li><a href="/#services">Services</a></li>
+              <li><a href="/blog/">Journal</a></li>
+              <li><a href="/feed.xml">RSS</a></li>
+              <li><a href="/#contact">Contact</a></li>
+            </ul>
+            <div class="social-links">
+              <a href="https://github.com/zackdesign" target="_blank" rel="noopener" aria-label="GitHub">{% include icon.html name="github" %}</a>
+              <a href="https://isaacrowntree.com" target="_blank" rel="noopener" aria-label="Personal Site">{% include icon.html name="user" %}</a>
+            </div>
+            <p class="copyright">© {{ site.time | date: '%Y' }} {{ site.name }} · All rights reserved</p>
+          </div>
+        </div>
+      </div>
+    </footer>

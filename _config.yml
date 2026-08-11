@@ -13,7 +13,6 @@ image: /images/zackdesign-logo-symbol.png
 google_analytics: G-G929CKNR8F
 
 url: https://zackdesign.biz
-enforce_ssl: zackdesign.biz
 baseurl: ""
 permalink: /:title/
 

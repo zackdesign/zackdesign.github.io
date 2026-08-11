@@ -32,29 +32,13 @@ layout: default
     <!-- Heading row -->
     <div class="row">
       <div class="col-lg-10 mx-auto text-center mb-5">
-        <span class="product-eyebrow reveal">Flagship Product · Just launched</span>
+        <span class="product-eyebrow reveal">Flagship Product · Live</span>
         <h2 class="section-title mt-3 reveal" style="--reveal-delay: 100ms;">Introducing SessionHQ</h2>
-        <p class="section-subtitle reveal" style="--reveal-delay: 180ms;">A full-stack SaaS built, shipped, and running real customers — a modern check-in platform for dance studios, gyms, and martial arts schools.</p>
-        <div class="product-wordmark-wrap reveal" style="--reveal-delay: 260ms;">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" class="product-wordmark-hero" role="img" aria-label="SessionHQ">
-            <defs>
-              <linearGradient id="shq-gradient-hero" x1="0" y1="0.5" x2="1" y2="0.5">
-                <stop offset="0%" stop-color="#818cf8"/>
-                <stop offset="50%" stop-color="#60a5fa"/>
-                <stop offset="100%" stop-color="#22d3ee"/>
-              </linearGradient>
-            </defs>
-            <text x="160" y="56" text-anchor="middle" font-family="Inter, sans-serif" font-size="48" font-weight="700" letter-spacing="-1.2">
-              <tspan fill="#F5F3FF">Session</tspan><tspan fill="url(#shq-gradient-hero)">HQ</tspan>
-            </text>
-          </svg>
-          <p class="product-tagline mt-2">Class check-ins, beautifully simple.</p>
-          <div class="hero-cta-row mt-4">
-            <a href="https://sessionhq.org" target="_blank" rel="noopener" class="btn btn-primary btn-lg">
-              <i class="fas fa-globe me-2"></i>Visit sessionhq.org
-            </a>
-            <a href="/sessionhq-launch/" class="btn btn-outline-primary btn-lg">Read the launch story</a>
-          </div>
+        <p class="product-tagline reveal" style="--reveal-delay: 160ms;">Class check-ins, beautifully simple.</p>
+        <p class="section-subtitle mt-3 reveal" style="--reveal-delay: 220ms;">A full-stack SaaS built, shipped, and running real customers — a modern check-in platform for dance studios, gyms, and martial arts schools.</p>
+        <div class="hero-cta-row reveal" style="--reveal-delay: 280ms;">
+          <a href="https://sessionhq.org" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Visit sessionhq.org</a>
+          <a href="/sessionhq-launch/" class="btn btn-outline-primary btn-lg">Read the launch story</a>
         </div>
       </div>
     </div>
@@ -65,21 +49,21 @@ layout: default
     </div>
 
     <!-- Feature grid -->
-    <div class="row g-4 mt-5 pt-3" data-stagger="90">
+    <div class="row g-4 mt-4" data-stagger="90">
       <div class="col-sm-6 col-lg-3"><div class="product-feature reveal">
-        <div class="product-feature-icon"><i class="fas fa-bolt"></i></div>
+        <div class="product-feature-icon">{% include icon.html name="zap" %}</div>
         <div><strong>Instant check-in</strong><div class="small">PIN · NFC · QR · multi-class</div></div>
       </div></div>
       <div class="col-sm-6 col-lg-3"><div class="product-feature reveal">
-        <div class="product-feature-icon"><i class="fas fa-credit-card"></i></div>
+        <div class="product-feature-icon">{% include icon.html name="card" %}</div>
         <div><strong>Square payments</strong><div class="small">Cards-on-file · auto-renew</div></div>
       </div></div>
       <div class="col-sm-6 col-lg-3"><div class="product-feature reveal">
-        <div class="product-feature-icon"><i class="fas fa-lock"></i></div>
+        <div class="product-feature-icon">{% include icon.html name="lock" %}</div>
         <div><strong>Multi-tenant secure</strong><div class="small">Postgres RLS · per-studio isolation</div></div>
       </div></div>
       <div class="col-sm-6 col-lg-3"><div class="product-feature reveal">
-        <div class="product-feature-icon"><i class="fas fa-chart-line"></i></div>
+        <div class="product-feature-icon">{% include icon.html name="chart" %}</div>
         <div><strong>Real-time analytics</strong><div class="small">Revenue · LTV · retention</div></div>
       </div></div>
     </div>
@@ -125,35 +109,54 @@ layout: default
 
     <div class="row g-4 mt-4" data-stagger="100">
       <div class="col-md-6 col-lg-4"><div class="service-card reveal">
-        <div class="service-icon"><i class="fas fa-rocket"></i></div>
+        <div class="service-icon">{% include icon.html name="layers" %}</div>
         <h3>Full-stack SaaS</h3>
         <p>End-to-end product engineering — multi-tenant architecture, payments, auth, realtime. From first prototype to live customers, like SessionHQ.</p>
       </div></div>
       <div class="col-md-6 col-lg-4"><div class="service-card reveal">
-        <div class="service-icon"><i class="fas fa-mobile-screen-button"></i></div>
+        <div class="service-icon">{% include icon.html name="smartphone" %}</div>
         <h3>Mobile apps</h3>
         <p>React Native &amp; Expo, with custom Swift/Kotlin native modules when you need to go deeper. Ships on iOS and Android from one codebase.</p>
       </div></div>
       <div class="col-md-6 col-lg-4"><div class="service-card reveal">
-        <div class="service-icon"><i class="fas fa-brain"></i></div>
+        <div class="service-icon">{% include icon.html name="sparkles" %}</div>
         <h3>AI tooling &amp; agents</h3>
         <p>Claude Code skills, RAG and vector search, agent workflows, local-LLM pipelines. Practical AI that ships, not demoware.</p>
       </div></div>
       <div class="col-md-6 col-lg-4"><div class="service-card reveal">
-        <div class="service-icon"><i class="fas fa-bolt"></i></div>
+        <div class="service-icon">{% include icon.html name="zap" %}</div>
         <h3>Edge &amp; serverless</h3>
         <p>Cloudflare Workers, Supabase, PlanetScale, Sentry. Global edge deployment, zero-downtime, observable by default.</p>
       </div></div>
       <div class="col-md-6 col-lg-4"><div class="service-card reveal">
-        <div class="service-icon"><i class="fas fa-terminal"></i></div>
+        <div class="service-icon">{% include icon.html name="terminal" %}</div>
         <h3>CLIs &amp; dev tooling</h3>
         <p>Internal CLIs, release automation, Homebrew taps, Claude Code plugins. The small tools that make a team ten times faster.</p>
       </div></div>
       <div class="col-md-6 col-lg-4"><div class="service-card reveal">
-        <div class="service-icon"><i class="fas fa-compass"></i></div>
+        <div class="service-icon">{% include icon.html name="compass" %}</div>
         <h3>Technical leadership</h3>
         <p>Architecture, hiring, engineering culture, hands-on mentorship. Twenty years of shipping across startup and enterprise.</p>
       </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ CLIENT WORK ============================ -->
+<section id="work" class="section section-ink" data-parallax>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 mx-auto text-center">
+        <span class="section-eyebrow reveal">Client work · 2026</span>
+        <h2 class="section-title reveal" style="--reveal-delay: 100ms;">Four local businesses, four identities.</h2>
+        <p class="section-subtitle reveal" style="--reveal-delay: 180ms;">Every client gets a design system of their own — researched from the real business, built by hand, and audited before it ships. The colour strips are the actual tokens running in each site's production CSS.</p>
+      </div>
+    </div>
+
+    <div class="row g-4 mt-4" data-stagger="100">
+      {%- for w in site.data.work -%}
+      <div class="col-md-6"><div class="reveal h-100">{% include work-card.html work=w %}</div></div>
+      {%- endfor -%}
     </div>
   </div>
 </section>
@@ -165,28 +168,28 @@ layout: default
   <div class="container">
     <div class="row align-items-center g-5">
       <div class="col-lg-7 reveal-left parallax-col-a">
-        <span class="section-eyebrow">Also — visual work</span>
+        <span class="section-eyebrow section-eyebrow--rule">Also — visual work</span>
         <h2 class="section-title mt-2">Not just software.</h2>
         <p class="mb-4" style="color: var(--pearl-soft); font-size: 1.05rem; line-height: 1.65;">
           Zack Design is software first — but Isaac also shoots <strong>photography &amp; videography</strong> as <em>Zemonstas</em>. Latin dance events, travel, portraits, and everything in between. Many of the tools on the journal — color&nbsp;grading AI, deflicker runners, audio recut — were born in real editing sessions.
         </p>
         <div class="visual-chips mb-4" aria-label="Specialties">
-          <span class="visual-chip"><i class="fas fa-camera-retro me-2"></i>Photography</span>
-          <span class="visual-chip"><i class="fas fa-video me-2"></i>Videography</span>
-          <span class="visual-chip"><i class="fas fa-film me-2"></i>Color grading</span>
-          <span class="visual-chip"><i class="fas fa-music me-2"></i>Dance events</span>
+          <span class="visual-chip">{% include icon.html name="camera" %}Photography</span>
+          <span class="visual-chip">{% include icon.html name="video" %}Videography</span>
+          <span class="visual-chip">{% include icon.html name="film" %}Color grading</span>
+          <span class="visual-chip">{% include icon.html name="music" %}Dance events</span>
         </div>
         <a href="https://www.instagram.com/zemonstas" target="_blank" rel="noopener" class="btn btn-primary btn-lg">
-          <i class="fab fa-instagram me-2"></i>Follow @zemonstas
+          {% include icon.html name="instagram" %}&nbsp; Follow @zemonstas
         </a>
       </div>
       <div class="col-lg-5 parallax-col-b reveal-right">
         <figure class="visual-ig-card">
           <figcaption class="visual-ig-card__header">
-            <i class="fab fa-instagram"></i>
+            {% include icon.html name="instagram" %}
             <span class="mono">@zemonstas</span>
             <a href="https://www.instagram.com/p/DQUG8ikktUc/" target="_blank" rel="noopener" class="visual-ig-card__open">
-              View on Instagram <i class="fas fa-arrow-up-right-from-square ms-1"></i>
+              View on Instagram {% include icon.html name="external" %}
             </a>
           </figcaption>
           <div class="visual-ig-card__embed">
@@ -210,7 +213,7 @@ layout: default
   <div class="container">
     <div class="row align-items-center g-5">
       <div class="col-lg-7 order-lg-1 order-2 parallax-col-a reveal-left">
-        <span class="section-eyebrow">About</span>
+        <span class="section-eyebrow section-eyebrow--rule">About</span>
         <h2 class="section-title mt-2">Twenty years of shipping.</h2>
         <p>
           Zack Design delivers high-performance software solutions built with engineering excellence. Led by
@@ -285,40 +288,19 @@ layout: default
 </section>
 
 <!-- =========================== TECHNOLOGIES =========================== -->
-<section id="technologies" class="section section-ink" data-parallax>
+<!-- One quiet strip, not a tile wall — the work above is the real proof. -->
+<section id="technologies" class="section-ink py-2">
   <div class="container">
-    <div class="row">
-      <div class="col-lg-8 mx-auto text-center">
-        <span class="section-eyebrow reveal">Tech stack</span>
-        <h2 class="section-title reveal" style="--reveal-delay: 100ms;">The tools we reach for.</h2>
-        <p class="section-subtitle reveal" style="--reveal-delay: 180ms;">Modern, proven, and boringly reliable — so products ship faster and stay standing.</p>
-      </div>
-    </div>
-    <div class="row g-3 mt-4" data-stagger="60">
-      <div class="col-6 col-md-3"><div class="tech-card reveal parallax-tile-float" data-tile-float data-parallax>
-        <i class="fab fa-js-square"></i><h5>TypeScript</h5>
-      </div></div>
-      <div class="col-6 col-md-3"><div class="tech-card reveal parallax-tile-float" data-tile-float data-parallax>
-        <i class="fab fa-react"></i><h5>Next.js</h5>
-      </div></div>
-      <div class="col-6 col-md-3"><div class="tech-card reveal parallax-tile-float" data-tile-float data-parallax>
-        <i class="fas fa-mobile-screen-button"></i><h5>React Native</h5>
-      </div></div>
-      <div class="col-6 col-md-3"><div class="tech-card reveal parallax-tile-float" data-tile-float data-parallax>
-        <i class="fab fa-cloudflare"></i><h5>Cloudflare</h5>
-      </div></div>
-      <div class="col-6 col-md-3"><div class="tech-card reveal parallax-tile-float" data-tile-float data-parallax>
-        <i class="fas fa-bolt"></i><h5>Supabase</h5>
-      </div></div>
-      <div class="col-6 col-md-3"><div class="tech-card reveal parallax-tile-float" data-tile-float data-parallax>
-        <i class="fas fa-database"></i><h5>PlanetScale</h5>
-      </div></div>
-      <div class="col-6 col-md-3"><div class="tech-card reveal parallax-tile-float" data-tile-float data-parallax>
-        <i class="fas fa-magnifying-glass"></i><h5>Typesense</h5>
-      </div></div>
-      <div class="col-6 col-md-3"><div class="tech-card reveal parallax-tile-float" data-tile-float data-parallax>
-        <i class="fas fa-shield-halved"></i><h5>Sentry</h5>
-      </div></div>
+    <div class="tech-strip reveal">
+      <span class="tech-strip__label">The tools we reach for</span>
+      <span class="tech-strip__item">TypeScript</span>
+      <span class="tech-strip__item">Next.js</span>
+      <span class="tech-strip__item">React Native</span>
+      <span class="tech-strip__item">Cloudflare</span>
+      <span class="tech-strip__item">Supabase</span>
+      <span class="tech-strip__item">PlanetScale</span>
+      <span class="tech-strip__item">Typesense</span>
+      <span class="tech-strip__item">Sentry</span>
     </div>
   </div>
 </section>
@@ -328,11 +310,11 @@ layout: default
   <div class="container">
     <div class="journal-header">
       <div>
-        <span class="section-eyebrow reveal">Writing</span>
+        <span class="section-eyebrow section-eyebrow--rule reveal">Writing</span>
         <h2 class="section-title reveal" style="--reveal-delay: 100ms;">From the journal.</h2>
         <p class="section-subtitle reveal" style="--reveal-delay: 180ms;">Notes on engineering, products shipped, and lessons from the field.</p>
       </div>
-      <a href="/blog/" class="journal-view-all reveal">All writing <i class="fas fa-arrow-right"></i></a>
+      <a href="/blog/" class="journal-view-all reveal">All writing {% include icon.html name="arrow-right" %}</a>
     </div>
 
     {%- assign posts = site.posts -%}
@@ -366,10 +348,12 @@ layout: default
     <div class="row justify-content-center mt-5">
       <div class="col-md-10 col-lg-8">
         <div class="contact-card text-center reveal-scale">
-          <div class="contact-icon mb-4"><i class="fas fa-envelope"></i></div>
-          <h3>Email us</h3>
-          <p class="lead">For inquiries, proposals, or questions about your software project — drop a line.</p>
+          <p class="lead">For inquiries, proposals, or questions about your software project — drop a line. You'll get Isaac, not a form pipeline.</p>
           <a href="mailto:isaac@zackdesign.biz" class="btn btn-primary btn-lg">isaac@zackdesign.biz</a>
+          <div class="contact-meta">
+            <a href="https://github.com/zackdesign" target="_blank" rel="noopener">github.com/zackdesign</a>
+            <a href="https://isaacrowntree.com" target="_blank" rel="noopener">isaacrowntree.com</a>
+          </div>
         </div>
       </div>
     </div>

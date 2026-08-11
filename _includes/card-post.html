@@ -37,7 +37,7 @@
           {{ p.content | strip_html | strip_newlines | truncate: 180 }}
         {%- endif -%}
       </p>
-      <span class="post-card__readmore">Read article <i class="fas fa-arrow-right"></i></span>
+      <span class="post-card__readmore">Read article {% include icon.html name="arrow-right" %}</span>
     </div>
   </article>
 </a>
