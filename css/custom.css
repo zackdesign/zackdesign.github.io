@@ -248,7 +248,23 @@ a:hover { color: var(--accent-hover); }
   padding: 0.4rem 0.6rem;
 }
 
-.navbar-toggler-icon { filter: invert(1) brightness(1.5); }
+/* Inline SVG, not Bootstrap's background-image icon: navbar-dark already
+   ships a white glyph, so the old `filter: invert(1)` rendered it black on
+   the dark bar — invisible. currentColor keeps it tied to the nav text. */
+.navbar-toggler {
+  color: var(--pearl);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navbar-toggler svg { width: 1.5rem; height: 1.5rem; }
+
+.navbar-toggler:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  box-shadow: none;
+}
 
 .logo-title {
   font-weight: 600;
