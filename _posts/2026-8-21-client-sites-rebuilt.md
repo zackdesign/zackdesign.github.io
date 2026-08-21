@@ -86,9 +86,3 @@ Two implementation notes I'd defend anywhere:
 
 - The **mobile menu is a `<details>` disclosure**. It opens and closes with no JavaScript at all. The 28 lines of JS behind it only add the niceties — Escape to close, outside-click, closing on same-page anchors — so a script failure degrades to a working menu rather than a hamburger that does nothing.
 - **Reveal-on-scroll replaced AOS** with an `IntersectionObserver`, and it checks `prefers-reduced-motion` first. If the visitor has asked for less motion, or the browser lacks the API, everything is simply visible.
-
-## What I'm not claiming
-
-The posts this one replaces asserted "a measurable increase in conversion rates" without a number. I don't have before-and-after analytics I trust across a redesign, a domain move and a seasonal cycle, so I'm not going to imply I do. What's verifiable: four sites that load without a framework, several hundred retail locations that are now indexable, contrast that passes AA, structured data that validates, and every marketing claim on the bedding sites checked against a source before it shipped.
-
-Still open, honestly: Google Business listings need updating on the bedding brands, one domain transfer needs registrant paperwork, and the animal photography on both sister sites is currently stills cut from the client's own video — interim, until his photographer delivers.
