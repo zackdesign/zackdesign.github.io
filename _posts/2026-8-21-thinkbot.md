@@ -113,27 +113,19 @@ Slack is listed first and deliberately kept. If the assistant is the only alert 
 
 If you take one idea from either of these projects, take that one.
 
-## It has no public surface, and that took a second pass
+## Static assets are a second front door
 
 thinkbot holds a GitHub PAT, Datadog and Sentry keys, and write access to monitoring incidents. `workers_dev` and `preview_urls` are off, and every inbound route verifies its caller before doing any work.
 
-That was true of the routes and still not true of the deployment, which is the part worth writing down. The project was scaffolded from Cloudflare's agents starter, so `npm run deploy` was `vite build && wrangler deploy` — and while the chat UI had been disabled in code, the built client bundle was still being uploaded. **Static assets are matched before the Worker runs.** That single fact produced three separate bugs:
+That was true of the routes and still not true of the deployment, and the gap is worth writing down because it generalises to any Worker with a static bundle in front of it. **Assets are matched before the Worker runs.** So an asset bundle answers requests that no route guard ever sees — and while one was deployed here, that single fact produced three separate bugs:
 
-- an unauthenticated `GET` to the hostname served the chat shell, from a route guard's blind spot;
+- an unauthenticated `GET` to the hostname was served from the bundle, in a route guard's blind spot;
 - `/health` answered `200` with `index.html` instead of the handler — a liveness endpoint that *cannot fail*, reporting healthy straight through an outage;
 - and every signed inbox returned `405`, because the asset handler rejects non-GET rather than falling through. Monitoring never noticed, because it reaches thinkbot over the RPC binding, which does not pass through assets at all.
 
-The fix is not another path in `run_worker_first`. It is having no assets at all: with the bundle gone, every request lands on the code that checks its caller. The chat UI, React, Tailwind and the entire Vite pipeline went with it — `wrangler deploy` bundles the Worker on its own.
+The fix is not another path in `run_worker_first` — that just moves the boundary and leaves the rest of it in place. It is having no assets at all: with the bundle gone, every request lands on the code that checks its caller.
 
-There is a local trap attached, worth knowing if you ever mix Vite and Wrangler: `vite build` writes `.wrangler/deploy/config.json`, which redirects wrangler at `dist/`. Both are gitignored, so a stale redirect will keep deploying the old bundle while silently ignoring your edits to `wrangler.jsonc`.
-
-## What it stopped being
-
-It was scaffolded on Cloudflare's [Agents SDK](https://developers.cloudflare.com/agents/), which meant a chat agent backed by a Durable Object holding conversation state. Removing the UI made it obvious that nothing else had ever used it: Slack, Telegram, the monitoring inbox and the CI inbox all call one function that runs a single model turn with the ops tools. A Durable Object earns its keep when a conversation has a memory. Every conversation here is one turn long.
-
-So the agent class, its DO, and the two packages behind it are gone, and the Worker bundle went from 2.8 MB to 1.2 MB. What remains is a `fetch` handler, an RPC entrypoint, and one `generateText` call with five tool families attached.
-
-There is a version of this project that keeps the chat surface, and it is a reasonable thing to want — asking "what happened to payload-health last week?" in a thread is genuinely useful. But it is a different product with a different security posture, and it is not what the alert path needs.
+There is a local trap attached, worth knowing if you ever mix Vite and Wrangler: `vite build` writes `.wrangler/deploy/config.json`, which redirects wrangler at `dist/`. Both are gitignored, so a stale redirect will keep deploying the old bundle while silently ignoring your edits to `wrangler.jsonc`. That is how a bundle you thought you had removed stays in production.
 
 ## It is not about our estate
 
