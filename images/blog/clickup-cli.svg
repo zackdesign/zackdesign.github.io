@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">
+  <defs>
+    <radialGradient id="ground" cx="34%" cy="42%" r="82%">
+      <stop offset="0%" stop-color="#1E1B4B"/>
+      <stop offset="55%" stop-color="#12122B"/>
+      <stop offset="100%" stop-color="#0A0A1A"/>
+    </radialGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#F5F3FF" stroke-opacity="0.035" stroke-width="1"/>
+    </pattern>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="34"/>
+    </filter>
+    <filter id="softglow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="14"/>
+    </filter>
+    <linearGradient id="cuGrad" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%" stop-color="#8930FD"/>
+      <stop offset="50%" stop-color="#49CCF9"/>
+      <stop offset="100%" stop-color="#FF02F0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#ground)"/>
+  <rect width="1600" height="900" fill="url(#grid)"/>
+
+<ellipse cx="360" cy="450" rx="240" ry="200" fill="#8930FD" fill-opacity="0.18" filter="url(#glow)"/>
+  <g transform="translate(200,290) scale(13.333333)"><path d="M2 18.439l3.69-2.828c1.961 2.56 4.044 3.739 6.363 3.739 2.307 0 4.33-1.166 6.203-3.704L22 18.405C19.298 22.065 15.941 24 12.053 24 8.178 24 4.788 22.078 2 18.439zM12.04 6.15l-6.568 5.66-3.036-3.52L12.055 0l9.543 8.296-3.05 3.509z" fill="url(#cuGrad)" filter="url(#glow)" opacity="0.75"/><path d="M2 18.439l3.69-2.828c1.961 2.56 4.044 3.739 6.363 3.739 2.307 0 4.33-1.166 6.203-3.704L22 18.405C19.298 22.065 15.941 24 12.053 24 8.178 24 4.788 22.078 2 18.439zM12.04 6.15l-6.568 5.66-3.036-3.52L12.055 0l9.543 8.296-3.05 3.509z" fill="url(#cuGrad)"/></g>
+  <rect x="640" y="286" width="780" height="328" rx="22" fill="#12122B" fill-opacity="0.92" stroke="#F5F3FF" stroke-opacity="0.14"/>
+  <circle cx="674" cy="320" r="6" fill="#F43F5E" fill-opacity="0.55"/>
+  <circle cx="700" cy="320" r="6" fill="#FDE68A" fill-opacity="0.55"/>
+  <circle cx="726" cy="320" r="6" fill="#22D3EE" fill-opacity="0.55"/>
+  <line x1="640" y1="350" x2="1420" y2="350" stroke="#F5F3FF" stroke-opacity="0.1"/>
+  <text x="676" y="408" font-family="Menlo, monospace" font-size="27"><tspan fill="#22D3EE">$</tspan> <tspan fill="#F5F3FF">clickup task view</tspan></text>
+  <text x="676" y="460" font-family="Menlo, monospace" font-size="27"><tspan fill="#22D3EE">$</tspan> <tspan fill="#F5F3FF">clickup link pr</tspan><tspan fill="#F5F3FF" fill-opacity="0.42">&#160;&#160;&#160;&#160;# PR &#8594; task</tspan></text>
+  <text x="676" y="512" font-family="Menlo, monospace" font-size="27"><tspan fill="#22D3EE">$</tspan> <tspan fill="#F5F3FF">clickup status set "review"</tspan></text>
+</svg>

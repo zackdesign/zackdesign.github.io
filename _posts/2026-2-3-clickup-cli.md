@@ -2,16 +2,16 @@
 layout: post
 title: "clickup-cli — ClickUp from the terminal, wired into git and GitHub"
 description: "A Go CLI for ClickUp that auto-detects task IDs from git branches, links PRs, drives the sprint dashboard, and hands AI coding agents clean JSON output."
-excerpt: "A Go CLI for ClickUp that auto-detects task IDs from git branches, links PRs, drives the sprint dashboard, and hands AI coding agents clean JSON — now with 16 stars."
+excerpt: "A Go CLI for ClickUp that auto-detects task IDs from git branches, links PRs, drives the sprint dashboard, and hands AI coding agents clean JSON — now the most-starred thing Triptech has published."
 image: /images/blog/clickup-cli.jpg
-image_alt: Close-up of programming code on a dark terminal window
+image_alt: The ClickUp mark beside a terminal window running clickup task view, clickup link pr, and clickup status set "review"
 date: 2026-02-03
-last_modified_at: 2026-02-03
+last_modified_at: 2026-08-21
 categories: [open-source]
 tags: [go, cli, clickup, github, ai-agents, cobra, open-source]
 ---
 
-[`clickup-cli`](https://github.com/triptechtravel/clickup-cli) is a [Triptech Travel](https://github.com/triptechtravel) open-source project — authored and released by Isaac Rowntree in his Triptech engineering capacity, cross-posted here on the Zack Design blog. It is a fast, scriptable command-line tool for ClickUp written in Go and designed for developers who live in a terminal and a GitHub PR tab. It is the most-starred thing released under the Triptech org to date — sixteen stars at the time of writing, which for a brand-new workflow tool is a quietly pleasing result.
+[`clickup-cli`](https://github.com/triptechtravel/clickup-cli) is a [Triptech Travel](https://github.com/triptechtravel) open-source project — authored and released by Isaac Rowntree in his Triptech engineering capacity, cross-posted here on the Zack Design blog. It is a fast, scriptable command-line tool for ClickUp written in Go and designed for developers who live in a terminal and a GitHub PR tab. It is the most-starred thing released under the Triptech org to date — sixteen stars when this was written, and thirty-six by August 2026, which for a workflow tool nobody marketed is a quietly pleasing result.
 
 <!-- more -->
 

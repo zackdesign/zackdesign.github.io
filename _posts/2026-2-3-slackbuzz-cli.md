@@ -4,7 +4,7 @@ title: "slackbuzz-cli — Slack from the terminal, without leaving flow"
 description: "A Go CLI for Slack that brings activity inbox, threaded DMs, file uploads, reactions, status, and ClickUp/GitHub-aware message enrichment to a terminal."
 excerpt: "A Go CLI for Slack that brings the activity inbox, threads, DMs, file uploads, reactions, and ClickUp/GitHub-aware message enrichment to a terminal."
 image: /images/blog/slackbuzz-cli.jpg
-image_alt: Monitor displaying bright programming code on a dark desk
+image_alt: The Slack mark beside a terminal window running slackbuzz inbox, slackbuzz reply, and slackbuzz status
 date: 2026-02-03
 last_modified_at: 2026-02-03
 categories: [open-source]
