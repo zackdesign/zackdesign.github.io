@@ -1574,6 +1574,38 @@ a:hover { color: var(--accent-hover); }
   border-bottom-color: var(--accent-hover);
 }
 
+/* Bootstrap's reboot collapses borders and strips cell padding, so an
+   unstyled markdown table renders as colliding columns. Wide tables scroll
+   inside their own wrapper rather than pushing the page sideways. */
+.post-body table {
+  width: 100%;
+  margin: 2rem 0;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  display: block;
+  overflow-x: auto;
+}
+
+.post-body table th,
+.post-body table td {
+  padding: 0.6rem 1rem 0.6rem 0;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border-faint);
+}
+
+.post-body table th {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--pearl);
+  border-bottom-color: var(--border-soft);
+  white-space: nowrap;
+}
+
+.post-body table tr:last-child td { border-bottom: none; }
+
 .post-body blockquote {
   border-left: 2px solid var(--accent);
   padding: 0.75rem 1.5rem;

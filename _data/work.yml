@@ -45,7 +45,9 @@
   client: Breeder's Choice
   trade: Pine-shavings bedding — Colac, VIC
   concept: the bale and the spec
-  status: In client review
+  status: Live
+  url: https://breederschoice.com.au
+  url_label: breederschoice.com.au
   stack: Jekyll · hand-written CSS · GitHub Pages
   note: >-
     A 14 kg bale with a moisture spec is a real product, so the product leads:
@@ -62,7 +64,9 @@
   client: Superior Shavings
   trade: Pine-shavings plant — Tumut, NSW
   concept: mill-side
-  status: In client review
+  status: Live
+  url: https://superiorshavings.com.au
+  url_label: superiorshavings.com.au
   stack: Jekyll · hand-written CSS · GitHub Pages
   note: >-
     Sister plant to Breeder's Choice, so it got a deliberately different
