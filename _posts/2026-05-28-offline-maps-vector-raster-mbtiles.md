@@ -6,7 +6,7 @@ excerpt: "OSM → planetiler → tileserver-gl → raster MBTiles → Cloudflare
 image: /images/blog/offline-maps-pipeline.jpg
 image_alt: A small campervan on a rural road at twilight beneath a perfectly conical mountain — the kind of place cell coverage runs out and offline maps start mattering
 date: 2026-05-28
-last_modified_at: 2026-05-28
+last_modified_at: 2026-08-31
 categories: [engineering]
 tags: [offline-maps, mbtiles, openmaptiles, openstreetmap, planetiler, tileserver-gl, maplibre, cloudflare-r2, react-native, campermate]
 ---
@@ -105,6 +105,7 @@ A few non-obvious things that took me a day to learn:
 - **OpenMapTiles styles ship with Maptiler-hosted source URLs.** The default Positron `style.json` points at `api.maptiler.com` and needs a key. Rewrite `sources.openmaptiles.url` to `mbtiles://{openmaptiles}` and let tileserver-gl resolve it from the local MBTiles: `jq '.sources.openmaptiles = { type: "vector", url: "mbtiles://{openmaptiles}" }' positron.json > positron.local.json`.
 - **Fonts are not in the `openmaptiles/fonts` master branch.** Master ships only TTF sources. The pre-built PBF glyph ranges are in the [v2.0 release asset](https://github.com/openmaptiles/fonts/releases/tag/v2.0). Without them tileserver-gl 500s on every tile containing a label, which is everything past z4.
 - **Planetiler writes `bounds` and `center` metadata that breaks MapLibre GL Native.** Strip them after planetiler runs: `sqlite3 *.mbtiles "DELETE FROM metadata WHERE name IN ('bounds', 'center');"`.
+- **Use the 512px tile route, not the 256px one.** This is the subtlest detail in the whole pipeline. `/styles/{id}/{z}/{x}/{y}.png` returns a tile rendered from the vector tile at zoom **z−1**, not z — documented in [`serve_rendered.js`](https://github.com/maptiler/tileserver-gl/blob/master/src/serve_rendered.js): *"For 512px tiles, use the actual maplibre-native zoom. For 256px tiles, use zoom - 1."* MapLibre vector sources are 512px logical tiles, so a 256px viewport at zoom z covers half of one and resolves to the parent. Ask for `/styles/{id}/512/{z}/{x}/{y}.png` and downscale to 256 if that's the tile size you ship — otherwise every archive you build is a zoom level coarser than the number in its filename, at exactly the same byte cost.
 
 ## Shipping it in a React Native app
 
@@ -139,7 +140,21 @@ The patch is ~750 lines across iOS and Android, applied via [`patch-package`](ht
 
 Two practical decisions shape the file layout. **Where to split** comes from how Geofabrik ships data: country-level PBFs for NZ (split by bbox into north/south islands with `osmium extract`), per-state PBFs for AU (no slicing needed). The split should also match how users travel — for a campervan app, per-island and per-state is the right grain because that's what people fly between.
 
-**How deep to render** is the other consequential decision. Each zoom level quadruples tile count, and real-world size grows faster than the math suggests because inked tiles compress worse than empty ones. I shipped NZ at native z15 (full Apple-Maps-style detail: trail heads, suburb names, motorway shields, ~420 MB per island after the optimisations below). AU at native z14 with overzoom (the patch stretches the largest available tile up to z18) is a 4× saving across an entire continent — road names still readable, dense urban POI labels the only loss. The asymmetry is deliberate: NZ is small enough that z15 doesn't blow up storage, AU isn't.
+**How deep to render** is the other consequential decision. Each zoom level quadruples tile count, and real-world size grows faster than the math suggests because inked tiles compress worse than empty ones. Concretely, for NSW:
+
+| zoom | tiles | MB |
+|---|---:|---:|
+| z12 | 14,716 | 15 |
+| z13 | 54,945 | 52 |
+| z14 | 200,032 | **150** |
+
+The deepest level is half the archive. That's the whole argument in one table.
+
+I shipped NZ at native z15 (trail heads, suburb names, motorway shields) and AU at native z14 with overzoom — the patch stretches the largest available tile up to z18 — for a 4× saving across an entire continent. The asymmetry is deliberate: NZ is small enough that z15 doesn't blow up storage, AU isn't.
+
+"Native" is worth being precise about here, and it's where the 512px route above earns its keep. Render through the 256px route and a z15 archive carries z14 detail — the zoom in the filename is one level ahead of the data actually drawn. Render through `/512/` and downscale, and you get the detail the number promises for the same tile count and the same bytes.
+
+That's the cheapest sharpness win available, and it's worth checking before reaching for a deeper zoom: one more level costs roughly 3× the archive, where fixing the route costs nothing.
 
 ## The dedup schema — 50% savings for free
 
@@ -171,20 +186,22 @@ Hashing every tile during pack adds CPU but it's microseconds per tile — invis
 
 The next surprise was the format choice. PNG is what tileserver-gl emits and what every MBTiles tutorial uses, but PNG is the wrong codec for inked map tiles. Roads, anti-aliased coastlines, gradient hillshading, transparent green parks — none of it palettises well, which is what PNG's compression relies on. WebP's lossy mode is designed for exactly this kind of mixed graphical content.
 
-I sampled 1,000 random unique tiles from the dedup-packed TAS archive and compressed each as PNG (baseline), `pngquant --quality 75-95`, and WebP at four qualities:
+I sampled 150 *inked* tiles from TAS at z13–z14 — the hard case, where the codec has roads, labels and landcover to work with rather than empty ocean — and compressed each as PNG (baseline), `pngquant --quality 75-95`, and WebP at four qualities. Size alone is a misleading axis for a lossy codec, so the table carries fidelity too, as PSNR against the source render:
 
-| Codec | Size vs PNG |
-|---|---:|
-| PNG (baseline) | 100% |
-| pngquant 75–95 | 29% |
-| WebP q75 | 16% |
-| **WebP q80** | **19%** |
-| WebP q85 | 26% |
-| WebP q90 | 38% |
+| Codec | Size vs PNG | Fidelity |
+|---|---:|---:|
+| PNG (baseline) | 100% | lossless |
+| pngquant 75–95 | 28% | 51.8 dB |
+| WebP q75 | 10% | 40.8 dB |
+| **WebP q80** | **12%** | **41.7 dB** |
+| WebP q85 | 14% | 42.6 dB |
+| WebP q90 | 19% | 43.7 dB |
 
-WebP at q80 beats pngquant at every setting tested. The visual difference at street zoom is invisible — labels stay crisp, terrain shading stays smooth. The end-to-end re-render of TAS confirmed it: **376 MB → 61 MB**.
+Two things fall out. WebP is in a different weight class to `pngquant` on size — less than half of it at every quality tested — because palettisation is the wrong tool for anti-aliased lines and gradient shading. And the WebP quality ladder is steep in bytes but shallow in fidelity: going q75 → q90 nearly doubles the file for under 3 dB. q80 sits on the knee, and above ~40 dB the difference at street zoom is invisible — labels stay crisp, terrain shading stays smooth.
 
-The pipeline change is one line: after fetching the rendered PNG from tileserver-gl, pipe it through `cwebp -q 80` before hashing and inserting into the `images` table. Update the MBTiles `format` metadata from `png` to `webp` so the spec stays honest; consumers that ignore that field (like my native patch, which passes raw bytes straight to `UIImage` / `BitmapFactory`) don't notice the change. Both platforms have decoded WebP natively for years — iOS 14+, Android API 14+.
+`pngquant` is the more faithful of the two lossy options at 51.8 dB, which matters if you're compressing screenshots or UI assets. For map tiles viewed at 1:1 on a phone, that fidelity is bought at 2.3× the bytes and isn't visible. The end-to-end re-render of TAS confirmed the trade: **376 MB → 61 MB**.
+
+The pipeline change is one line: after fetching the rendered PNG from tileserver-gl, pipe it through `cwebp -q 80` before hashing and inserting into the `images` table. (If you're rendering hundreds of thousands of tiles, do the encode in-process rather than shelling out — Pillow's WebP encoder at the same quality and method produces byte-identical output to `cwebp`, and skipping a subprocess spawn plus two temp files per tile roughly halved my encode time.) Update the MBTiles `format` metadata from `png` to `webp` so the spec stays honest; consumers that ignore that field (like my native patch, which passes raw bytes straight to `UIImage` / `BitmapFactory`) don't notice the change. Both platforms have decoded WebP natively for years — iOS 14+, Android API 14+.
 
 End-to-end size for all 9 ANZ regions, walking through the optimisations:
 
@@ -205,6 +222,7 @@ For CamperMate I tested the free OpenMapTiles styles. All open-licensed, all ren
 - **Positron** — minimal, white, designed as a backdrop for *other* content. Beautiful but wrong for an "offline map replacement" use case where the map *is* the content.
 - **OSM Bright** — what I shipped with. Coloured roads, green parks, blue water, motorway shields, full POI labels. Reads like Apple Maps in light mode.
 - **Dark Matter** — dark-mode equivalent of Positron. Future option for a night-mode toggle.
+- **Voyager** — worth knowing it isn't OpenMapTiles'. It's CARTO's, and there is no `openmaptiles/voyager-gl-style` repo, so the URL you'll find alongside the other three 404s. Fetch it from CARTO's CDN instead; its source-layers are plain OpenMapTiles schema, but its source is named `carto`, so rewrite the layer references as well as the source. It renders far fewer POI labels than OSM Bright by design — good under your own markers, thin as a standalone basemap.
 
 The aesthetic decision changes which file you ship to users; it doesn't change anything upstream. Vector MBTiles → re-render → upload. Hours, not days.
 
