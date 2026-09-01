@@ -147,7 +147,13 @@ The fourth option — and the one I shipped — is a **small native patch** to `
 />
 ```
 
-The patch is ~750 lines across iOS and Android, applied via [`patch-package`](https://github.com/ds300/patch-package). It teaches `MapTileProvider` (Android) and `AIRMapUrlTile` (iOS) to detect the `mbtiles://` URL scheme and route to a new SQLite-backed tile reader instead of the HTTP path. The internals — connection caching, TMS y-flip, overzoom via in-memory parent-bitmap reuse — are a separate post. The user-facing surface is exactly the snippet above. I intend to open-source the patch; [issue #5863](https://github.com/react-native-maps/react-native-maps/issues/5863) tracks the underlying request.
+The patch is about 470 added lines across a dozen files, applied via [`patch-package`](https://github.com/ds300/patch-package). On Android it adds an `MBTilesReader` and an `MBTilesCompositor` and teaches `MapTileProvider` to route `mbtiles://` to them instead of the HTTP path. On iOS `AIRMapUrlTile` does the same detection, but the interesting part is what it installs.
+
+The obvious implementation — an `MKTileOverlay` with the stock `MKTileOverlayRenderer` — looks right and fails in a specific, maddening way. `MKTileOverlayRenderer` draws *nothing* where a tile hasn't loaded yet, so every pinch flashes the online base map through your offline layer before the new zoom level settles. Web map engines avoid this by keeping a pyramid: while the target zoom loads, they scale the nearest already-loaded ancestor tile into the gap, so the map goes momentarily soft instead of momentarily absent. MKMapKit gives you no such thing.
+
+So the patch installs `AIRMapMBTilesRenderer`, a plain `MKOverlayRenderer` that keeps its own pyramid and stands in with the nearest ancestor rather than leaving a hole — in both directions, since zooming out has the same problem as zooming in. That is the single most valuable thing in the patch, and it has nothing to do with MBTiles: it's a gap in `MKTileOverlayRenderer` that anyone drawing a custom tile layer over MapKit will hit.
+
+The rest — connection caching, TMS y-flip, retina compositing — is mechanical. I intend to open-source it; [issue #5863](https://github.com/react-native-maps/react-native-maps/issues/5863) tracks the underlying request.
 
 ## Region splits and zoom levels
 
