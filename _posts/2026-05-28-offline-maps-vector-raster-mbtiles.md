@@ -39,7 +39,7 @@ The trick is to **split rendering from data extraction**:
 
 Two stages. The vector MBTiles is a *neutral* intermediate — same data, no styling. The raster MBTiles is what your app loads. You can re-render the raster in any MapLibre GL style — Positron, OSM Bright, Voyager, Dark Matter, a custom one — without touching the data pipeline.
 
-Stage 1 (`planetiler`) is **minutes**. Stage 2 (`tileserver-gl`) is **CPU-bound rendering** — minutes for a city, hours for a country. Both run from Docker, both are open source, neither requires a third-party API key.
+Stage 1 (`planetiler`) is minutes for a region, tens of minutes for a continent. Stage 2 (`tileserver-gl`) is **CPU-bound rendering** — minutes for a city, hours for a country. Both are open source and neither needs a third-party API key. tileserver-gl runs from Docker; planetiler ships a jar, which is the better choice for an unattended build (see below).
 
 The rendering engine is [MapLibre GL Native](https://github.com/maplibre/maplibre-native), the same C++ engine that powers Mapbox GL JS and MapLibre GL JS on the web. That's why the output looks identical to a modern web map — because it *is* a modern web map, rendered offline.
 
@@ -59,7 +59,7 @@ All free. No keys. No bills. The whole stack runs on a MacBook.
 
 ## The build script
 
-The CamperMate offline-tiles build script is ~200 lines of bash that wires those tools together. Inputs: a region name, a Geofabrik path, a bbox, a max-zoom, a style name. Output: a single `.mbtiles` file ready to upload.
+The CamperMate offline-tiles build script is ~350 lines of bash that wires those tools together. Inputs: a region name, a Geofabrik path, a bbox, a max-zoom and a style name, plus optional boundary polygon and margin. Output: a single `.mbtiles` file ready to upload.
 
 ```bash
 # NZ South Island, z0–15, rendered in OSM Bright
@@ -77,17 +77,19 @@ The pipeline:
 curl -fL -o offline-tiles/pbf/nz.osm.pbf \
   https://download.geofabrik.de/australia-oceania/new-zealand-latest.osm.pbf
 
-# 2. Slice the national PBF to the region (polygon where one exists — see below)
-osmium extract --bbox=166.4,-47.3,174.5,-40.4 --strategy=smart --set-bounds \
+# 2. Slice the national PBF to the region. Prefer --polygon over --bbox where a
+#    boundary exists (see "Region splits" below) — and extract WIDER than you clip.
+osmium extract --polygon=nz-south-data.poly --strategy=smart --set-bounds \
   -o offline-tiles/pbf/nz-south-extract.osm.pbf \
   offline-tiles/pbf/nz.osm.pbf
 
-# 3. Generate vector MBTiles with planetiler (OpenMapTiles schema)
-docker run --rm -e JAVA_TOOL_OPTIONS="-Xmx4g" -v offline-tiles:/data \
-  ghcr.io/onthegomap/planetiler:latest \
-    --osm_path=/data/pbf/nz-south-extract.osm.pbf \
-    --mbtiles=/data/nz-south-vector.mbtiles \
-    --bounds=166.4,-47.3,174.5,-40.4 --maxzoom=15 --download --force
+# 3. Generate vector MBTiles with planetiler (OpenMapTiles schema).
+#    --polygon decides which TILES exist; the wider osmium clip above decides
+#    which DATA backs them.
+java -Xmx8g -jar planetiler.jar \
+  --osm_path=offline-tiles/pbf/nz-south-extract.osm.pbf \
+  --mbtiles=offline-tiles/nz-south-vector.mbtiles \
+  --polygon=nz-south-tiles.poly --maxzoom=15 --download --force
 
 # 4. Render vector → raster via tileserver-gl
 docker run -d --name tileserver-gl-nz-south -p 8765:8080 \
@@ -105,9 +107,18 @@ A few non-obvious things that took me a day to learn:
 - **OpenMapTiles styles ship with Maptiler-hosted source URLs.** The default Positron `style.json` points at `api.maptiler.com` and needs a key. Rewrite `sources.openmaptiles.url` to `mbtiles://{openmaptiles}` and let tileserver-gl resolve it from the local MBTiles: `jq '.sources.openmaptiles = { type: "vector", url: "mbtiles://{openmaptiles}" }' positron.json > positron.local.json`.
 - **Fonts are not in the `openmaptiles/fonts` master branch.** Master ships only TTF sources. The pre-built PBF glyph ranges are in the [v2.0 release asset](https://github.com/openmaptiles/fonts/releases/tag/v2.0). Without them tileserver-gl 500s on every tile containing a label, which is everything past z4.
 - **Planetiler writes `bounds` and `center` metadata that breaks MapLibre GL Native.** Strip them after planetiler runs: `sqlite3 *.mbtiles "DELETE FROM metadata WHERE name IN ('bounds', 'center');"`.
-- **Use the 512px tile route, not the 256px one.** This is the subtlest detail in the whole pipeline. `/styles/{id}/{z}/{x}/{y}.png` returns a tile rendered from the vector tile at zoom **z−1**, not z — documented in [`serve_rendered.js`](https://github.com/maptiler/tileserver-gl/blob/master/src/serve_rendered.js): *"For 512px tiles, use the actual maplibre-native zoom. For 256px tiles, use zoom - 1."* MapLibre vector sources are 512px logical tiles, so a 256px viewport at zoom z covers half of one and resolves to the parent. Ask for `/styles/{id}/512/{z}/{x}/{y}.png` and downscale to 256 if that's the tile size you ship — otherwise every archive you build is a zoom level coarser than the number in its filename, at exactly the same byte cost.
-- **Scale the style before you downscale, or your labels come out half size.** This one follows directly from the last, and it bites hard: the 512 canvas covers the same ground as the 256 tile, so `text-size: 12` is 12px on a 512 canvas and 6px once you shrink it. Unreadable on a phone. `@2x` does *not* help — it scales canvas and text together, leaving the ratio unchanged. Multiply the style's pixel dimensions (`text-size`, `icon-size`, `line-width`, `text-halo-width`, translates) by your downscale factor first, leaving zoom stops, opacities and em-based offsets alone. Then downscale.
-- **Downscaling smears glyphs; sharpen after it.** Even at the right size, resampling turns crisp strokes into mid-grey mush. Measured on one z14 tile, mid-grey pixels per solid dark pixel: 2.4 rendering natively, 6.4 after a plain downscale. Filter choice barely moves it (LANCZOS 6.4, HAMMING 7.3) — it is inherent to render-then-shrink. An unsharp pass (radius 1.0, ~60%) restores 2.8 for about 20% more bytes, where shipping 512px tiles outright costs 162%.
+
+## Getting the render right: three things in a row
+
+These three compound, and each one is invisible until you look closely at a tile. Together they decide whether your archive contains the detail its filename claims and whether anyone can read the labels.
+
+**1. Use the 512px tile route, not the 256px one.** `/styles/{id}/{z}/{x}/{y}.png` returns a tile rendered from the vector tile at zoom **z−1**, not z — documented in [`serve_rendered.js`](https://github.com/maptiler/tileserver-gl/blob/master/src/serve_rendered.js): *"For 512px tiles, use the actual maplibre-native zoom. For 256px tiles, use zoom - 1."* MapLibre vector sources are 512px logical tiles, so a 256px viewport at zoom z covers half of one and resolves to the parent. Ask for `/styles/{id}/512/{z}/{x}/{y}.png` and downscale to 256 if that's the tile size you ship — otherwise every archive you build is a zoom level coarser than the number in its filename, at exactly the same byte cost.
+
+**2. Scale the style before you downscale, or your labels come out half size.** Fixing the first problem creates this one: the 512 canvas covers the same ground as the 256 tile, so `text-size: 12` is 12px on a 512 canvas and 6px once you shrink it. Unreadable on a phone. `@2x` does *not* help — it scales canvas and text together, leaving the ratio unchanged. Multiply the style's pixel dimensions (`text-size`, `icon-size`, `line-width`, `text-halo-width`, translates) by your downscale factor first, leaving zoom stops, opacities and em-based offsets alone. Then downscale.
+
+**3. Downscaling smears glyphs, so sharpen after it.** Even at the right size, resampling turns crisp strokes into mid-grey mush. Measured on one z14 tile, mid-grey pixels per solid dark pixel: 2.4 rendering natively, 6.4 after a plain downscale. Filter choice barely moves it (LANCZOS 6.4, HAMMING 7.3) — it is inherent to render-then-shrink. An unsharp pass (radius 1.0, ~60%) restores 2.8 for about 20% more bytes, where shipping 512px tiles outright costs 162%.
+
+There is a fourth, cheaper trap in the same area: **render nothing until the tileserver is genuinely ready.** A freshly started tileserver-gl will answer requests before its style and glyphs have finished loading, and the tiles it returns in that window are bare background — which a packer will happily write as success. Probe it with a handful of known feature-bearing tiles and refuse to start until they all come back non-blank. If you shard across several tileserver instances for throughput, probe *every* instance: one that never received a probe stays cold while the check reports ready.
 
 ## Shipping it in a React Native app
 
@@ -136,7 +147,7 @@ The fourth option — and the one I shipped — is a **small native patch** to `
 />
 ```
 
-The patch is ~750 lines across iOS and Android, applied via [`patch-package`](https://github.com/ds300/patch-package). It teaches `MapTileProvider` (Android) and `AIRMapUrlTile` (iOS) to detect the `mbtiles://` URL scheme and route to a new SQLite-backed tile reader instead of the HTTP path. The internals — connection caching, TMS y-flip, overzoom via in-memory parent-bitmap reuse — are a separate post. The user-facing surface is exactly the snippet above. I'll open-source the patch once it's been in production for a few weeks; [issue #5863](https://github.com/react-native-maps/react-native-maps/issues/5863) tracks it.
+The patch is ~750 lines across iOS and Android, applied via [`patch-package`](https://github.com/ds300/patch-package). It teaches `MapTileProvider` (Android) and `AIRMapUrlTile` (iOS) to detect the `mbtiles://` URL scheme and route to a new SQLite-backed tile reader instead of the HTTP path. The internals — connection caching, TMS y-flip, overzoom via in-memory parent-bitmap reuse — are a separate post. The user-facing surface is exactly the snippet above. I intend to open-source the patch; [issue #5863](https://github.com/react-native-maps/react-native-maps/issues/5863) tracks the underlying request.
 
 ## Region splits and zoom levels
 
@@ -208,18 +219,18 @@ CREATE VIEW tiles AS
 
 The `tiles` VIEW makes this completely transparent to consumers. Any `SELECT tile_data FROM tiles WHERE zoom_level=? AND tile_column=? AND tile_row=?` works identically against either schema.
 
-The measured impact on NZ (PNG tiles, before the WebP step below):
+The measured impact on NZ, at the time, on PNG tiles and before the WebP step below:
 
 - **nz-north**: 716,859 tiles → 1.9 GB on disk (51% saving over flat schema)
 - **nz-south**: 859,891 tiles → 242,217 unique blobs (**71.8% tile dedup rate**), 1.8 GB on disk (57% saving)
 
-Why so high? A region the size of New Zealand has *enormous* repetition at mid-zooms — endless ocean tiles, identical bush-cover tiles in the Fiordland interior, hundreds of identical "purple Southern Alps shading" tiles. Dense urban tiles (Auckland CBD) are all unique and don't dedup, but they're a small fraction of any region's total tile count.
+Why so high? A region the size of New Zealand has *enormous* repetition at mid-zooms — endless ocean tiles, identical bush-cover tiles in the Fiordland interior, whole glaciers rendered as one flat wash of white at 30% opacity. Dense urban tiles (Auckland CBD) are all unique and don't dedup, but they're a small fraction of any region's total tile count.
 
 Hashing every tile during pack adds CPU but it's microseconds per tile — invisible compared to the actual rendering time. Reading via the VIEW adds one indexed JOIN which doesn't measurably affect tile-fetch latency on mobile.
 
 ## WebP, not PNG — another ~5× shrink
 
-The next surprise was the format choice. PNG is what tileserver-gl emits and what every MBTiles tutorial uses, but PNG is the wrong codec for inked map tiles. Roads, anti-aliased coastlines, gradient hillshading, transparent green parks — none of it palettises well, which is what PNG's compression relies on. WebP's lossy mode is designed for exactly this kind of mixed graphical content.
+The next surprise was the format choice. PNG is what tileserver-gl emits and what every MBTiles tutorial uses, but PNG is the wrong codec for inked map tiles. Roads, anti-aliased coastlines, low-opacity landcover washes, transparent green parks — none of it palettises well, which is what PNG's compression relies on. WebP's lossy mode is designed for exactly this kind of mixed graphical content.
 
 I sampled 150 *inked* tiles from TAS at z13–z14 — the hard case, where the codec has roads, labels and landcover to work with rather than empty ocean — and compressed each as PNG (baseline), `pngquant --quality 75-95`, and WebP at four qualities. Size alone is a misleading axis for a lossy codec, so the table carries fidelity too, as PSNR against the source render:
 
@@ -279,7 +290,7 @@ The aesthetic decision changes which file you ship to users; it doesn't change a
 
 ## Wrapping up
 
-If you're building any kind of outdoor, overland, or regional travel app and your users care about offline coverage, this pipeline is repeatable. The tools are mature, the licensing is permissive (OSM is ODbL, the styles are BSD/MIT, planetiler is Apache-2, tileserver-gl is BSD-2), the storage is cheap, and the aesthetic is finally something you can put in a shipping app without an apology.
+If you're building any kind of outdoor, overland, or regional travel app and your users care about offline coverage, this pipeline is repeatable. The tools are mature, the licensing is permissive (OSM is ODbL, the OpenMapTiles styles are BSD-3, planetiler is Apache-2, tileserver-gl is BSD-2), the storage is cheap, and the aesthetic is finally something you can put in a shipping app without an apology.
 
 If you're heading to Australia or New Zealand and want to see the pipeline in production, [grab CamperMate on iOS](https://apps.apple.com/app/campermate/id578975305) or [Android](https://play.google.com/store/apps/details?id=nz.co.campermate.app) — free, no account required, offline maps under the "Downloads" tab. Your offline maps don't have to look like 2013 anymore.
 
