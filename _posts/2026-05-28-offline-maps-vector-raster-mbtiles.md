@@ -159,7 +159,7 @@ The obvious implementation — an `MKTileOverlay` with the stock `MKTileOverlayR
 
 So the patch installs `AIRMapMBTilesRenderer`, a plain `MKOverlayRenderer` that keeps its own pyramid and stands in with the nearest ancestor rather than leaving a hole — in both directions, since zooming out has the same problem as zooming in. That is the single most valuable thing in the patch, and it has nothing to do with MBTiles: it's a gap in `MKTileOverlayRenderer` that anyone drawing a custom tile layer over MapKit will hit.
 
-The rest — connection caching, TMS y-flip, retina compositing — is mechanical. I intend to open-source it; [issue #5863](https://github.com/react-native-maps/react-native-maps/issues/5863) tracks the underlying request.
+The rest — connection caching, TMS y-flip, retina compositing — is mechanical. I intend to open-source it.
 
 ## Region splits and zoom levels
 
