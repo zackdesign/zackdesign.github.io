@@ -97,8 +97,14 @@ docker run -d --name tileserver-gl-nz-south -p 8765:8080 \
   maptiler/tileserver-gl:latest \
     -c /data/tileserver-config-nz-south.json
 
-# 5. curl-loop every tile in the bbox; pack into raster MBTiles
-python3 render_and_pack.py nz-south '166.4,-47.3,174.5,-40.4' 15
+# 5. Render every tile the vector archive contains; pack into raster MBTiles.
+#    Iterate the vector tiles, not a bbox grid: planetiler already omitted the
+#    empty ones, and re-deriving that from a rectangle renders a lot of ocean.
+python3 render_and_pack.py \
+  offline-tiles/nz-south-vector.mbtiles \
+  offline-tiles/nz-south.mbtiles \
+  http://localhost:8765 osm-bright \
+  '166.4,-47.3,174.5,-40.4' 15 nz-south
 ```
 
 A few non-obvious things that took me a day to learn:
@@ -202,7 +208,7 @@ Measured agreement between neighbouring archives, before fixing it:
 
 Deep zooms are fine — a z14 tile is small enough to sit inside one region's data. The shallow ones are hopeless, and no margin helps, because the tile is bigger than any margin you'd sanely add.
 
-The fix is the one Organic Maps reached for with `World.mwm`: render the shallow zooms **once** from the unclipped national extract and give every region the identical set. In our layout that means copying them into each archive rather than shipping a separate file, which costs about 22MB per region for z0–10 — under 5% of a typical archive, and it makes the whole tier agree everywhere.
+The fix is the one Organic Maps reached for with `World.mwm`: render the shallow zooms **once** from the unclipped national extract and give every region the identical set. In our layout that means copying them into each archive rather than shipping a separate file, which costs about 22MB per region for z0–10. That is 3% of Queensland and 20% of Tasmania — the base is a fixed national cost, so it lands hardest on your smallest region. Worth knowing before you pick a cut-off: the percentage that matters is the one on your smallest archive, not your biggest.
 
 Pick the cut-off by measurement, not instinct. Mine failed at z10 and passed at z12, so I extended the shared base to z10 and sampled z11 to check the level above it — it passed, which saved 42MB per region over extending to z11 "to be safe". Each extra level roughly triples the base: z0–9 is 8MB, z0–10 is 21.7MB, z0–11 is 63.8MB.
 
@@ -298,7 +304,7 @@ The aesthetic decision changes which file you ship to users; it doesn't change a
 
 If you're building any kind of outdoor, overland, or regional travel app and your users care about offline coverage, this pipeline is repeatable. The tools are mature, the licensing is permissive (OSM is ODbL, the OpenMapTiles styles are BSD-3, planetiler is Apache-2, tileserver-gl is BSD-2), the storage is cheap, and the aesthetic is finally something you can put in a shipping app without an apology.
 
-If you're heading to Australia or New Zealand and want to see the pipeline in production, [grab CamperMate on iOS](https://apps.apple.com/app/campermate/id578975305) or [Android](https://play.google.com/store/apps/details?id=nz.co.campermate.app) — free, no account required, offline maps under the "Downloads" tab. Your offline maps don't have to look like 2013 anymore.
+If you're heading to Australia or New Zealand and want to see the pipeline in production, [grab CamperMate on iOS](https://apps.apple.com/app/campermate/id578975305) or [Android](https://play.google.com/store/apps/details?id=nz.co.campermate.app) — free, no account required, offline maps under the "Offline Maps" tab. Your offline maps don't have to look like 2013 anymore.
 
 ---
 
