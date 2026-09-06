@@ -1,8 +1,8 @@
 ---
 layout: post
-title: "vesc-workbench — my electric skateboard's display refused firmware 7, so I taught the board to lie about its version"
-description: "An open-source workbench for VESC motor controllers: config read/write/verify, LispBM development and diagnostics over a phone's Bluetooth bridge, with no USB. Includes a shim that keeps a discontinued DAVEGA X display alive on VESC firmware 7."
-excerpt: "A DAVEGA X on VESC firmware 7 boots, checks two bytes, and gives up. The telemetry protocol did not change at all. So the fix is sixty lines of Lisp running on the motor controller itself."
+title: "vesc-workbench — tune your VESC from the command line, over Bluetooth, without opening the enclosure"
+description: "An open-source workbench for tuning VESC motor controllers: config read/write/verify in version control, LispBM development, live remote and traction diagnostics — driven from a Makefile over your phone's Bluetooth bridge, with no USB."
+excerpt: "Tuning a VESC means clicking through tabs in a GUI, hoping you wrote the number you think you wrote, with no record of what changed. It doesn't have to. The whole configuration API is scriptable over your phone's Bluetooth bridge — VESC Tool just doesn't tell you how."
 image: /images/blog/vesc-workbench.jpg
 image_alt: An all-terrain electric longboard photographed from directly above, lying on grass — griptape deck, pneumatic tyres and blue motor hubs.
 date: 2026-09-06
@@ -11,7 +11,7 @@ categories: [open-source]
 tags: [lispbm, lisp, python, qml, makefile, vesc, embedded, firmware, reverse-engineering, electric-skateboard]
 ---
 
-Zack Design has published **[vesc-workbench](https://github.com/isaacrowntree/vesc-workbench)** — a scripted workbench for VESC motor controllers. Read, write and verify configuration, develop LispBM, and diagnose problems, all over a phone's Bluetooth bridge with no USB cable and without opening the enclosure. It ships with a shim that keeps a discontinued DAVEGA X display working on VESC firmware 7.
+Zack Design has published **[vesc-workbench](https://github.com/isaacrowntree/vesc-workbench)** — a scripted workbench for tuning **VESC** motor controllers. Read, write and verify configuration, develop LispBM, and diagnose the remote and the motors, all from a Makefile over your phone's Bluetooth bridge. No USB cable, no opening the enclosure.
 
 **MIT licensed.**
 
@@ -19,23 +19,124 @@ Zack Design has published **[vesc-workbench](https://github.com/isaacrowntree/ve
 
 **Source → [github.com/isaacrowntree/vesc-workbench](https://github.com/isaacrowntree/vesc-workbench)** (MIT)
 
-## Why this exists
+## If you tune a VESC, this is for you
 
-I have a LaCroix Nazaré. It is an electric skateboard with a FOCBOX Unity motor controller sealed inside the enclosure, and I ride it on grass at a golf course, which is a demanding enough surface that the settings actually matter.
+Everyone who runs a VESC ends up in the same loop. Change a current limit. Ride. Change it back. Change the throttle curve. Ride. Was that better, or was it a headwind? What did you actually have it set to three weeks ago, before the thing you're now trying to undo?
 
-Two things were true at once. The controller wanted to be on firmware 7 — better FOC, LispBM scripting, several years of fixes. And the DAVEGA X display bolted to the deck refused to run on it:
+The tooling does not help you here. VESC Tool is a good GUI, but it is a GUI: you click through tabs, you hope you typed the number into the field you meant, and when you are done there is no record of what changed. Backups are a full XML blob you can't meaningfully diff. And on a lot of builds — a sealed skate enclosure, a scooter deck, an ebike downtube — the USB port is behind screws, so you are doing all of this on a phone, standing in a driveway.
+
+This repo is that loop, scripted:
+
+```sh
+make pull      # read both motor sides' configs to XML
+make apply     # write them back, then verify by reading them again
+```
+
+Your settings are now text files. You can `git diff` a tuning session, review it before it goes near the motors, and revert it in one command. `apply` reads back after writing, so a setting that didn't take is something you find out about at the bench rather than at speed.
+
+And it runs over Bluetooth, from your laptop, with the board sitting where it is.
+
+## The connection trick, because nobody documents it
+
+This is the part worth the post on its own, so [it has its own page](https://github.com/isaacrowntree/vesc-workbench/blob/main/docs/connecting.md) in the repo.
+
+VESC Tool ships a CLI. It looks like it should solve everything, and then it doesn't: `--vescPort` calls `connectSerial()` and takes a serial device, full stop. Hand it an IP and it refuses. Bridge the TCP socket to a `socat` PTY and it opens the port and then never completes the handshake. If your controller isn't reachable over USB, the documented CLI is a dead end.
+
+I wrote that down as impossible. It isn't.
+
+VESC Tool also accepts `--loadQml`, and QML loaded that way runs *inside the application*, with the `VescIf` singleton in scope. `VescIf` is the whole connection and configuration API — and `VescIf.connectTcp()` is invokable from it. The phone app has a **Wireless Bridge to Computer (TCP)** mode sitting right there on its Start page.
+
+So the path is:
+
+```
+your laptop  --TCP-->  phone (VESC Tool app)  --BLE-->  ESC
+```
+
+The entire minimum viable version:
+
+```qml
+import QtQuick 2.7
+
+Item {
+    id: root
+    property int ticks: 0
+
+    Component.onCompleted: VescIf.connectTcp("192.168.1.100", 65102)
+
+    Timer {
+        interval: 500; running: true; repeat: true
+        onTriggered: {
+            root.ticks++
+            if (root.ticks > 60) { console.log("timeout"); Qt.quit() }
+            if (!VescIf.isPortConnected()) return
+
+            // Firmware params arrive AFTER the socket connects. Until they do,
+            // getFirmwareNow() returns "x.x" and every config read is garbage.
+            var fw = VescIf.getFirmwareNow()
+            if (fw.indexOf("x.x") >= 0) return
+
+            console.log("connected, fw " + fw)
+            VescIf.disconnectPort()
+            Qt.quit()
+        }
+    }
+}
+```
+
+```sh
+"/Applications/VESC Tool.app/Contents/MacOS/VESC Tool" --offscreen --loadQml connect.qml
+```
+
+That's it. `--offscreen` keeps the GUI away, `console.log` goes to stdout, and from there `VescIf.mcConfig()`, `VescIf.appConfig()` and `VescIf.commands()` are all yours. You do not need the rest of my repo to use this — take the file.
+
+Two things in there will cost you an afternoon if you don't know them. **`setMcconf(false)` silently does nothing** — the write is accepted and discarded, so always pass `true`. And **the socket connects several seconds before the firmware parameters arrive**; read the config in that window and you get defaults back that look exactly like a controller that has wiped itself. That comment about `"x.x"` is not decoration.
+
+## Diagnostics that answer the actual question
+
+Half of tuning is not tuning, it's working out what is wrong. A GUI shows you a number; it rarely tells you *why the number is that*.
+
+```sh
+make ppm-watch    # live remote readout — prints only on change
+make ppm-cal      # guided calibration: neutral, full throttle, full brake
+make probe        # connect, report firmware and LispBM state
+make check        # is the bridge up? is desktop VESC Tool holding it?
+```
+
+`ppm-watch` distinguishes **the remote is not transmitting** from **the decoder is not running**. In VESC Tool those look identical — a still bar — and they have completely different fixes. `make check` does the same thing for the connection: it tells you which failure you have in a second, instead of leaving you to interpret a two-minute timeout.
+
+And when you're working on a board that is powered up:
+
+```sh
+make motors-off   # kill motor output, no config write, display stays live
+make motors-on
+```
+
+`app-disable-output` rather than a configuration change, so nothing needs undoing afterwards and nothing gets left in a weird state if you walk away.
+
+## The findings are the other half of the repo
+
+`docs/known-issues.md` is the document I wanted to find and could not. Every entry is something that cost me hours:
+
+- **`uart-start` permanently flashes `app_to_use = APP_NONE`.** Run a LispBM script that touches the UART and your throttle is dead in a way that survives a reboot and presents exactly like a hardware fault. This one is brutal because the script is doing nothing wrong.
+- **The PPM sub-config silently refuses writes while `ctrl_type` is 0.** Set a control type first, then write. Otherwise the values go in, come back wrong, and you start suspecting the remote.
+- **`commands().lispWriteCode()` does not land code.** The ESC replies "did you forget to upload the code" — which reads like your mistake, and isn't. `CodeLoader.lispUploadFromPath` works.
+- **A read taken mid-boot returns values that look like a corrupted config and aren't.** I lost a genuinely unpleasant twenty minutes to this one.
+
+There's a correction in there too. The esk8 forums will tell you VESC's built-in traction control interferes with braking and is dangerous. I enabled it and then went and read `app_ppm.c` to understand the failure mode: it lives entirely in the non-brake branch, braking never reaches the traction-control code, and it self-disengages on any fault. The warning is real for some other control paths; for PPM on current firmware it is repeated folklore. That's documented with the file and the branch, so you can check my reasoning instead of trusting either of us.
+
+## Where it came from: a display that refused to grow up
+
+All of this exists because of a much smaller problem.
+
+I have a LaCroix Nazaré — an electric skateboard with a FOCBOX Unity sealed in the enclosure, which I ride on grass at a golf course, a surface demanding enough that the tuning genuinely matters. I wanted it on firmware 7 for the FOC improvements and LispBM. The DAVEGA X display bolted to the deck refused to run on it:
 
 > supported vesc firmware versions 5.x to 6.x - press any button to restart
 
-DAVEGA is discontinued. There is no display-side update coming. The obvious move is to downgrade the controller and forget about it, which is what most people do.
+DAVEGA is discontinued. No display-side fix is coming. Everyone downgrades.
 
-The less obvious observation is that **the telemetry protocol did not change**. `COMM_GET_VALUES` returns the same twenty-five fields in the same order with the same scaling in 6.00 and in 7.x. The display is not failing to parse anything. It reads the two version bytes in `COMM_FW_VERSION`, sees a 7, and declines to have the conversation.
+But **the telemetry protocol did not change**. `COMM_GET_VALUES` returns the same twenty-five fields, same order, same scaling, in 6.00 and in 7.x. The display isn't failing to parse anything — it reads two version bytes, sees a 7, and declines to have the conversation.
 
-So the fix is not a port. The fix is to change two bytes in one packet.
-
-## Sixty lines of Lisp, running on the motor controller
-
-VESC firmware 6.06 and later embed **LispBM**, a small Lisp interpreter, and expose the firmware's own command decoder to it as `cmds-proc`. That is the whole trick. A script on the ESC can take the UART line the display talks to, hand every packet to the firmware's real handler, and rewrite the reply on the way back out:
+Firmware 6.06 and later embed **LispBM** and expose the firmware's own command decoder to it as `cmds-proc`. So a script on the ESC can take the display's UART line, hand every packet to the real handler, and rewrite the reply on the way out:
 
 ```lisp
 (defun fixfw (d) {
@@ -49,58 +150,32 @@ VESC firmware 6.06 and later embed **LispBM**, a small Lisp interpreter, and exp
         (bufset-u8 d (+ 3 n) (bitwise-and c 255))})})
 ```
 
-Everything else passes through untouched, including the CRC-16 framing, which has to be recomputed for the one packet we edit. The display sees a 6.00 controller. It is talking to a 7.00 controller. Both are telling the truth about the only thing that matters, which is the telemetry.
+Sixty lines. Everything else passes through untouched. The display sees a 6.00 controller; it's talking to a 7.00 controller; both are telling the truth about the only thing that matters.
 
-The claim that the payload is unchanged is not something you should take my word for. `tests/protocol-diff.sh` checks out both firmware versions from upstream and diffs the serialisation, on every CI run. If Vedder ever does change the layout, the test goes red and the shim is wrong in a way you find out about immediately.
+You shouldn't take my word for the payload being unchanged, so `tests/protocol-diff.sh` checks out both firmware versions from upstream and diffs the serialisation on every CI run. If Vedder ever changes the layout, the test goes red and the shim is wrong in a way you find out about immediately rather than at 40 km/h.
 
-The Lisp itself is tested by running it in the **upstream LispBM REPL** in Docker, with stubs for the VESC extensions — not by transcribing it into Python and testing the transcription. This matters more than it sounds. LispBM symbols are case-insensitive, `t` is a special symbol that never resolves from the environment, and `uart-read`'s timeout argument is in seconds and is not where you would guess. A test that runs the actual interpreter catches all three. A reimplementation catches none of them.
+## Writing LispBM without bricking your throttle
 
-## The part that turned out to be more useful than the shim
-
-To develop any of this I needed to script the controller from my laptop. The board's USB port is inside a sealed enclosure. The phone talks to it over Bluetooth.
-
-VESC Tool has a CLI, and the CLI is serial-only — `--vescPort` goes straight to `connectSerial()`, and it rejects a TCP address and rejects a `socat` PTY too. I wrote that down as a dead end. It was not one.
-
-VESC Tool also takes `--loadQml`, and QML loaded that way runs with `VescIf` in scope, and `VescIf.connectTcp()` is invokable. The phone app has a "Wireless Bridge to Computer (TCP)" mode. Put those together and the entire configuration API — every motor parameter, both sides of a dual controller, LispBM upload, live telemetry — is reachable from a Makefile, over Bluetooth, with the board sitting on the bench and nothing plugged into it.
+If you're doing anything custom on a VESC, LispBM is where it happens, and the repo treats it as a real development environment:
 
 ```sh
-make pull      # read both motor sides' configs to XML
-make apply     # write them back, then verify by reading them again
+make upload-lisp LISP=path/to/script.lisp   # upload and run
+make lisp-stats                             # heap, CPU, globals
+make lisp-stop / lisp-erase                 # stop, or back to stock
+make test-lisp                              # run it in the real interpreter
 ```
 
-That is settings under version control, diffable, reviewable, and reversible. Which is a different relationship with a motor controller than clicking through tabs in a GUI and hoping.
+That last one matters more than it sounds. Scripts are tested by running them in the **upstream LispBM REPL** in Docker with stubs for the VESC extensions — not by transcribing them into Python and testing the transcription. LispBM symbols are case-insensitive, `t` is a special symbol that never resolves from the environment (so `(var t ...)` silently kills the context that uses it), and `uart-read`'s timeout argument is in seconds and isn't the argument you'd guess. Running the actual interpreter catches all three. A reimplementation catches none of them.
 
-## What else is in it
-
-The rest of the repo is the affordances that fell out of doing this for a week:
-
-- `make ppm-watch` — live remote readout that prints only on change, and distinguishes *the remote is not transmitting* from *the decoder is not running*. In a GUI those look identical.
-- `make ppm-cal` — guided throttle calibration: neutral, full throttle, full brake, written back and verified.
-- `make motors-off` / `motors-on` — cut motor output via `app-disable-output` with no configuration write, so you can work on a live board with the display running and the wheels inert.
-- `make davega-debug` — sixty seconds of proxy counters with a verdict at the end, using LispBM globals as a telemetry channel because they come back in `lispGetStats` even when print output does not.
-- `make lisp-erase` — back to stock behaviour, always one command away.
-
-And `docs/known-issues.md`, which is the document I wanted to find and could not. `uart-start` permanently flashes `app_to_use = APP_NONE`, which kills your throttle in a way that survives a reboot and looks like a hardware fault. The PPM sub-config silently refuses writes while `ctrl_type` is 0. A read taken while the ESC is still booting returns values that look exactly like a corrupted config and are not.
-
-## Did this already exist?
-
-Pieces of it. There are forum threads with LispBM snippets, there is a well-documented protocol, and there are people who have clearly solved the DAVEGA problem privately. What I could not find was any of it as a repository you can clone, test and run.
-
-The closest prior art is downgrading, which works and costs you the firmware.
-
-## One correction worth publishing
-
-The esk8 forums will tell you that VESC's built-in traction control interferes with braking and is dangerous. I enabled it, then went and read `app_ppm.c` to understand the failure mode.
-
-It lives entirely in the non-brake branch. Braking never reaches the traction-control code, and the whole thing self-disengages on any fault. The warning is real for some other control paths; for PPM on current firmware it is repeated folklore. That is in the docs too, with the file and the branch, so the next person can check my reasoning rather than trusting either of us.
+And `make lisp-erase` is always one command from stock behaviour, which is the thing that makes experimenting on a board you ride tolerable.
 
 ## Where it's at
 
-Telemetry is live on my board right now: a DAVEGA X showing speed, current, voltage and distance from a controller running firmware 7.00 that it believes is running 6.00. The board is tuned for grass, 80 A a side, and it is punchy in exactly the way I wanted.
+Telemetry is live on my board right now: a DAVEGA X showing speed, current, voltage and distance from a controller running firmware 7.00 that believes it's running 6.00. The board is tuned for grass, 80 A a side, and it's punchy in exactly the way I wanted.
 
-The hardware coverage is honest: FOCBOX Unity, one board, one display. `profiles/` holds one file per known-good setup, and it deliberately holds *connection details only* — not current limits, not gearing. Copying a stranger's motor tuning is how packs and motors get damaged. Run the detection wizard.
+Hardware coverage is honest — FOCBOX Unity, one board, one display — but the connection layer and the config workflow aren't Unity-specific at all. `profiles/` holds one file per known-good setup, and deliberately holds *connection details only*: not current limits, not gearing. Copying a stranger's motor tuning is how packs and motors get damaged. Run the detection wizard, then use this to keep track of what you changed.
 
-If you have a VESC, a sealed enclosure and a scripting habit, the workbench part is useful on its own.
+If you have a VESC and a scripting habit, start with [docs/connecting.md](https://github.com/isaacrowntree/vesc-workbench/blob/main/docs/connecting.md). Even if you use nothing else, having your board's configuration in git is worth the twenty minutes.
 
 ---
 
