@@ -32,7 +32,7 @@ make pull      # read both motor sides' configs to XML
 make apply     # write them back, then verify by reading them again
 ```
 
-Your settings are now text files. You can `git diff` a tuning session, review it before it goes near the motors, and revert it in one command. `apply` reads back after writing, so a setting that didn't take is something you find out about at the bench rather than at speed.
+Your settings are now text files. You can `git diff` a tuning session, review it before it goes near the motors, and revert it in one command. `apply` reads back after writing, so a setting that didn't take is something you find out about at the bench rather than at speed — which matters, because `setMcconf(false)` accepts a write and silently discards it.
 
 And it runs over Bluetooth, from your laptop, with the board sitting where it is.
 
@@ -89,7 +89,7 @@ Item {
 
 That's it. `--offscreen` keeps the GUI away, `console.log` goes to stdout, and from there `VescIf.mcConfig()`, `VescIf.appConfig()` and `VescIf.commands()` are all yours. You do not need the rest of my repo to use this — take the file.
 
-Two things in there will cost you an afternoon if you don't know them. **`setMcconf(false)` silently does nothing** — the write is accepted and discarded, so always pass `true`. And **the socket connects several seconds before the firmware parameters arrive**; read the config in that window and you get defaults back that look exactly like a controller that has wiped itself. That comment about `"x.x"` is not decoration.
+That comment about `"x.x"` is not decoration: the socket connects several seconds before the firmware parameters arrive, and a config read in that window returns defaults that look exactly like a controller which has wiped itself.
 
 ## Diagnostics that answer the actual question
 
@@ -115,14 +115,16 @@ make motors-on
 
 ## The findings are the other half of the repo
 
-`docs/known-issues.md` is the document I wanted to find and could not. Every entry is something that cost me hours:
+`docs/known-issues.md` is the document I wanted to find and could not. The pattern in all of them is the same: the ESC does something reasonable, reports it accurately, and the accurate report points at the wrong thing.
 
-- **`uart-start` permanently flashes `app_to_use = APP_NONE`.** Run a LispBM script that touches the UART and your throttle is dead in a way that survives a reboot and presents exactly like a hardware fault. This one is brutal because the script is doing nothing wrong.
-- **The PPM sub-config silently refuses writes while `ctrl_type` is 0.** Set a control type first, then write. Otherwise the values go in, come back wrong, and you start suspecting the remote.
-- **`commands().lispWriteCode()` does not land code.** The ESC replies "did you forget to upload the code" — which reads like your mistake, and isn't. `CodeLoader.lispUploadFromPath` works.
-- **A read taken mid-boot returns values that look like a corrupted config and aren't.** I lost a genuinely unpleasant twenty minutes to this one.
+| What you see | What is actually happening |
+|---|---|
+| Throttle dead after a LispBM script ran, and a reboot doesn't fix it | `uart-start` permanently flashes `app_to_use = APP_NONE` |
+| PPM values go in and come back wrong, so you suspect the remote | The sub-config silently refuses writes while `ctrl_type` is 0 |
+| "did you forget to upload the code" — which reads like your mistake | `lispWriteCode()` doesn't land code; `CodeLoader.lispUploadFromPath` does |
+| A config that looks corrupted | A read taken before the ESC finished booting |
 
-There's a correction in there too. The esk8 forums will tell you VESC's built-in traction control interferes with braking and is dangerous. I enabled it and then went and read `app_ppm.c` to understand the failure mode: it lives entirely in the non-brake branch, braking never reaches the traction-control code, and it self-disengages on any fault. The warning is real for some other control paths; for PPM on current firmware it is repeated folklore. That's documented with the file and the branch, so you can check my reasoning instead of trusting either of us.
+There's a correction in there too. The esk8 forums will tell you VESC's built-in traction control interferes with braking and is dangerous. I enabled it, then read `app_ppm.c` to understand the failure mode: it lives entirely in the non-brake branch, braking never reaches the traction-control code, and it self-disengages on any fault. The warning is real for some other control paths; for PPM on current firmware it's repeated folklore. Documented with the file and the branch, so you can check my reasoning rather than trusting either of us.
 
 ## Where it came from: a display that refused to grow up
 
