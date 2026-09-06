@@ -1,14 +1,14 @@
 ---
 layout: post
 title: "vesc-workbench — tune your VESC from the command line, over Bluetooth, without opening the enclosure"
-description: "An open-source workbench for tuning VESC motor controllers: config read/write/verify in version control, LispBM development, live remote and traction diagnostics — driven from a Makefile over your phone's Bluetooth bridge, with no USB."
+description: "An open-source workbench for tuning VESC motor controllers over your phone's Bluetooth bridge with no USB — and, once the DAVEGA X display turned out to be a scriptable ESP32, ten tested dashboard designs to replace its own."
 excerpt: "Tuning a VESC means clicking through tabs in a GUI, hoping you wrote the number you think you wrote, with no record of what changed. It doesn't have to. The whole configuration API is scriptable over your phone's Bluetooth bridge — VESC Tool just doesn't tell you how."
 image: /images/blog/vesc-workbench.jpg
 image_alt: An all-terrain electric longboard photographed from directly above, lying on grass — griptape deck, pneumatic tyres and blue motor hubs.
 date: 2026-09-06
 last_modified_at: 2026-09-06
 categories: [open-source]
-tags: [lispbm, lisp, python, qml, makefile, vesc, embedded, firmware, reverse-engineering, electric-skateboard]
+tags: [lispbm, lisp, python, micropython, qml, makefile, vesc, embedded, firmware, reverse-engineering, ui-design, electric-skateboard]
 ---
 
 Zack Design has published **[vesc-workbench](https://github.com/isaacrowntree/vesc-workbench)** — a scripted workbench for tuning **VESC** motor controllers. Read, write and verify configuration, develop LispBM, and diagnose the remote and the motors, all from a Makefile over your phone's Bluetooth bridge. No USB cable, no opening the enclosure.
@@ -175,9 +175,66 @@ That last one matters more than it sounds. Scripts are tested by running them in
 
 And `make lisp-erase` is always one command from stock behaviour, which is the thing that makes experimenting on a board you ride tolerable.
 
+## Then the display stopped being a black box
+
+The shim treats the DAVEGA as something to lie to. That stopped being true once
+I went looking properly.
+
+Its firmware is not open source and the shop closed in 2024, but the vendor's
+own installer still names its endpoints, and they still resolve. Three firmware
+images later — including a **v5.07rc3 dated 2025-03-11** that was never
+announced — the version gate reads the same in all of them, which is the honest
+justification for the shim existing at all.
+
+More usefully: the X is an **ESP32 running MicroPython**, and it will give you a
+REPL. Hold up and down while it boots and it raises its own access point. From
+there its filesystem is right in front of you — settings are a plain
+`/data/config.json`, which meant the gearing and wheel size it had been using
+were wrong and fixable in one command. It had been under-reading my speed by
+about 18%.
+
+It also means the screen is programmable. The firmware runs a user `start.py`
+*before* the stock app starts, so a replacement dashboard is not a firmware
+build — it is one file you can delete.
+
+## So I designed ten dashboards
+
+![Ten dashboard themes for the DAVEGA X, each mocked up at true 240x320 device size](/images/blog/davega-themes.jpg)
+
+Ten themes, each with its own layout rather than its own colours: a full
+analogue tachometer, hexagonal shards on carbon, hairline arcs, one enormous
+thin numeral, a power-flow meter that treats current as more important than
+speed. The default takes the best idea from each and throws away the rest.
+
+The interesting part is not the pictures. It is that a 2.8″ screen is a terrible
+place to iterate a design, so the harness came first: a host-side stand-in for
+the ILI9341 that records every draw call, rasterises to PNG, and **fails the
+build if anything leaves the 240×320 frame**. Screens are pure functions of a
+telemetry frame, so the same code runs on the device and in CI.
+
+Three things it checks that a screenshot cannot:
+
+- **Golden images** for every frame in the envelope — standstill, full throttle,
+  hard regen, thermal derate, a fault at speed. Those frames are *generated from
+  the board's verified configuration* rather than captured from a ride, so the
+  extremes a real ride rarely produces are covered on purpose.
+- **A drawing budget in pixels pushed**, because that is what the SPI bus is
+  billed for. A full repaint is 96k pixels — 1.26× the whole frame — so screens
+  repaint only the regions whose value changed, and within them only the
+  character cells that differ. Steady state came down to 4,320 pixels: **22×
+  cheaper**, about 1.7 ms of bus time.
+- **Differential rendering against a full repaint**, across all 81 transitions
+  between envelope frames. Partial redraw's failure mode is stale pixels, and
+  that test caught the fault banner staying on the glass after the ESC had
+  recovered.
+
+Every theme goes through all of it, and a parity test asserts each colour in the
+code appears in the mockups — which immediately caught five fault colours that
+existed only in code and had never been drawn.
+
 ## Where it's at
 
-Telemetry is live on my board right now: a DAVEGA X showing speed, current, voltage and distance from a controller running firmware 7.00 that believes it's running 6.00. The board is tuned for grass, 80 A a side, and it's punchy in exactly the way I wanted.
+Telemetry is live on my board right now: a DAVEGA X showing speed, current, voltage and distance from a controller running firmware 7.00 that believes it's running 6.00. The board is tuned for grass, 80 A a side, and traction control is on and confirmed after a hard run round a golf course. Themes install over WiFi in one command; the dashboards themselves are next.
 
 Hardware coverage is honest — FOCBOX Unity, one board, one display — but the connection layer and the config workflow aren't Unity-specific at all. `profiles/` holds one file per known-good setup, and deliberately holds *connection details only*: not current limits, not gearing. Copying a stranger's motor tuning is how packs and motors get damaged. Run the detection wizard, then use this to keep track of what you changed.
 
