@@ -23,7 +23,7 @@ Zack Design has published **[vesc-workbench](https://github.com/isaacrowntree/ve
 
 Everyone who runs a VESC ends up in the same loop. Change a current limit. Ride. Change it back. Change the throttle curve. Ride. Was that better, or was it a headwind? What did you actually have it set to three weeks ago, before the thing you're now trying to undo?
 
-The tooling does not help you here. VESC Tool is a good GUI, but it is a GUI: you click through tabs, you hope you typed the number into the field you meant, and when you are done there is no record of what changed. Backups are a full XML blob you can't meaningfully diff. And on a lot of builds — a sealed skate enclosure, a scooter deck, an ebike downtube — the USB port is behind screws, so you are doing all of this on a phone, standing in a driveway.
+The tooling does not help you here. VESC Tool is a good GUI, but it is a GUI: you click through tabs, you hope you typed the number into the field you meant, and when you are done there is no record of what changed. Exporting an XML backup is a manual step you take *instead of* riding, so nobody does it every time — and a backup you only take before something scary isn't a history. And on a lot of builds — a sealed skate enclosure, a scooter deck, an ebike downtube — the USB port is behind screws, so you are doing all of this on a phone, standing in a driveway.
 
 This repo is that loop, scripted:
 
@@ -38,7 +38,7 @@ And it runs over Bluetooth, from your laptop, with the board sitting where it is
 
 ## The connection trick, because nobody documents it
 
-This is the part worth the post on its own, so [it has its own page](https://github.com/isaacrowntree/vesc-workbench/blob/main/docs/connecting.md) in the repo.
+This is the part worth the post on its own, so [it has its own page](https://github.com/isaacrowntree/vesc-workbench/blob/master/docs/connecting.md) in the repo.
 
 VESC Tool ships a CLI. It looks like it should solve everything, and then it doesn't: `--vescPort` calls `connectSerial()` and takes a serial device, full stop. Hand it an IP and it refuses. Bridge the TCP socket to a `socat` PTY and it opens the port and then never completes the handshake. If your controller isn't reachable over USB, the documented CLI is a dead end.
 
@@ -115,7 +115,7 @@ make motors-on
 
 ## The findings are the other half of the repo
 
-`docs/known-issues.md` is the document I wanted to find and could not. The pattern in all of them is the same: the ESC does something reasonable, reports it accurately, and the accurate report points at the wrong thing.
+`docs/findings.md` is the document I wanted to find and could not. The pattern in all of them is the same: the ESC does something reasonable, reports it accurately, and the accurate report points at the wrong thing.
 
 | What you see | What is actually happening |
 |---|---|
@@ -132,13 +132,17 @@ All of this exists because of a much smaller problem.
 
 I have a LaCroix Nazaré — an electric skateboard with a FOCBOX Unity sealed in the enclosure, which I ride on grass at a golf course, a surface demanding enough that the tuning genuinely matters. I wanted it on firmware 7 for the FOC improvements and LispBM. The DAVEGA X display bolted to the deck refused to run on it:
 
-> supported vesc firmware versions 5.x to 6.x - press any button to restart
+> Unsupported VESC FW: 7.01
+>
+> Supported VESC FW versions: 3.48 - 6.x
 
-DAVEGA is discontinued. No display-side fix is coming. Everyone downgrades.
+DAVEGA is discontinued. Everyone downgrades.
+
+I checked whether that was really true rather than assuming it. The vendor's update index still lists a **v5.07rc3, dated 2025-03-11** — newer than the v5.06 the public changelog stops at, released after the shop closed and never announced. It carries the same constant as every version before it. No firmware DAVEGA ever shipped accepts VESC 7.
 
 But **the telemetry protocol did not change**. `COMM_GET_VALUES` returns the same twenty-five fields, same order, same scaling, in 6.00 and in 7.x. The display isn't failing to parse anything — it reads two version bytes, sees a 7, and declines to have the conversation.
 
-Firmware 6.06 and later embed **LispBM** and expose the firmware's own command decoder to it as `cmds-proc`. So a script on the ESC can take the display's UART line, hand every packet to the real handler, and rewrite the reply on the way out:
+VESC firmware 6 embeds **LispBM**, and from 6.06 it exposes the firmware's own command decoder to it as `cmds-proc`. So a script on the ESC can take the display's UART line, hand every packet to the real handler, and rewrite the reply on the way out:
 
 ```lisp
 (defun fixfw (d) {
@@ -152,7 +156,7 @@ Firmware 6.06 and later embed **LispBM** and expose the firmware's own command d
         (bufset-u8 d (+ 3 n) (bitwise-and c 255))})})
 ```
 
-Sixty lines. Everything else passes through untouched. The display sees a 6.00 controller; it's talking to a 7.00 controller; both are telling the truth about the only thing that matters.
+Twenty-seven lines for the rewrite, a hundred for the whole shim once you count the UART reader and its debug counters. Everything else passes through untouched. The display sees a 6.00 controller; it's talking to a 7.00 controller; both are telling the truth about the only thing that matters.
 
 You shouldn't take my word for the payload being unchanged, so `tests/protocol-diff.sh` checks out both firmware versions from upstream and diffs the serialisation on every CI run. If Vedder ever changes the layout, the test goes red and the shim is wrong in a way you find out about immediately rather than at 40 km/h.
 
@@ -177,7 +181,7 @@ Telemetry is live on my board right now: a DAVEGA X showing speed, current, volt
 
 Hardware coverage is honest — FOCBOX Unity, one board, one display — but the connection layer and the config workflow aren't Unity-specific at all. `profiles/` holds one file per known-good setup, and deliberately holds *connection details only*: not current limits, not gearing. Copying a stranger's motor tuning is how packs and motors get damaged. Run the detection wizard, then use this to keep track of what you changed.
 
-If you have a VESC and a scripting habit, start with [docs/connecting.md](https://github.com/isaacrowntree/vesc-workbench/blob/main/docs/connecting.md). Even if you use nothing else, having your board's configuration in git is worth the twenty minutes.
+If you have a VESC and a scripting habit, start with [docs/connecting.md](https://github.com/isaacrowntree/vesc-workbench/blob/master/docs/connecting.md). Even if you use nothing else, having your board's configuration in git is worth the twenty minutes.
 
 ---
 
