@@ -212,7 +212,7 @@ The display driver offers `fill_rectangle`, `pixel` and `writeblock`. There is n
 
 A draw call costs the same whether it covers nine pixels or nine thousand. So the obvious way to draw an arc — one thin rectangle per column, the way you would rasterise it — costs **481 ms for a 96 px radius**. That is four times the budget for an entire frame, to draw one gauge.
 
-The way through is the third primitive. Compose the curve into a memory buffer and push it in a single transfer: 12 ms a band, and the maths in between is free because it never touches the bus. There isn't enough RAM to hold the whole picture, so it goes in horizontal strips with one buffer reused down the screen, and the drawing code works in absolute screen coordinates while each strip quietly discards what falls outside it.
+The way through is the third primitive. Compose the curve into a memory buffer and push it in a single transfer — about 6 ms for a 240×20 strip, and the maths in between is free because it never touches the bus. There isn't enough RAM to hold the whole picture, so it goes in horizontal strips with one buffer reused down the screen, and the drawing code works in absolute screen coordinates while each strip quietly discards what falls outside it.
 
 That is the entire trick, and it is what makes a tachometer possible on a panel with no line primitive. The dial face, its bezel and its twenty-one tick marks are composed once as furniture; the sweep is composed the same way into a band that covers only the dial.
 
@@ -222,7 +222,7 @@ Steady-state cost across all ten: **23 to 88 ms a frame**, against 5 Hz telemetr
 
 ## The harness is the reason any of it works
 
-A 2.8″ screen bolted to a deck is a terrible place to iterate a design. So before the first dashboard there was a host-side stand-in for the ILI9341 that records every draw call, rasterises to PNG, and models the panel's cost. Screens are pure functions of a telemetry frame, so the same code runs on the device and in CI, and **390 checks** run with no hardware attached.
+A 2.8″ screen bolted to a deck is a terrible place to iterate a design. So before the first dashboard there was a host-side stand-in for the ILI9341 that records every draw call, rasterises to PNG, and models the panel's cost. Screens are pure functions of a telemetry frame, so the same code runs on the device and in CI, and **642 checks** run with no hardware attached.
 
 Four things it catches that looking at the screen cannot:
 
@@ -235,12 +235,24 @@ That last one is the test I'm most pleased with, because the harness was flatter
 
 Every theme goes through all of it, and a parity test asserts each of the 64 declared colours actually appears in the rendered output, so a palette nobody has looked at cannot ship.
 
+## And then the same code, in the interpreter that runs it
+
+All of that is CPython, which is fast and convenient and does not tell you whether the code will *start* on the board. So there is a second suite that builds **MicroPython 1.14** — the version the DAVEGA reports — with `framebuf` compiled in, and drives the real modules through a whole ride: boot, telemetry replayed from frames recorded off the Unity, every screen, the buttons through their real 50 ms debounce, the menu, a controller that stops answering, and the recovery. Same argument as testing LispBM in the upstream REPL: test the code in the interpreter that will execute it, not in a host language that resembles it.
+
+It earned its keep on the first run. MicroPython stores an RGB565 pixel with a native 16-bit write, so on a little-endian MCU the low byte lands first — and the ILI9341 wants the high byte first, with the transfer streaming the buffer untouched. **Every curve would have reached the panel with its colours reversed.** Red drawing blue. It could not show up off-device, because the pure-Python stand-in writes big-endian directly: the harness and the hardware disagreed and only the hardware was right. The two now render the same drawing side by side and compare byte for byte.
+
+The other thing it watches is allocation, because 98 kB of heap and a two-hour ride is a bad combination for anything that leaks. It measures two consecutive 400-frame windows, because one window cannot tell a leak from a warm-up — caches fill and tweens settle in the first, and none of it repeats. Absolute byte counts are reported rather than asserted: this is the unix port on a 64-bit host, where every reference is twice the width, so only the drift carries.
+
+Which is exactly the limit that bit me later. The board would not start one morning, stuck on the stock firmware's "initializing" — a `MemoryError` asking for ten kilobytes to draw the first curve. Everything passed on the host, where the heap is twenty times larger. The fix was to claim that buffer during boot while the heap is still whole, take the largest band available rather than one fixed size, and have the loop fall back to the lightest layout instead of handing the screen back. A dead screen on a deck is worse than the wrong colours.
+
 ## Where it's at
 
 Telemetry is live: a DAVEGA X running a dashboard I wrote, reading a FOCBOX Unity on firmware 7.00 directly, no version spoofing in the path. A Unity is two controllers in one case, and the standard reply only carries whichever one answered — its own temperature, its own tachometer — so the local ESC is asked over the wire and the second is asked through it over CAN, and the two are combined the way DAVEGA's own Unity code does it: pack current and energy summed, per-motor figures averaged, distance counted once. Temperature is the one place I diverge and take the hotter of the two, because an average hides the controller that is about to derate behind the one that is fine.
 
 The board is tuned for grass, 80 A a side, and traction control is on and confirmed after a hard run round a golf course. Themes and the dashboard both install over WiFi in one command, as precompiled bytecode — MicroPython compiles a `.py` every time it imports it, and on this ESP32 that compile was most of the wait between switching the board on and seeing a number.
 
-Hardware coverage is honest — FOCBOX Unity, one board, one display — but the connection layer and the config workflow aren't Unity-specific at all. `profiles/` holds one file per known-good setup, and deliberately holds *connection details only*: not current limits, not gearing. Copying a stranger's motor tuning is how packs and motors get damaged. Run the detection wizard, then use this to keep track of what you changed.
+What has not happened yet is a ride. Every part of this is verified on the bench or in the harness — the telemetry, the CAN read of the second controller, the range estimate, the buttons — and the board has not moved since any of it landed. That is the honest gap, and it is the one that matters.
+
+Hardware coverage is honest — FOCBOX Unity, one board, one display — but the connection layer and the config workflow aren't Unity-specific at all. `vesc/profiles/` holds one file per known-good setup, and deliberately holds *connection details only*: not current limits, not gearing. Copying a stranger's motor tuning is how packs and motors get damaged. Run the detection wizard, then use this to keep track of what you changed.
 
 If you have a VESC and a scripting habit, start with [docs/connecting.md](https://github.com/isaacrowntree/vesc-workbench/blob/master/docs/connecting.md). Even if you use nothing else, having your board's configuration in git is worth the twenty minutes.
