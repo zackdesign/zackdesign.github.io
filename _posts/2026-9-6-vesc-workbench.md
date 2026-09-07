@@ -1,17 +1,19 @@
 ---
 layout: post
-title: "vesc-workbench — tune your VESC from the command line, over Bluetooth, without opening the enclosure"
-description: "An open-source workbench for tuning VESC motor controllers over your phone's Bluetooth bridge with no USB — and, once the DAVEGA X display turned out to be a scriptable ESP32, ten tested dashboard designs to replace its own."
-excerpt: "Tuning a VESC means clicking through tabs in a GUI, hoping you wrote the number you think you wrote, with no record of what changed. It doesn't have to. The whole configuration API is scriptable over your phone's Bluetooth bridge — VESC Tool just doesn't tell you how."
+title: "vesc-workbench — scripting a sealed motor controller, and the dashboard that came out of it"
+description: "An open-source workbench for tuning VESC motor controllers over your phone's Bluetooth bridge with no USB — and, once the discontinued DAVEGA X display turned out to be a scriptable ESP32, ten replacement dashboards for it, tested without hardware."
+excerpt: "Tuning a VESC means clicking through tabs in a GUI, hoping you wrote the number you think you wrote, with no record of what changed. It doesn't have to. The whole configuration API is scriptable over your phone's Bluetooth bridge — VESC Tool just doesn't tell you how. That was the plan. The display bolted to the deck turned out to be the more interesting problem."
 image: /images/blog/vesc-workbench.jpg
-image_alt: An all-terrain electric longboard photographed from directly above, lying on grass — griptape deck, pneumatic tyres and blue motor hubs.
+image_alt: A LaCroix electric skateboard shot head-on against black — Hypertrucks splayed wide on pneumatic tyres, a blue anodised hanger, twin LED pods and a carbon deck.
 date: 2026-09-06
-last_modified_at: 2026-09-06
+last_modified_at: 2026-09-07
 categories: [open-source]
 tags: [lispbm, lisp, python, micropython, qml, makefile, vesc, embedded, firmware, reverse-engineering, ui-design, electric-skateboard]
 ---
 
 Zack Design has published **[vesc-workbench](https://github.com/isaacrowntree/vesc-workbench)** — a scripted workbench for tuning **VESC** motor controllers. Read, write and verify configuration, develop LispBM, and diagnose the remote and the motors, all from a Makefile over your phone's Bluetooth bridge. No USB cable, no opening the enclosure.
+
+It also contains ten dashboards for a display its manufacturer stopped supporting, which is not what I set out to build.
 
 **MIT licensed.**
 
@@ -156,9 +158,11 @@ VESC firmware 6 embeds **LispBM**, and from 6.06 it exposes the firmware's own c
         (bufset-u8 d (+ 3 n) (bitwise-and c 255))})})
 ```
 
-Twenty-seven lines for the rewrite, a hundred for the whole shim once you count the UART reader and its debug counters. Everything else passes through untouched. The display sees a 6.00 controller; it's talking to a 7.00 controller; both are telling the truth about the only thing that matters.
+Twenty-seven lines for the rewrite, 178 for the whole shim once you count the UART reader and its debug counters. Everything else passes through untouched. The display sees a 6.00 controller; it's talking to a 7.00 controller; both are telling the truth about the only thing that matters.
 
 You shouldn't take my word for the payload being unchanged, so `tests/protocol-diff.sh` checks out both firmware versions from upstream and diffs the serialisation on every CI run. If Vedder ever changes the layout, the test goes red and the shim is wrong in a way you find out about immediately rather than at 40 km/h.
+
+If you have a DAVEGA and want to keep its own firmware, that shim is the whole answer and you can stop reading here.
 
 ## Writing LispBM without bricking your throttle
 
@@ -177,69 +181,66 @@ And `make lisp-erase` is always one command from stock behaviour, which is the t
 
 ## Then the display stopped being a black box
 
-The shim treats the DAVEGA as something to lie to. That stopped being true once
-I went looking properly.
+The shim treats the DAVEGA as something to lie to. That stopped being true once I went looking properly.
 
-Its firmware is not open source and the shop closed in 2024, but the vendor's
-own installer still names its endpoints, and they still resolve. Three firmware
-images later — including a **v5.07rc3 dated 2025-03-11** that was never
-announced — the version gate reads the same in all of them, which is the honest
-justification for the shim existing at all.
+Its firmware is not open source and the shop closed in 2024, but the vendor's own installer still names its endpoints, and they still resolve. More usefully: the X is an **ESP32 running MicroPython**, and it will give you a REPL. Hold up and down while it boots and it raises its own access point.
 
-More usefully: the X is an **ESP32 running MicroPython**, and it will give you a
-REPL. Hold up and down while it boots and it raises its own access point. From
-there its filesystem is right in front of you — settings are a plain
-`/data/config.json`, which meant the gearing and wheel size it had been using
-were wrong and fixable in one command. It had been under-reading my speed by
-about 18%.
+From there its filesystem is right in front of you. Settings are a plain `/data/config.json` — which is how I found the display had been configured for 175 mm wheels on 72/16 gearing when the board runs 200 mm on 84/20. It had been under-reading my speed by 18%, silently, for as long as I had owned it. One command fixed it.
 
-It also means the screen is programmable. The firmware runs a user `start.py`
-*before* the stock app starts, so a replacement dashboard is not a firmware
-build — it is one file you can delete.
+It also means the screen is programmable. The firmware runs a user `start.py` *before* the stock app starts, so a replacement dashboard is not a firmware build — it is one file you can delete. Hold UP at boot and it steps aside.
 
-## So I designed ten dashboards
+At which point the shim stops being necessary at all. A dashboard I wrote has no version gate to fail, so it reads firmware 7 directly, and the LispBM context on the ESC is free for something better than lying about a version byte — it runs a flight recorder now.
 
-![Ten dashboard themes for the DAVEGA X, each mocked up at true 240x320 device size](/images/blog/davega-themes.jpg)
+## So the display got ten dashboards
 
-Ten themes, each with its own layout rather than its own colours: a full
-analogue tachometer, hexagonal shards on carbon, hairline arcs, one enormous
-thin numeral, a power-flow meter that treats current as more important than
-speed. The default takes the best idea from each and throws away the rest.
+![Ten dashboards for the DAVEGA X, each a different layout, rendered at true 240x320 device size](/images/blog/davega-themes.png)
 
-The interesting part is not the pictures. It is that a 2.8″ screen is a terrible
-place to iterate a design, so the harness came first: a host-side stand-in for
-the ILI9341 that records every draw call, rasterises to PNG, and **fails the
-build if anything leaves the 240×320 frame**. Screens are pure functions of a
-telemetry frame, so the same code runs on the device and in CI.
+Ten themes, each with **its own layout** rather than its own colours: a full analogue tachometer, hexagonal shards on a diagonal split, three hairline arcs, one enormous thin numeral, concentric rings with a single red hand, a shift-light rail you read peripherally, a power-flow meter that treats current as more important than speed. The default takes the best idea from each and throws the rest away.
 
-Three things it checks that a screenshot cannot:
+Those are not mockups. Every picture in this post is the real screen code run through a host-side stand-in for the panel, rendering the pixels it actually produced.
 
-- **Golden images** for every frame in the envelope — standstill, full throttle,
-  hard regen, thermal derate, a fault at speed. Those frames are *generated from
-  the board's verified configuration* rather than captured from a ride, so the
-  extremes a real ride rarely produces are covered on purpose.
-- **A drawing budget in pixels pushed**, because that is what the SPI bus is
-  billed for. A full repaint is 96k pixels — 1.26× the whole frame — so screens
-  repaint only the regions whose value changed, and within them only the
-  character cells that differ. Steady state came down to 4,320 pixels: **22×
-  cheaper**, about 1.7 ms of bus time.
-- **Differential rendering against a full repaint**, across all 81 transitions
-  between envelope frames. Partial redraw's failure mode is stale pixels, and
-  that test caught the fault banner staying on the glass after the ESC had
-  recovered.
+The interesting part is not the pictures. It is that **the panel cannot draw a curve.**
 
-Every theme goes through all of it, and a parity test asserts each colour in the
-code appears in the mockups — which immediately caught five fault colours that
-existed only in code and had never been drawn.
+The display driver offers `fill_rectangle`, `pixel` and `writeblock`. There is no line, no circle, no polygon. And measured on the device, the costs are not what you would guess:
+
+| | measured |
+|---|---|
+| `fill_rectangle` | **2.9 ms** — independent of size |
+| `pixel` | **2.29 ms** |
+| `writeblock`, 240×40 | **12 ms** for 9,600 pixels |
+| free heap | **98 kB** — a 200×100 RGB565 buffer fails to allocate |
+
+A draw call costs the same whether it covers nine pixels or nine thousand. So the obvious way to draw an arc — one thin rectangle per column, the way you would rasterise it — costs **481 ms for a 96 px radius**. That is four times the budget for an entire frame, to draw one gauge.
+
+The way through is the third primitive. Compose the curve into a memory buffer and push it in a single transfer: 12 ms a band, and the maths in between is free because it never touches the bus. There isn't enough RAM to hold the whole picture, so it goes in horizontal strips with one buffer reused down the screen, and the drawing code works in absolute screen coordinates while each strip quietly discards what falls outside it.
+
+That is the entire trick, and it is what makes a tachometer possible on a panel with no line primitive. The dial face, its bezel and its twenty-one tick marks are composed once as furniture; the sweep is composed the same way into a band that covers only the dial.
+
+I did try the cleverer version first — repaint only the wedge between the old angle and the new. It is cheaper, and it is wrong: an arc drawn in three pieces lands on different pixels from the same arc drawn in one, because each piece quantises its own start angle. A partial renderer that disagrees with a full repaint is worse than one that costs a few more milliseconds, so the arcs repaint whole. Everything that is a straight line still repaints only its tip.
+
+Steady-state cost across all ten: **23 to 88 ms a frame**, against 5 Hz telemetry.
+
+## The harness is the reason any of it works
+
+A 2.8″ screen bolted to a deck is a terrible place to iterate a design. So before the first dashboard there was a host-side stand-in for the ILI9341 that records every draw call, rasterises to PNG, and models the panel's cost. Screens are pure functions of a telemetry frame, so the same code runs on the device and in CI, and **390 checks** run with no hardware attached.
+
+Four things it catches that looking at the screen cannot:
+
+- **Anything that leaves the 240×320 frame** fails the build, rather than being clipped where you might not notice.
+- **Golden images** for every frame in the envelope — standstill, full throttle, hard regen, thermal derate, battery empty, battery full, a fault at speed. Those frames are *generated from the board's verified configuration*, so the extremes a real ride rarely produces are covered on purpose.
+- **Partial redraw against a full repaint**, across all **810** transitions between envelope frames and themes. Partial redraw's failure mode is stale pixels — a value that got shorter, a gauge that receded — and the two paths must agree exactly, pixel for pixel.
+- **Chrome labels against live regions.** A label is drawn once; a region repaints whenever its value changes; the panel's font is opaque. So a label sitting inside a region's box is erased the first time that value moves and never comes back. It looks right at a standstill and wrong thirty seconds into a ride.
+
+That last one is the test I'm most pleased with, because the harness was flattering the design until I fixed it. It drew glyphs without their backgrounds, while the real font fills the whole character cell — so labels that punched holes through their own gauges looked perfect in every render. Modelling the panel honestly made four themes fail immediately.
+
+Every theme goes through all of it, and a parity test asserts each of the 64 declared colours actually appears in the rendered output, so a palette nobody has looked at cannot ship.
 
 ## Where it's at
 
-Telemetry is live on my board right now: a DAVEGA X showing speed, current, voltage and distance from a controller running firmware 7.00 that believes it's running 6.00. The board is tuned for grass, 80 A a side, and traction control is on and confirmed after a hard run round a golf course. Themes install over WiFi in one command; the dashboards themselves are next.
+Telemetry is live: a DAVEGA X running a dashboard I wrote, reading a FOCBOX Unity on firmware 7.00 directly, no version spoofing in the path. A Unity is two controllers in one case, and the standard reply only carries whichever one answered — its own temperature, its own tachometer — so the local ESC is asked over the wire and the second is asked through it over CAN, and the two are combined the way DAVEGA's own Unity code does it: pack current and energy summed, per-motor figures averaged, distance counted once. Temperature is the one place I diverge and take the hotter of the two, because an average hides the controller that is about to derate behind the one that is fine.
+
+The board is tuned for grass, 80 A a side, and traction control is on and confirmed after a hard run round a golf course. Themes and the dashboard both install over WiFi in one command, as precompiled bytecode — MicroPython compiles a `.py` every time it imports it, and on this ESP32 that compile was most of the wait between switching the board on and seeing a number.
 
 Hardware coverage is honest — FOCBOX Unity, one board, one display — but the connection layer and the config workflow aren't Unity-specific at all. `profiles/` holds one file per known-good setup, and deliberately holds *connection details only*: not current limits, not gearing. Copying a stranger's motor tuning is how packs and motors get damaged. Run the detection wizard, then use this to keep track of what you changed.
 
 If you have a VESC and a scripting habit, start with [docs/connecting.md](https://github.com/isaacrowntree/vesc-workbench/blob/master/docs/connecting.md). Even if you use nothing else, having your board's configuration in git is worth the twenty minutes.
-
----
-
-*Header photo by [Khudadad Alam](https://unsplash.com/@khudadad) on [Unsplash](https://unsplash.com).*
