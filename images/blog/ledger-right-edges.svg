@@ -4,6 +4,7 @@
       .bg{fill:#0f1115}
       .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
       .s{font:400 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:italic 400 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
       .mono{font:500 21px Menlo,Consolas,monospace;fill:#fff}
       .monoh{font:700 21px Menlo,Consolas,monospace;fill:#ffc400}
       .good{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
@@ -19,8 +20,8 @@
   <!-- Panel 1: flattened text -->
   <text class="h" x="280" y="60" text-anchor="middle">Flattened to text</text>
   <text class="s" x="280" y="88" text-anchor="middle">what pdfplumber's extract_text() hands the parser</text>
-  <text class="mono" x="60" y="160">MONTHLY FEE       10.00  1,204.58</text>
-  <text class="mono" x="60" y="205">DEPOSIT           10.00  1,214.58</text>
+  <text class="lbl" x="60" y="160">fee row</text><text class="mono" x="300" y="160">10.00</text>
+  <text class="lbl" x="60" y="205">deposit row</text><text class="mono" x="300" y="205">10.00</text>
   <text class="bad" x="280" y="330" text-anchor="middle">The fee and the deposit are the same bytes.</text>
   <text class="s" x="280" y="360" text-anchor="middle">Guessing the sign from the description</text>
   <text class="s" x="280" y="386" text-anchor="middle">is how every deposit became spending.</text>
@@ -30,11 +31,11 @@
   <text class="s" x="860" y="88" text-anchor="middle">the columns are right-aligned</text>
   <text class="monoh" x="880" y="140" text-anchor="end">Debit</text>
   <text class="monoh" x="1090" y="140" text-anchor="end">Credit</text>
-  <text class="mono" x="610" y="185">MONTHLY FEE</text>
+  <text class="lbl" x="610" y="185">fee row</text>
   <text class="mono" x="880" y="185" text-anchor="end">10.00</text>
-  <text class="mono" x="610" y="230">DEPOSIT</text>
+  <text class="lbl" x="610" y="230">deposit row</text>
   <text class="mono" x="1090" y="230" text-anchor="end">10.00</text>
-  <text class="mono" x="610" y="275">CARD PURCHASE</text>
+  <text class="lbl" x="610" y="275">purchase row</text>
   <text class="mono" x="880" y="275" text-anchor="end">1,234.56</text>
   <!-- right edge lines -->
   <line class="redge" x1="884" y1="118" x2="884" y2="285"/>

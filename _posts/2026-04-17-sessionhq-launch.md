@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Introducing SessionHQ — our flagship SaaS"
+title: "SessionHQ — a multi-tenant studio check-in platform, live at its first front desk"
 description: "SessionHQ, our multi-tenant check-in platform for dance studios, gyms and martial arts schools, is live at founding partner Havana on the Hastings: 283 commits, 888 unit tests, the studio's identity carried inside the sign-in token, and the browser bugs we hit on a kiosk tablet."
 excerpt: "Our multi-tenant check-in platform is live at Havana on the Hastings — 283 commits, 888 unit tests, the studio's identity enforced from the sign-in token, and the Android and Workers bugs that shaped it."
 image: /images/blog/sessionhq-launch.jpg

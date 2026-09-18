@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Introducing Nexxara — event media management, reimagined"
+title: "Nexxara — event galleries watermarked at request time, in front of R2"
 description: "Nexxara is Zack Design's event media SaaS: galleries watermarked at request time by a Worker in front of R2 storage, QR-code access, photo grouping with Workers AI, and a Durable Object that streams upload progress — with the Image Resizing limits we hit on the way."
 excerpt: "Galleries watermarked at request time by a Worker in front of R2 storage, QR-code access, photo grouping with Workers AI, a Durable Object streaming upload progress — and the Image Resizing limits we hit building it."
 image: /images/blog/nexxara-launch.jpg

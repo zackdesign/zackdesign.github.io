@@ -6,7 +6,7 @@ excerpt: "A guide to running Qwen and Gemma locally as a coding assistant, built
 image: /images/blog/local-llm-coding-guide.jpg
 image_alt: Abstract neural network illustration representing large language models
 date: 2026-03-14
-last_modified_at: 2026-07-03
+last_modified_at: 2026-09-18
 categories: [ai, guides]
 tags: [llm, llama-cpp, ollama, mlx, qwen, gemma, local-ai, coding-assistant, guides]
 ---

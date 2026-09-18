@@ -6,7 +6,7 @@ excerpt: "A Go CLI for ClickUp that reads the task ID off your git branch, links
 image: /images/blog/clickup-cli.jpg
 image_alt: The ClickUp mark beside a terminal window running clickup task view, clickup link pr, and clickup status set "review"
 date: 2026-02-03
-last_modified_at: 2026-08-21
+last_modified_at: 2026-09-18
 categories: [open-source]
 tags: [go, cli, clickup, github, ai-agents, cobra, open-source]
 ---

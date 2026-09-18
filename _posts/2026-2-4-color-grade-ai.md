@@ -6,7 +6,7 @@ excerpt: "A Claude Code skill that measures a video frame and fits a .cube 3D LU
 image: /images/blog/color-grade-ai.jpg
 image_alt: Cinema camera with a large lens in a professional production setting
 date: 2026-02-04
-last_modified_at: 2026-02-04
+last_modified_at: 2026-09-18
 categories: [open-source, ai]
 tags: [video, color-grading, lut, davinci-resolve, premiere, claude-code, ai]
 ---
