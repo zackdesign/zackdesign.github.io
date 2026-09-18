@@ -189,24 +189,31 @@
   const revealSelector = '.reveal, .reveal-left, .reveal-right, .reveal-scale';
   const revealEls = document.querySelectorAll(revealSelector);
   if (revealEls.length) {
-    // Set stagger delays on children of data-stagger containers
+    // Stagger is decided when elements come into view, among the elements that
+    // arrive together, and capped. It used to be index * step over the whole
+    // container at load time, so the 33rd journal card waited 2.6 s after it
+    // scrolled in, plus the 0.9 s transition, before it appeared at all.
+    const staggerStep = new Map();
     document.querySelectorAll('[data-stagger]').forEach((container) => {
       const step = parseInt(container.dataset.stagger, 10) || 80;
-      const children = container.querySelectorAll(
-        ':scope > .reveal, :scope > .reveal-left, :scope > .reveal-right, :scope > .reveal-scale, :scope > * > .reveal, :scope > * > .reveal-left, :scope > * > .reveal-right, :scope > * > .reveal-scale'
-      );
-      children.forEach((child, i) => {
-        child.style.setProperty('--reveal-delay', i * step + 'ms');
-      });
+      container
+        .querySelectorAll(
+          ':scope > .reveal, :scope > .reveal-left, :scope > .reveal-right, :scope > .reveal-scale, :scope > * > .reveal, :scope > * > .reveal-left, :scope > * > .reveal-right, :scope > * > .reveal-scale'
+        )
+        .forEach((child) => staggerStep.set(child, step));
     });
+    const MAX_STAGGER_MS = 320;
 
     const revealIO = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('is-revealed');
-            revealIO.unobserve(entry.target);
-          }
+        const arriving = entries.filter((e) => e.isIntersecting);
+        // Order by position so the cascade reads top-to-bottom, left-to-right.
+        arriving.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top || a.boundingClientRect.left - b.boundingClientRect.left);
+        arriving.forEach((entry, i) => {
+          const step = staggerStep.get(entry.target);
+          if (step) entry.target.style.setProperty('--reveal-delay', Math.min(i * step, MAX_STAGGER_MS) + 'ms');
+          entry.target.classList.add('is-revealed');
+          revealIO.unobserve(entry.target);
         });
       },
       { rootMargin: '0px 0px -8% 0px', threshold: 0.08 }
