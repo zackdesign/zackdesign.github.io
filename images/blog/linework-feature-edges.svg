@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 460" width="1200" height="460" role="img" aria-label="Three panels, each a side view of triangles meeting at one edge: a boundary edge touched by only one face is kept as a line; a crease where two faces meet at more than 25 degrees is kept; an edge where two faces are nearly flat to each other is dropped, so a smooth surface produces no line">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .face{stroke:#4a5160;stroke-width:5;fill:none;stroke-linecap:round}
+      .keep{fill:#40dca0;stroke:#fff;stroke-width:3}
+      .drop{fill:none;stroke:#ff5d5d;stroke-width:3;stroke-dasharray:6 6}
+      .angle{fill:none;stroke:#ffc400;stroke-width:3}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .good{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .bad{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ff5d5d}
+      .warn{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ffc400}
+      .sep{stroke:#2a2f3a;stroke-width:2}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="460"/>
+  <line class="sep" x1="400" y1="40" x2="400" y2="420"/>
+  <line class="sep" x1="800" y1="40" x2="800" y2="420"/>
+
+  <!-- Panel 1: boundary -->
+  <text class="h" x="200" y="60" text-anchor="middle">Boundary</text>
+  <text class="s" x="200" y="88" text-anchor="middle">one face touches the edge</text>
+  <path class="face" d="M200,250 L60,250"/>
+  <circle class="keep" cx="200" cy="250" r="12"/>
+  <text class="lbl" x="130" y="232" text-anchor="middle">face</text>
+  <text class="s" x="290" y="256" text-anchor="middle">nothing here</text>
+  <text class="good" x="200" y="360" text-anchor="middle">kept as a line</text>
+  <text class="s" x="200" y="390" text-anchor="middle">the mesh is open at this edge</text>
+
+  <!-- Panel 2: crease -->
+  <text class="h" x="600" y="60" text-anchor="middle">Crease</text>
+  <text class="s" x="600" y="88" text-anchor="middle">two faces meet at more than 25°</text>
+  <path class="face" d="M600,270 L470,190"/>
+  <path class="face" d="M600,270 L730,190"/>
+  <path class="angle" d="M560,246 A48,48 0 0 1 640,246"/>
+  <text class="warn" x="600" y="222" text-anchor="middle">over 25°</text>
+  <circle class="keep" cx="600" cy="270" r="12"/>
+  <text class="lbl" x="510" y="180" text-anchor="middle">face</text>
+  <text class="lbl" x="690" y="180" text-anchor="middle">face</text>
+  <text class="good" x="600" y="360" text-anchor="middle">kept as a line</text>
+  <text class="s" x="600" y="390" text-anchor="middle">a draftsperson would ink this bend</text>
+
+  <!-- Panel 3: smooth -->
+  <text class="h" x="1000" y="60" text-anchor="middle">Smooth</text>
+  <text class="s" x="1000" y="88" text-anchor="middle">two faces nearly in the same plane</text>
+  <path class="face" d="M1000,250 L860,262"/>
+  <path class="face" d="M1000,250 L1140,262"/>
+  <circle class="drop" cx="1000" cy="250" r="12"/>
+  <text class="lbl" x="910" y="238" text-anchor="middle">face</text>
+  <text class="lbl" x="1090" y="238" text-anchor="middle">face</text>
+  <text class="bad" x="1000" y="360" text-anchor="middle">dropped</text>
+  <text class="s" x="1000" y="390" text-anchor="middle">interior of a curved surface, no line</text>
+</svg>

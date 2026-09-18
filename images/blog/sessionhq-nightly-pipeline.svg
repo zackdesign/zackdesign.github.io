@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" width="1200" height="520" role="img" aria-label="One trigger at 03:00 UTC starts two groups of jobs. The top row runs in strict order: pass lifecycle, then pass renewals which charge saved cards, then lifecycle emails, because each reads what the previous one wrote. The bottom row of four jobs, database backup, prune backups, retention sweep and email retry, runs at the same time as the top row and independently of it">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .code{font:600 17px Menlo,Consolas,monospace;fill:#9aa3b2}
+      .warn{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ffc400}
+      .seq{fill:rgba(124,92,255,.14);stroke:#7c5cff;stroke-width:3}
+      .par{fill:rgba(64,220,160,.14);stroke:#40dca0;stroke-width:3}
+      .trig{fill:rgba(255,196,0,.12);stroke:#ffc400;stroke-width:3}
+      .arrow{stroke:#9aa3b2;stroke-width:4;fill:none}
+      .ah{fill:#9aa3b2}
+    </style>
+    <marker id="head" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path class="ah" d="M0,0 L12,6 L0,12 z"/></marker>
+  </defs>
+  <rect class="bg" width="1200" height="520"/>
+  <text class="h" x="600" y="60" text-anchor="middle">What one nightly trigger runs</text>
+
+  <rect class="trig" x="40" y="220" width="180" height="90" rx="12"/>
+  <text class="warn" x="130" y="258" text-anchor="middle">03:00 UTC</text>
+  <text class="s" x="130" y="288" text-anchor="middle">one cron trigger</text>
+
+  <path class="arrow" d="M220 245 H300 V170 H330" marker-end="url(#head)"/>
+  <path class="arrow" d="M220 285 H300 V390 H330" marker-end="url(#head)"/>
+
+  <!-- sequential row -->
+  <text class="s" x="340" y="128">Top row runs in strict order: each step reads what the previous one wrote</text>
+  <rect class="seq" x="340" y="140" width="230" height="70" rx="10"/>
+  <text class="lbl" x="455" y="170" text-anchor="middle">pass lifecycle</text>
+  <text class="code" x="455" y="196" text-anchor="middle">pass-lifecycle</text>
+  <path class="arrow" d="M570 175 H610" marker-end="url(#head)"/>
+  <rect class="seq" x="615" y="140" width="230" height="70" rx="10"/>
+  <text class="lbl" x="730" y="170" text-anchor="middle">pass renewals</text>
+  <text class="code" x="730" y="196" text-anchor="middle">charges saved cards</text>
+  <path class="arrow" d="M845 175 H885" marker-end="url(#head)"/>
+  <rect class="seq" x="890" y="140" width="230" height="70" rx="10"/>
+  <text class="lbl" x="1005" y="170" text-anchor="middle">lifecycle emails</text>
+  <text class="code" x="1005" y="196" text-anchor="middle">lifecycle-emails</text>
+
+  <!-- parallel row -->
+  <text class="s" x="340" y="348">Bottom row runs at the same time, each job independent of the others</text>
+  <rect class="par" x="340" y="360" width="180" height="70" rx="10"/>
+  <text class="lbl" x="430" y="390" text-anchor="middle">database backup</text>
+  <text class="code" x="430" y="416" text-anchor="middle">db-backup</text>
+  <rect class="par" x="540" y="360" width="180" height="70" rx="10"/>
+  <text class="lbl" x="630" y="390" text-anchor="middle">prune backups</text>
+  <text class="code" x="630" y="416" text-anchor="middle">prune-backups</text>
+  <rect class="par" x="740" y="360" width="180" height="70" rx="10"/>
+  <text class="lbl" x="830" y="390" text-anchor="middle">retention sweep</text>
+  <text class="code" x="830" y="416" text-anchor="middle">retention-sweep</text>
+  <rect class="par" x="940" y="360" width="180" height="70" rx="10"/>
+  <text class="lbl" x="1030" y="390" text-anchor="middle">email retry</text>
+  <text class="code" x="1030" y="416" text-anchor="middle">email-retry</text>
+</svg>

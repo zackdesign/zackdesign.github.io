@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" width="1200" height="420" role="img" aria-label="Two timelines of an Android tap. Before: finger down, finger up, then Google waits 300 ms to rule out a double tap, then its own marker hit test, and the app hears about the tap 649 ms after the finger went down. After: the app is told the moment the finger lifts, 22 ms later; Google's own callbacks for the same tap are ignored.">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .h{font:700 24px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .axis{stroke:#3a4050;stroke-width:3}
+      .wait{fill:rgba(255,93,93,.18);stroke:#ff5d5d;stroke-width:2}
+      .fast{fill:rgba(64,220,160,.18);stroke:#40dca0;stroke-width:2}
+      .tick{stroke:#fff;stroke-width:3}
+      .bad{font:700 22px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ff5d5d}
+      .good{font:700 22px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .sep{stroke:#2a2f3a;stroke-width:2}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="420"/>
+  <!-- scale: 1 ms = 1.5 px, origin x=120 -->
+
+  <!-- BEFORE -->
+  <text class="h" x="60" y="60">Before</text>
+  <line class="axis" x1="120" y1="130" x2="1120" y2="130"/>
+  <line class="tick" x1="120" y1="115" x2="120" y2="145"/>
+  <text class="lbl" x="120" y="100" text-anchor="middle">finger down</text>
+  <line class="tick" x1="240" y1="115" x2="240" y2="145"/>
+  <text class="lbl" x="240" y="170" text-anchor="middle">finger up</text>
+  <rect class="wait" x="240" y="118" width="450" height="24"/>
+  <text class="s" x="465" y="100" text-anchor="middle">Google waits to rule out a double tap (300 ms), then runs its own hit test</text>
+  <line class="tick" x1="1093" y1="115" x2="1093" y2="145"/>
+  <text class="bad" x="1093" y="100" text-anchor="middle">app told: 649 ms</text>
+  <text class="s" x="1093" y="170" text-anchor="middle">measured, centre of a pin</text>
+
+  <line class="sep" x1="60" y1="215" x2="1140" y2="215"/>
+
+  <!-- AFTER -->
+  <text class="h" x="60" y="265">After</text>
+  <line class="axis" x1="120" y1="335" x2="1120" y2="335"/>
+  <line class="tick" x1="120" y1="320" x2="120" y2="350"/>
+  <text class="lbl" x="120" y="305" text-anchor="middle">finger down</text>
+  <line class="tick" x1="240" y1="320" x2="240" y2="350"/>
+  <text class="lbl" x="240" y="375" text-anchor="middle">finger up</text>
+  <rect class="fast" x="240" y="323" width="33" height="24"/>
+  <line class="tick" x1="273" y1="320" x2="273" y2="350"/>
+  <text class="good" x="300" y="305">app told: 22 ms after the finger lifts</text>
+  <text class="s" x="300" y="375">Google's own callbacks for the same tap are ignored; a drag or long press is still not a tap</text>
+</svg>

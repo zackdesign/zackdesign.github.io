@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 500" width="1200" height="500" role="img" aria-label="Two panels of the same live domain. Before sign-off: the old site keeps serving the home page and the old stockists page; the new design serves under a preview path, with every preview page marked not to be indexed and left out of the sitemap, and a standalone 404 page that links only to home and the phone number. After sign-off: the preview pages are moved to the root, the two release gates are removed, and the old layout is deleted">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .domain{fill:none;stroke:#2a2f3a;stroke-width:2;stroke-dasharray:10 8}
+      .old{fill:#181c24;stroke:#9aa3b2;stroke-width:3}
+      .new{fill:#181c24;stroke:#40dca0;stroke-width:3}
+      .gate{fill:rgba(255,196,0,.12);stroke:#ffc400;stroke-width:2}
+      .err{fill:#181c24;stroke:#7c5cff;stroke-width:3}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 17px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .path{font:600 18px ui-monospace,Menlo,monospace;fill:#fff}
+      .warn{font:700 16px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ffc400}
+      .good{font:700 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .grey{font:700 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .purple{font:700 16px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#7c5cff}
+      .sep{stroke:#2a2f3a;stroke-width:2}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="500"/>
+  <line class="sep" x1="600" y1="40" x2="600" y2="470"/>
+
+  <!-- BEFORE -->
+  <text class="h" x="300" y="60" text-anchor="middle">Two weeks before sign-off</text>
+  <text class="s" x="300" y="88" text-anchor="middle">one live domain, real certificate, real analytics</text>
+  <rect class="domain" x="50" y="104" width="500" height="356" rx="12"/>
+  <!-- old pages -->
+  <rect class="old" x="80" y="130" width="200" height="60" rx="8"/>
+  <text class="path" x="180" y="156" text-anchor="middle">/</text>
+  <text class="s" x="180" y="178" text-anchor="middle">old site, untouched</text>
+  <rect class="old" x="80" y="204" width="200" height="60" rx="8"/>
+  <text class="path" x="180" y="230" text-anchor="middle">/stockists/</text>
+  <text class="s" x="180" y="252" text-anchor="middle">old layout</text>
+  <text class="grey" x="180" y="290" text-anchor="middle">keeps serving as before</text>
+  <!-- new preview pages -->
+  <rect class="new" x="320" y="130" width="200" height="60" rx="8"/>
+  <text class="path" x="420" y="156" text-anchor="middle">/preview/</text>
+  <text class="s" x="420" y="178" text-anchor="middle">new home page</text>
+  <rect class="new" x="320" y="204" width="200" height="60" rx="8"/>
+  <text class="path" x="420" y="230" text-anchor="middle">/preview/stockists/</text>
+  <text class="s" x="420" y="252" text-anchor="middle">new layout, nine pages</text>
+  <rect class="gate" x="320" y="276" width="200" height="50" rx="8"/>
+  <text class="warn" x="420" y="297" text-anchor="middle">not indexed by search</text>
+  <text class="warn" x="420" y="317" text-anchor="middle">left out of the sitemap</text>
+  <!-- 404 -->
+  <rect class="err" x="80" y="350" width="440" height="60" rx="8"/>
+  <text class="path" x="300" y="376" text-anchor="middle">/404</text>
+  <text class="purple" x="300" y="398" text-anchor="middle">standalone: links only to home and the phone number, no new navigation</text>
+  <text class="s" x="300" y="444" text-anchor="middle">a bad address on the live domain cannot leak the unreleased design</text>
+
+  <!-- AFTER -->
+  <text class="h" x="900" y="60" text-anchor="middle">After sign-off: one commit per site</text>
+  <text class="s" x="900" y="88" text-anchor="middle">nothing new to discover, it had run on the real domain for two weeks</text>
+  <rect class="domain" x="650" y="104" width="500" height="356" rx="12"/>
+  <rect class="new" x="800" y="130" width="200" height="60" rx="8"/>
+  <text class="path" x="900" y="156" text-anchor="middle">/</text>
+  <text class="s" x="900" y="178" text-anchor="middle">new home page</text>
+  <rect class="new" x="800" y="204" width="200" height="60" rx="8"/>
+  <text class="path" x="900" y="230" text-anchor="middle">/stockists/</text>
+  <text class="s" x="900" y="252" text-anchor="middle">moved from the preview path</text>
+  <text class="good" x="900" y="300" text-anchor="middle">both release gates removed</text>
+  <text class="grey" x="900" y="332" text-anchor="middle">old layout and its config aliases deleted</text>
+  <text class="s" x="900" y="360" text-anchor="middle">Superior Shavings: 14 files, 45 lines added, 1,467 removed</text>
+  <text class="s" x="900" y="384" text-anchor="middle">Breeder's Choice: 47 added, 1,932 removed</text>
+  <rect class="err" x="800" y="404" width="200" height="40" rx="8"/>
+  <text class="path" x="900" y="430" text-anchor="middle">/404  unchanged</text>
+</svg>

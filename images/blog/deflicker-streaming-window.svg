@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 560" width="1200" height="560" role="img" aria-label="Two panels. Top: a row of video frames whose brightness repeats bright, medium, dark every three frames, with a bracket around any five consecutive frames showing that the window always holds one full cycle, so the middle brightness is the median. Bottom: one ffmpeg decoder feeds small greyscale frames into a five-frame queue two frames ahead of the current frame, a second decoder reads the same frame at full resolution, the correction from the queue is multiplied into it and sent to the encoder, and the oldest small frame is dropped.">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .good{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .warn{font:600 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ffc400}
+      .fB{fill:#8f86b8}
+      .fM{fill:#5b52a0}
+      .fD{fill:#2e2a55}
+      .frame{stroke:#fff;stroke-width:2}
+      .win{fill:none;stroke:#40dca0;stroke-width:3;stroke-dasharray:10 8}
+      .box{fill:none;stroke:#7c5cff;stroke-width:3}
+      .box2{fill:none;stroke:#40dca0;stroke-width:3}
+      .arrow{stroke:#fff;stroke-width:3;fill:none;marker-end:url(#head)}
+      .drop{stroke:#ff5d5d;stroke-width:3;fill:none;marker-end:url(#headr)}
+      .bad{font:600 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ff5d5d}
+      .sep{stroke:#2a2f3a;stroke-width:2}
+    </style>
+    <marker id="head" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#fff"/></marker>
+    <marker id="headr" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#ff5d5d"/></marker>
+  </defs>
+  <rect class="bg" width="1200" height="560"/>
+
+  <!-- Panel 1: three-frame beat -->
+  <text class="h" x="80" y="50">The flicker repeats every three frames at 59.94 frames per second</text>
+  <g transform="translate(80,80)">
+    <rect class="fB frame" x="0" y="0" width="100" height="60"/>
+    <rect class="fM frame" x="110" y="0" width="100" height="60"/>
+    <rect class="fD frame" x="220" y="0" width="100" height="60"/>
+    <rect class="fB frame" x="330" y="0" width="100" height="60"/>
+    <rect class="fM frame" x="440" y="0" width="100" height="60"/>
+    <rect class="fD frame" x="550" y="0" width="100" height="60"/>
+    <rect class="fB frame" x="660" y="0" width="100" height="60"/>
+    <rect class="fM frame" x="770" y="0" width="100" height="60"/>
+    <rect class="fD frame" x="880" y="0" width="100" height="60"/>
+    <text class="s" x="50" y="85" text-anchor="middle">bright</text>
+    <text class="s" x="160" y="85" text-anchor="middle">medium</text>
+    <text class="s" x="270" y="85" text-anchor="middle">dark</text>
+    <text class="s" x="380" y="85" text-anchor="middle">bright</text>
+    <text class="s" x="490" y="85" text-anchor="middle">medium</text>
+    <text class="s" x="600" y="85" text-anchor="middle">dark</text>
+    <text class="s" x="710" y="85" text-anchor="middle">bright</text>
+    <text class="s" x="820" y="85" text-anchor="middle">medium</text>
+    <text class="s" x="930" y="85" text-anchor="middle">dark</text>
+    <rect class="win" x="322" y="-10" width="336" height="80"/>
+    <text class="good" x="490" y="120" text-anchor="middle">any five in a row hold a full cycle: the median is the steady brightness</text>
+  </g>
+  <text class="s" x="80" y="230">The swing is only about 2% of frame brightness, but a 20 Hz pulse is easy to see.</text>
+
+  <line class="sep" x1="80" y1="255" x2="1120" y2="255"/>
+
+  <!-- Panel 2: streaming -->
+  <text class="h" x="80" y="278">Two decoders on the same file, and a queue of five small frames</text>
+  <g transform="translate(80,342)">
+    <rect class="box" x="0" y="0" width="200" height="70"/>
+    <text class="lbl" x="100" y="30" text-anchor="middle">decoder 1: 540p grey</text>
+    <text class="s" x="100" y="55" text-anchor="middle">two frames ahead</text>
+    <path class="arrow" d="M205,35 L225,35"/>
+    <!-- deque -->
+    <g transform="translate(290,10)">
+      <rect class="fD frame" x="0" y="0" width="60" height="50"/>
+      <rect class="fB frame" x="66" y="0" width="60" height="50"/>
+      <rect class="fM frame" x="132" y="0" width="60" height="50"/>
+      <rect class="fD frame" x="198" y="0" width="60" height="50"/>
+      <rect class="fB frame" x="264" y="0" width="60" height="50"/>
+      <text class="s" x="30" y="72" text-anchor="middle">t−2</text>
+      <text class="s" x="96" y="72" text-anchor="middle">t−1</text>
+      <text class="warn" x="162" y="72" text-anchor="middle">t</text>
+      <text class="s" x="228" y="72" text-anchor="middle">t+1</text>
+      <text class="s" x="294" y="72" text-anchor="middle">t+2</text>
+      <rect class="win" x="-6" y="-6" width="336" height="62"/>
+      <path class="drop" d="M30,-12 L30,-30"/>
+      <text class="bad" x="36" y="-38" text-anchor="start">t−3 dropped</text>
+    </g>
+    <path class="arrow" d="M630,35 L680,35"/>
+    <rect class="box2" x="685" y="0" width="385" height="70"/>
+    <text class="lbl" x="877" y="30" text-anchor="middle">median ÷ current = correction map</text>
+    <text class="s" x="877" y="55" text-anchor="middle">smoothed, clipped to ±20%, upscaled to 4K</text>
+
+    <rect class="box" x="0" y="110" width="230" height="70"/>
+    <text class="lbl" x="115" y="140" text-anchor="middle">decoder 2: full resolution</text>
+    <text class="s" x="115" y="165" text-anchor="middle">frame t only</text>
+    <path class="arrow" d="M235,145 L440,145"/>
+    <rect class="box2" x="445" y="110" width="200" height="70"/>
+    <text class="lbl" x="545" y="140" text-anchor="middle">multiply frame t</text>
+    <text class="s" x="545" y="165" text-anchor="middle">by the correction map</text>
+    <path class="arrow" d="M877,75 L877,100 L545,100 L545,105"/>
+    <path class="arrow" d="M650,145 L720,145"/>
+    <rect class="box" x="725" y="110" width="315" height="70"/>
+    <text class="lbl" x="882" y="140" text-anchor="middle">GPU encoder (NVENC)</text>
+    <text class="s" x="882" y="165" text-anchor="middle">writes the output file</text>
+  </g>
+  <text class="s" x="600" y="548" text-anchor="middle">Nothing else is held in memory: five small frames instead of the whole decoded 4K clip.</text>
+</svg>

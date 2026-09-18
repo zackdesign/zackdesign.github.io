@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" width="1200" height="420" role="img" aria-label="One timeline of microphone frames. The drone starts; the clock waits 400 milliseconds to be sure before it starts counting, then credits that whole 400 milliseconds back. A wobble shorter than 250 milliseconds is bridged and keeps counting. A gap longer than two seconds is treated as a break, for instance a backgrounded tab, and is not credited">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .good{font:700 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .bad{font:700 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ff5d5d}
+      .warn{font:700 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ffc400}
+      .axis{stroke:#2a2f3a;stroke-width:2}
+      .frames{fill:#7c5cff}
+      .framesoff{fill:#2a2f3a}
+      .credit{fill:rgba(64,220,160,.35);stroke:#40dca0;stroke-width:3}
+      .nocredit{fill:rgba(255,93,93,.25);stroke:#ff5d5d;stroke-width:3;stroke-dasharray:8 6}
+      .onset{fill:rgba(255,196,0,.18);stroke:#ffc400;stroke-width:2;stroke-dasharray:6 6}
+      .mark{stroke:#ffc400;stroke-width:3}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="420"/>
+  <text class="h" x="60" y="56" text-anchor="start">What the clock credits, frame by frame</text>
+
+  <!-- rows: detector says playing (y=150), clock credit (y=250) -->
+  <text class="lbl" x="60" y="156" text-anchor="start">detector hears a drone</text>
+  <text class="lbl" x="60" y="256" text-anchor="start">clock credits time</text>
+
+  <!-- scale: x from 320 to 1160; 1 s = 140 px; total 6 s -->
+  <line class="axis" x1="320" y1="320" x2="1160" y2="320"/>
+  <g class="s">
+    <text x="320" y="348" text-anchor="middle">0 s</text>
+    <text x="460" y="348" text-anchor="middle">1 s</text>
+    <text x="600" y="348" text-anchor="middle">2 s</text>
+    <text x="740" y="348" text-anchor="middle">3 s</text>
+    <text x="880" y="348" text-anchor="middle">4 s</text>
+    <text x="1020" y="348" text-anchor="middle">5 s</text>
+    <text x="1160" y="348" text-anchor="middle">6 s</text>
+  </g>
+
+  <!-- detector: playing 0.0-1.8, gap 1.8-2.0 (200 ms), playing 2.0-3.0, gap 3.0-5.4 (2.4 s), playing 5.4-6.0 -->
+  <rect class="frames" x="320" y="136" width="252" height="24" rx="4"/>
+  <rect class="framesoff" x="572" y="136" width="28" height="24" rx="4"/>
+  <rect class="frames" x="600" y="136" width="140" height="24" rx="4"/>
+  <rect class="framesoff" x="740" y="136" width="336" height="24" rx="4"/>
+  <rect class="frames" x="1076" y="136" width="84" height="24" rx="4"/>
+
+  <!-- onset window 0-0.4 s = 56 px -->
+  <rect class="onset" x="320" y="120" width="56" height="56"/>
+  <line class="mark" x1="376" y1="110" x2="376" y2="290"/>
+  <text class="warn" x="380" y="104" text-anchor="start">clock starts after 400 ms, sure it is a drone</text>
+
+  <!-- credit: 0 - 3.0 continuous (bridging the 200 ms gap), then nothing until 5.4 + 0.4 = 5.8 -->
+  <rect class="credit" x="320" y="236" width="420" height="24" rx="4"/>
+  <rect class="nocredit" x="740" y="236" width="336" height="24" rx="4"/>
+  <rect class="credit" x="1132" y="236" width="28" height="24" rx="4"/>
+
+  <text class="good" x="336" y="212" text-anchor="start">the 400 ms of waiting is credited back</text>
+  <text class="good" x="586" y="288" text-anchor="middle">a 200 ms wobble is bridged</text>
+  <text class="s" x="586" y="308" text-anchor="middle">(anything under 250 ms is)</text>
+  <text class="bad" x="908" y="288" text-anchor="middle">a gap over 2 s is a break:</text>
+  <text class="s" x="908" y="308" text-anchor="middle">no credit, and the clock waits 400 ms again</text>
+  <text class="s" x="60" y="396" text-anchor="start">Each frame can credit at most 500 ms, so a stalled tab cannot mint minutes; swapping the source (timer, loudness, pitch) resets the clock.</text>
+</svg>

@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" width="1200" height="520" role="img" aria-label="Three panels. At sign-in, Supabase Auth mints the user's token and calls a database function while doing so. That function looks the user up in the staff table and then the members table, and copies the studio's id and the user's role into the token. On every later query, the row-level security policy reads the studio id straight out of the token, so only that studio's rows come back and application code is never trusted with the choice">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .code{font:600 17px Menlo,Consolas,monospace;fill:#ffc400}
+      .good{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .box{fill:rgba(124,92,255,.14);stroke:#7c5cff;stroke-width:3}
+      .tok{fill:rgba(255,196,0,.12);stroke:#ffc400;stroke-width:3}
+      .db{fill:rgba(64,220,160,.14);stroke:#40dca0;stroke-width:3}
+      .arrow{stroke:#9aa3b2;stroke-width:4;fill:none}
+      .ah{fill:#9aa3b2}
+      .sep{stroke:#2a2f3a;stroke-width:2}
+    </style>
+    <marker id="head" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path class="ah" d="M0,0 L12,6 L0,12 z"/></marker>
+  </defs>
+  <rect class="bg" width="1200" height="520"/>
+  <line class="sep" x1="400" y1="40" x2="400" y2="480"/>
+  <line class="sep" x1="800" y1="40" x2="800" y2="480"/>
+
+  <text class="h" x="200" y="60" text-anchor="middle">1. Sign in</text>
+  <text class="s" x="200" y="88" text-anchor="middle">Supabase Auth mints a token</text>
+  <rect class="box" x="50" y="130" width="300" height="70" rx="10"/>
+  <text class="lbl" x="200" y="172" text-anchor="middle">Supabase Auth</text>
+  <path class="arrow" d="M200 200 V250" marker-end="url(#head)"/>
+  <rect class="db" x="50" y="255" width="300" height="90" rx="10"/>
+  <text class="lbl" x="200" y="290" text-anchor="middle">calls a database function</text>
+  <text class="code" x="200" y="322" text-anchor="middle">custom_access_token_hook</text>
+  <text class="s" x="200" y="400" text-anchor="middle">only the auth service may call it;</text>
+  <text class="s" x="200" y="426" text-anchor="middle">no client can</text>
+
+  <text class="h" x="600" y="60" text-anchor="middle">2. The hook fills the token</text>
+  <text class="s" x="600" y="88" text-anchor="middle">looks the user up, copies two fields</text>
+  <rect class="db" x="450" y="130" width="300" height="60" rx="10"/>
+  <text class="lbl" x="600" y="167" text-anchor="middle">staff table, then members table</text>
+  <path class="arrow" d="M600 190 V240" marker-end="url(#head)"/>
+  <rect class="tok" x="450" y="245" width="300" height="100" rx="10"/>
+  <text class="lbl" x="600" y="280" text-anchor="middle">Token</text>
+  <text class="code" x="600" y="308" text-anchor="middle">tenant_id  = the studio</text>
+  <text class="code" x="600" y="332" text-anchor="middle">role       = owner, staff, member</text>
+  <text class="s" x="600" y="400" text-anchor="middle">written into app_metadata,</text>
+  <text class="s" x="600" y="426" text-anchor="middle">which the user cannot edit</text>
+
+  <text class="h" x="1000" y="60" text-anchor="middle">3. Every query</text>
+  <text class="s" x="1000" y="88" text-anchor="middle">Postgres reads the studio from the token</text>
+  <rect class="tok" x="850" y="130" width="300" height="60" rx="10"/>
+  <text class="lbl" x="1000" y="167" text-anchor="middle">Token arrives with the query</text>
+  <path class="arrow" d="M1000 190 V240" marker-end="url(#head)"/>
+  <rect class="db" x="850" y="245" width="300" height="100" rx="10"/>
+  <text class="lbl" x="1000" y="280" text-anchor="middle">Row-level security policy</text>
+  <text class="code" x="1000" y="308" text-anchor="middle">auth_tenant_id()</text>
+  <text class="s" x="1000" y="332" text-anchor="middle">reads tenant_id out of the token</text>
+  <text class="good" x="1000" y="400" text-anchor="middle">→ only that studio's rows come back</text>
+  <text class="s" x="1000" y="426" text-anchor="middle">application code never picks the studio</text>
+</svg>

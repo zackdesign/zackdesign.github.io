@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 560" width="1200" height="560" role="img" aria-label="Three eBay credentials and what each reaches. An Auth'n'Auth token, pasted once with no callback server, reaches the Trading API for listing, revising, pictures, messages and offers, but not the Sell REST APIs. An OAuth 2 user token, which needs a browser redirect to an HTTPS callback, reaches the Sell REST APIs. An app-only token, just a client id and secret with no sign-in, reaches the Taxonomy API for categories and item specifics, which replaced the Trading calls eBay retired.">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .t{font:600 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 16px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .y{font:600 16px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ffc400}
+      .ok{stroke:#40dca0;stroke-width:4;fill:none}
+      .okl{font:600 16px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .no{stroke:#ff5d5d;stroke-width:3;stroke-dasharray:10 8;fill:none}
+      .nol{font:600 16px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ff5d5d}
+      .c1{fill:#181b22;stroke:#7c5cff;stroke-width:3}
+      .c2{fill:#181b22;stroke:#ffc400;stroke-width:3}
+      .c3{fill:#181b22;stroke:#40dca0;stroke-width:3}
+      .r{fill:#181b22;stroke:#9aa3b2;stroke-width:3}
+    </style>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#40dca0"/></marker>
+  </defs>
+  <rect class="bg" width="1200" height="560"/>
+  <text class="h" x="230" y="52" text-anchor="middle">Credential</text>
+  <text class="h" x="960" y="52" text-anchor="middle">What it can reach</text>
+
+  <!-- row 1 -->
+  <g transform="translate(40,90)">
+    <rect class="c1" width="380" height="100" rx="14"/>
+    <text class="t" x="190" y="36" text-anchor="middle">Auth'n'Auth token</text>
+    <text class="s" x="190" y="62" text-anchor="middle">pasted once from the portal's User Tokens tab</text>
+    <text class="s" x="190" y="84" text-anchor="middle">no callback server; lasts about 18 months</text>
+  </g>
+  <g transform="translate(760,90)">
+    <rect class="r" width="400" height="100" rx="14"/>
+    <text class="t" x="200" y="36" text-anchor="middle">Trading API (XML)</text>
+    <text class="s" x="200" y="62" text-anchor="middle">list, revise, upload pictures, My eBay,</text>
+    <text class="s" x="200" y="84" text-anchor="middle">messages, Best Offers: the everyday path</text>
+  </g>
+  <line class="ok" x1="420" y1="140" x2="758" y2="140" marker-end="url(#a)"/>
+  <text class="okl" x="589" y="130" text-anchor="middle">reaches</text>
+  <line class="no" x1="420" y1="160" x2="758" y2="310"/>
+  <text class="nol" x="600" y="228" text-anchor="middle">cannot reach</text>
+
+  <!-- row 2 -->
+  <g transform="translate(40,260)">
+    <rect class="c2" width="380" height="100" rx="14"/>
+    <text class="t" x="190" y="36" text-anchor="middle">OAuth 2 user token</text>
+    <text class="s" x="190" y="62" text-anchor="middle">browser redirect to an HTTPS callback on localhost</text>
+    <text class="y" x="190" y="84" text-anchor="middle">the portal steers you here first</text>
+  </g>
+  <g transform="translate(760,260)">
+    <rect class="r" width="400" height="100" rx="14"/>
+    <text class="t" x="200" y="36" text-anchor="middle">Sell REST APIs (/sell/…)</text>
+    <text class="s" x="200" y="62" text-anchor="middle">inventory, promoted listings, offers to watchers,</text>
+    <text class="s" x="200" y="84" text-anchor="middle">fulfilment, analytics</text>
+  </g>
+  <line class="ok" x1="420" y1="310" x2="758" y2="310" marker-end="url(#a)"/>
+  <text class="okl" x="589" y="300" text-anchor="middle">reaches</text>
+
+  <!-- row 3 -->
+  <g transform="translate(40,430)">
+    <rect class="c3" width="380" height="100" rx="14"/>
+    <text class="t" x="190" y="36" text-anchor="middle">App-only token</text>
+    <text class="s" x="190" y="62" text-anchor="middle">client id and secret, exchanged by the tool</text>
+    <text class="s" x="190" y="84" text-anchor="middle">no sign-in, no browser, no server</text>
+  </g>
+  <g transform="translate(760,430)">
+    <rect class="r" width="400" height="100" rx="14"/>
+    <text class="t" x="200" y="36" text-anchor="middle">Taxonomy API</text>
+    <text class="s" x="200" y="62" text-anchor="middle">categories and item specifics, because eBay</text>
+    <text class="s" x="200" y="84" text-anchor="middle">retired the Trading calls for them (HTTP 410)</text>
+  </g>
+  <line class="ok" x1="420" y1="480" x2="758" y2="480" marker-end="url(#a)"/>
+  <text class="okl" x="589" y="470" text-anchor="middle">reaches</text>
+</svg>

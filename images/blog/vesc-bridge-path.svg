@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" width="1200" height="360" role="img" aria-label="A laptop running VESC Tool sends commands over Wi-Fi (TCP, port 65102) to the VESC Tool app on a phone, which forwards them over Bluetooth to the motor controller sealed inside the skateboard; the USB port on the controller is behind screws and never used">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .box{fill:#181c24;stroke:#2a2f3a;stroke-width:2}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .good{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .bad{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ff5d5d}
+      .linkA{stroke:#7c5cff;stroke-width:4;fill:none}
+      .linkB{stroke:#40dca0;stroke-width:4;fill:none}
+      .dead{stroke:#ff5d5d;stroke-width:3;fill:none;stroke-dasharray:10 8}
+      .arrowA{fill:#7c5cff}
+      .arrowB{fill:#40dca0}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="360"/>
+
+  <!-- Laptop -->
+  <rect class="box" x="60" y="110" width="260" height="130" rx="10"/>
+  <text class="h" x="190" y="165" text-anchor="middle">Laptop</text>
+  <text class="s" x="190" y="196" text-anchor="middle">VESC Tool, headless,</text>
+  <text class="s" x="190" y="220" text-anchor="middle">running a QML script</text>
+
+  <!-- Phone -->
+  <rect class="box" x="470" y="110" width="260" height="130" rx="10"/>
+  <text class="h" x="600" y="165" text-anchor="middle">Phone</text>
+  <text class="s" x="600" y="196" text-anchor="middle">VESC Tool app in</text>
+  <text class="s" x="600" y="220" text-anchor="middle">"Wireless Bridge" mode</text>
+
+  <!-- Controller -->
+  <rect class="box" x="880" y="110" width="260" height="130" rx="10"/>
+  <text class="h" x="1010" y="165" text-anchor="middle">Motor controller</text>
+  <text class="s" x="1010" y="196" text-anchor="middle">sealed inside the deck,</text>
+  <text class="s" x="1010" y="220" text-anchor="middle">USB port behind screws</text>
+
+  <!-- Link A: TCP -->
+  <line class="linkA" x1="320" y1="175" x2="456" y2="175"/>
+  <polygon class="arrowA" points="456,167 470,175 456,183"/>
+  <text class="lbl" x="395" y="150" text-anchor="middle">Wi-Fi, TCP</text>
+  <text class="s" x="395" y="264" text-anchor="middle">port 65102,</text>
+  <text class="s" x="395" y="288" text-anchor="middle">one client at a time</text>
+
+  <!-- Link B: BLE -->
+  <line class="linkB" x1="730" y1="175" x2="866" y2="175"/>
+  <polygon class="arrowB" points="866,167 880,175 866,183"/>
+  <text class="lbl" x="805" y="150" text-anchor="middle">Bluetooth</text>
+  <text class="s" x="805" y="264" text-anchor="middle">the same link the</text>
+  <text class="s" x="805" y="288" text-anchor="middle">phone app always uses</text>
+
+  <!-- Dead USB route -->
+  <path class="dead" d="M190,240 C190,330 1010,330 1010,240"/>
+  <text class="bad" x="600" y="345" text-anchor="middle">USB cable: the port is sealed inside the enclosure</text>
+</svg>

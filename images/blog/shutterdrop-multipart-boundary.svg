@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 460" width="1200" height="460" role="img" aria-label="Two panels showing the same upload body as a strip of bytes: the part headers, then the photo's bytes, inside which the boundary string happens to occur, then the real closing delimiter. In the top panel a parser that splits on the bare boundary string cuts the photo in half at the accidental match. In the bottom panel a parser that splits on a line break followed by the boundary ignores the accidental match and cuts only at the real delimiter, keeping the whole photo.">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .mono{font:600 17px Menlo,Consolas,monospace;fill:#fff}
+      .good{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .bad{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ff5d5d}
+      .hdr{fill:#3a3f4b;stroke:#0f1115;stroke-width:2}
+      .jpeg{fill:#7c5cff;stroke:#0f1115;stroke-width:2}
+      .acc{fill:#ffc400;stroke:#0f1115;stroke-width:2}
+      .delim{fill:#40dca0;stroke:#0f1115;stroke-width:2}
+      .cutbad{stroke:#ff5d5d;stroke-width:4;stroke-dasharray:8 6}
+      .cutgood{stroke:#40dca0;stroke-width:4;stroke-dasharray:8 6}
+      .sep{stroke:#2a2f3a;stroke-width:2}
+      .lost{fill:#2a2f3a;stroke:#ff5d5d;stroke-width:2;stroke-dasharray:6 5}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="460"/>
+
+  <!-- shared strip layout: x 80..1120 -->
+  <text class="h" x="80" y="50">Splitting on the bare boundary string</text>
+  <g transform="translate(80,70)">
+    <rect class="hdr" x="0" y="0" width="140" height="50"/>
+    <rect class="jpeg" x="140" y="0" width="360" height="50"/>
+    <rect class="acc" x="500" y="0" width="110" height="50"/>
+    <rect class="lost" x="610" y="0" width="290" height="50"/>
+    <rect class="delim" x="900" y="0" width="140" height="50"/>
+    <text class="lbl" x="70" y="32" text-anchor="middle">part headers</text>
+    <text class="lbl" x="320" y="32" text-anchor="middle">photo bytes</text>
+    <text class="mono" x="555" y="32" text-anchor="middle">--boundary</text>
+    <text class="lbl" x="755" y="32" text-anchor="middle">rest of the photo</text>
+    <text class="mono" x="970" y="32" text-anchor="middle">CRLF--boundary</text>
+    <line class="cutbad" x1="500" y1="-10" x2="500" y2="60"/>
+    <text class="bad" x="500" y="90" text-anchor="middle">cut here: the string happened to occur inside the JPEG</text>
+    <text class="s" x="755" y="90" text-anchor="middle" dy="30">everything after it is thrown away</text>
+  </g>
+
+  <line class="sep" x1="80" y1="215" x2="1120" y2="215"/>
+
+  <text class="h" x="80" y="260">Splitting on a line break followed by the boundary</text>
+  <g transform="translate(80,280)">
+    <rect class="hdr" x="0" y="0" width="140" height="50"/>
+    <rect class="jpeg" x="140" y="0" width="360" height="50"/>
+    <rect class="acc" x="500" y="0" width="110" height="50"/>
+    <rect class="jpeg" x="610" y="0" width="290" height="50"/>
+    <rect class="delim" x="900" y="0" width="140" height="50"/>
+    <text class="lbl" x="70" y="32" text-anchor="middle">part headers</text>
+    <text class="lbl" x="320" y="32" text-anchor="middle">photo bytes</text>
+    <text class="mono" x="555" y="32" text-anchor="middle">--boundary</text>
+    <text class="lbl" x="755" y="32" text-anchor="middle">rest of the photo</text>
+    <text class="mono" x="970" y="32" text-anchor="middle">CRLF--boundary</text>
+    <line class="cutgood" x1="900" y1="-10" x2="900" y2="60"/>
+    <text class="good" x="900" y="90" text-anchor="middle">cut only at the real delimiter</text>
+    <text class="s" x="555" y="90" text-anchor="middle">no line break before it, so it is just photo data</text>
+    <text class="s" x="520" y="140" text-anchor="middle">RFC 2046 defines the delimiter as the line break plus the boundary, which is what the receiver splits on.</text>
+  </g>
+</svg>

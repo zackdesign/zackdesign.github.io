@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 560" width="1200" height="560" role="img" aria-label="Left: on iOS the pin was drawn centred on its coordinate, tip 22.5 points too low, while the invisible hit shape sat with its tip on the coordinate, floating above the drawn pin. Right: after the fix the drawn pin and the hit shape coincide, tip on the coordinate.">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .pin{fill:#7c5cff;stroke:#fff;stroke-width:3}
+      .ghost{fill:rgba(64,220,160,.16);stroke:#40dca0;stroke-width:3;stroke-dasharray:8 6}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .k{font:600 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .bad{font:600 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ff5d5d}
+      .dot{fill:#ffc400}
+      .dotl{font:600 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ffc400}
+      .sep{stroke:#2a2f3a;stroke-width:2}
+      .meas{stroke:#ff5d5d;stroke-width:2}
+    </style>
+    <g id="pinshape">
+      <path d="M-30,-90 L0,0 L30,-90 z"/>
+      <circle cx="0" cy="-102" r="38"/>
+    </g>
+  </defs>
+  <rect class="bg" width="1200" height="460"/>
+  <line class="sep" x1="600" y1="40" x2="600" y2="520"/>
+
+  <!-- LEFT: before -->
+  <text class="h" x="300" y="60" text-anchor="middle">Before: `anchor` ignored on iOS</text>
+  <text class="s" x="300" y="88" text-anchor="middle">the pin is centred on its coordinate, so its tip draws 22.5 pt below it</text>
+  <g transform="translate(300,400)">
+    <!-- coordinate -->
+    <circle class="dot" cx="0" cy="-70" r="6"/>
+    <line class="meas" x1="-14" y1="-70" x2="-80" y2="-70" style="stroke:#ffc400"/>
+    <text class="dotl" x="-90" y="-64" text-anchor="end">the coordinate</text>
+    <!-- drawn pin: centred on coordinate => tip 70 below (scaled) -->
+    <use href="#pinshape" class="pin"/>
+    <!-- hit shape: tip on coordinate => floats above -->
+    <g transform="translate(0,-70)"><use href="#pinshape" class="ghost"/></g>
+    <text class="k" x="0" y="-232" text-anchor="middle">where the hit test thinks the pin is</text>
+    <text class="bad" x="0" y="40" text-anchor="middle">where the pin actually draws</text>
+    <!-- measurement -->
+    <line class="meas" x1="70" y1="-70" x2="70" y2="0"/>
+    <text class="bad" x="80" y="-30">22.5 pt too low</text>
+  </g>
+
+  <!-- RIGHT: after -->
+  <text class="h" x="900" y="60" text-anchor="middle">After: `centerOffset` set</text>
+  <text class="s" x="900" y="88" text-anchor="middle">the tip sits on the coordinate; the hit shape and the drawn pin coincide</text>
+  <g transform="translate(900,400)">
+    <circle class="dot" cx="0" cy="0" r="6"/>
+    <text class="dotl" x="16" y="24">the coordinate</text>
+    <use href="#pinshape" class="pin"/>
+    <use href="#pinshape" class="ghost"/>
+    <text class="k" x="0" y="-200" text-anchor="middle">hit shape = drawn pin</text>
+  </g>
+</svg>

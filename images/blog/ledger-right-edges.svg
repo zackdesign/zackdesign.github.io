@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 460" width="1200" height="460" role="img" aria-label="Two panels. Left: the statement as flat extracted text, where a ten dollar fee line and a ten dollar deposit line read identically because the debit and credit columns have been welded together. Right: the same rows as laid out on the PDF, with Debit and Credit column headings; the numbers are right-aligned, so their left edges wander with the width of the number while their right edges line up exactly under the heading's right edge, which is what the parser matches on.">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .mono{font:500 21px Menlo,Consolas,monospace;fill:#fff}
+      .monoh{font:700 21px Menlo,Consolas,monospace;fill:#ffc400}
+      .good{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .bad{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ff5d5d}
+      .redge{stroke:#40dca0;stroke-width:3}
+      .ledge{stroke:#ff5d5d;stroke-width:3;stroke-dasharray:6 5}
+      .sep{stroke:#2a2f3a;stroke-width:2}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="460"/>
+  <line class="sep" x1="560" y1="40" x2="560" y2="420"/>
+
+  <!-- Panel 1: flattened text -->
+  <text class="h" x="280" y="60" text-anchor="middle">Flattened to text</text>
+  <text class="s" x="280" y="88" text-anchor="middle">what pdfplumber's extract_text() hands the parser</text>
+  <text class="mono" x="60" y="160">MONTHLY FEE       10.00  1,204.58</text>
+  <text class="mono" x="60" y="205">DEPOSIT           10.00  1,214.58</text>
+  <text class="bad" x="280" y="330" text-anchor="middle">The fee and the deposit are the same bytes.</text>
+  <text class="s" x="280" y="360" text-anchor="middle">Guessing the sign from the description</text>
+  <text class="s" x="280" y="386" text-anchor="middle">is how every deposit became spending.</text>
+
+  <!-- Panel 2: layout with columns. Debit column right edge x=880, Credit right edge x=1090 -->
+  <text class="h" x="860" y="60" text-anchor="middle">As laid out on the page</text>
+  <text class="s" x="860" y="88" text-anchor="middle">the columns are right-aligned</text>
+  <text class="monoh" x="880" y="140" text-anchor="end">Debit</text>
+  <text class="monoh" x="1090" y="140" text-anchor="end">Credit</text>
+  <text class="mono" x="610" y="185">MONTHLY FEE</text>
+  <text class="mono" x="880" y="185" text-anchor="end">10.00</text>
+  <text class="mono" x="610" y="230">DEPOSIT</text>
+  <text class="mono" x="1090" y="230" text-anchor="end">10.00</text>
+  <text class="mono" x="610" y="275">CARD PURCHASE</text>
+  <text class="mono" x="880" y="275" text-anchor="end">1,234.56</text>
+  <!-- right edge lines -->
+  <line class="redge" x1="884" y1="118" x2="884" y2="285"/>
+  <line class="redge" x1="1094" y1="118" x2="1094" y2="285"/>
+  <!-- ragged left edges -->
+  <line class="ledge" x1="817" y1="168" x2="817" y2="190"/>
+  <line class="ledge" x1="779" y1="258" x2="779" y2="280"/>
+  <line class="ledge" x1="1027" y1="213" x2="1027" y2="235"/>
+  <text class="bad" x="640" y="340">left edges wander with the number's width</text>
+  <text class="good" x="640" y="370">right edges sit under the heading: match on those</text>
+</svg>

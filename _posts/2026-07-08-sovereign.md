@@ -1,8 +1,8 @@
 ---
 layout: post
 title: "Sovereign — an autonomous IBKR fund that trades through bezant, with guardrails because it's real money"
-description: "An open-source, multi-agent portfolio fund for Interactive Brokers, built on top of bezant. Deterministic TypeScript agents handle allocation, risk, tax, and execution — with validation-first trading, hard caps, and data-sanity gates. Runs standalone or under any scheduler. Dual-licensed Apache/MIT."
-excerpt: "bezant gave us typed access to Interactive Brokers. Sovereign is the thing that actually runs a fund on top of it: nine deterministic agents for allocation, risk, tax, and execution — with the kind of guardrails you want when a bug moves real money. Apache/MIT, self-host it against your own bezant."
+description: "One holding had grown to 41.6% of my Interactive Brokers account. Sovereign is the open-source portfolio manager I built to fix that on rules instead of instinct: nine single-purpose TypeScript agents on top of bezant, an executor that proves one fill before it sends a batch, hard caps in dollars, and the currency bug the risk register caught before the first live order. Apache/MIT."
+excerpt: "One holding had run to 41.6% of my Interactive Brokers account. Sovereign is what I built to trim it on rules: nine single-purpose TypeScript agents on top of bezant, an executor that proves one fill before it sends a batch, hard caps in dollars, and a risk register that found the account's value was being read in the wrong currency. Apache/MIT, self-host it against your own bezant."
 image: /images/blog/sovereign.jpg
 image_alt: A compass resting on a map — steering a portfolio by a set heading rather than by hand
 date: 2026-07-08
@@ -11,74 +11,123 @@ categories: [open-source]
 tags: [ibkr, trading, typescript, portfolio, quant, risk, backtesting, interactive-brokers, open-source, claude-code, bezant]
 ---
 
-Zack Design has published [**Sovereign**](https://github.com/isaacrowntree/sovereign-ibkr-fund) — an open-source, multi-agent portfolio fund for Interactive Brokers. It's the companion to [bezant](https://github.com/isaacrowntree/bezant): bezant mints the access, Sovereign spends it. Nine deterministic TypeScript agents hold a model portfolio, detect drift, size trades with real risk controls, and execute through bezant — standalone, or under whatever scheduler you already run.
+Zack Design has published [**Sovereign**](https://github.com/isaacrowntree/sovereign-ibkr-fund), an open-source portfolio manager for Interactive Brokers (IBKR), built on [bezant](https://github.com/isaacrowntree/bezant). The reason it exists is one number: a single holding had grown to **41.6% of my whole account**, and trimming it by hand meant placing real orders late at night, in US dollars, on a cash account (one that cannot borrow) whose base currency is Australian dollars. Sovereign is nine TypeScript programs, each with one job, that hold a target mix of holdings, notice when the real mix has drifted from it, work out the smallest trades that bring it back, and place them through bezant. The same inputs always produce the same trades, and 509 test cases across 40 files pin down the ways that can go wrong.
 
 <!-- more -->
 
-**Source → [github.com/isaacrowntree/sovereign-ibkr-fund](https://github.com/isaacrowntree/sovereign-ibkr-fund)** (Apache-2.0 OR MIT) · Built on **[bezant](https://github.com/isaacrowntree/bezant)**
+**Source:** [github.com/isaacrowntree/sovereign-ibkr-fund](https://github.com/isaacrowntree/sovereign-ibkr-fund) (Apache-2.0 OR MIT) · Built on **[bezant](https://github.com/isaacrowntree/bezant)**
 
-## Why it exists
+This post covers the executor's rule that one small probe order must fill before it trusts the connection with a batch, and why that probe is removed from the queue by object reference rather than by position; the three caps in absolute dollars that sit outside the order-sizing maths; and the three bugs found by the pre-launch risk register, a written review of every way the executor could lose money: net asset value (the account's total worth, "NAV" from here on) read in the wrong currency and counted twice, a confirmation timeout that could place the same trade twice, and a tax-lot matcher that paired sales with purchases by record and ignored how many shares each held. All three are fixed in v0.1.0; the register that found them ships in `docs/execution-risk-register.md`.
 
-I had a portfolio problem that a lot of people quietly have: one winner had run so hard it became **40%+ of the book**. Great on the way up, a single point of failure on the way down. Fixing that by hand — trimming the concentration, funding a diversified target, doing it without fat-fingering a real order — is exactly the kind of repetitive, high-stakes, easy-to-get-wrong work you should not be doing manually at 11pm.
+## Nine agents and not one language-model call
 
-So the fund isn't a get-rich bot. It's a **discipline engine**: hold a target allocation, notice when reality drifts from it, and make the smallest correct trades to close the gap — with enough guardrails that a bad market-data tick or a logic bug can't do real damage.
+Every agent is a plain process: `node dist/agents/<name>.js --once`. There are no calls to a large language model anywhere in the loop. A trade decision is a function of its inputs (positions, prices, the target portfolio, the risk state) and has to be reproducible from the state file, so it cannot come from a model that gives a different answer each time it is asked.
 
-bezant already gave every language typed access to IBKR's Client Portal API. Sovereign is what happens when you build an actual fund on that foundation and take the "it's real money" part seriously.
+| Agent | Job | Default cadence |
+|---|---|---|
+| **Managing Partner** | Orchestrates the fund, records NAV and positions | every 4 hours |
+| **Portfolio Strategist** | Chooses target weights (Hierarchical Risk Parity or Black-Litterman), detects drift, sizes the rebalancing orders | every 4 hours |
+| **Quant Analyst** | Detects the market regime, runs factor regressions | every 4 hours |
+| **Risk Manager** | Value at risk and conditional value at risk, drawdown control, volatility targeting | every 4 hours |
+| **Execution Bot** | Places queued orders through bezant, only inside the trading window and under the caps | every 4 hours |
+| **Tax Optimizer** | Tracks purchase lots first-in-first-out, harvests tax losses, tracks wash sales | daily |
+| **Hedger** | Options overlay (covered calls, protective puts) | daily |
+| **Research Scout** | Price monitoring, alerts | daily |
+| **Observer** | Listens to bezant's live stream of fills and order events | continuous |
 
-## Nine agents, no LLM calls
+Underneath is a set of ways to turn price history into target weights: Hierarchical Risk Parity, Black-Litterman, risk parity, and Ledoit-Wolf shrinkage for estimating the covariance matrix, plus a market-regime overlay and volatility targeting, each with its own test file under `src/portfolio/`, `src/quant/` and `src/risk/`.
 
-The agents are plain TypeScript `--once` processes — **deterministic, no model calls in the loop.** That's deliberate: I want a trade decision to be a pure function of the inputs, reproducible and auditable, not a sample from a distribution.
+## Prove one fill before trusting the connection
 
-| Agent | Job |
-|---|---|
-| **Managing Partner** | Orchestrates the fund, snapshots NAV and positions |
-| **Portfolio Strategist** | HRP / Black-Litterman weights, drift detection, sizes rebalance orders |
-| **Quant Analyst** | Regime detection, factor regression |
-| **Risk Manager** | VaR / CVaR, drawdown control, volatility targeting |
-| **Execution Bot** | Places orders through bezant — window-gated, capped, reconciled |
-| **Tax Optimizer** | FIFO lots, tax-loss harvesting, wash-sale tracking |
-| **Hedger** | Options overlay (covered calls, protective puts) |
-| **Research Scout** | Price monitoring and alerts |
-| **Observer** | Ingests the WebSocket fill/event stream |
+The executor never sends a batch of orders on a session until one live order has been confirmed as filled. `planExecution` in `src/execution/staging.ts` puts it in `validate` mode: one order, the smallest-value sell (or the smallest order at all if there are no sells), and nothing else until IBKR's execution records confirm the fill.
 
-Under the hood there's a real quant toolbox: Hierarchical Risk Parity, Black-Litterman, risk-parity, Ledoit-Wolf shrinkage covariance, a regime overlay, and vol targeting — all backtestable.
+```ts
+if (!validated && pending.length > 0) {
+  const pool = sells.length > 0 ? sells : buys;
+  const probe = [...pool].sort((a, b) => a.estimatedValue - b.estimatedValue)[0];
+  return {
+    mode: 'validate',
+    orders: [probe],
+    // Exclude the probe by identity, NOT by position: the smallest-value
+    // probe is frequently not queue index 0 (the strategist emits sells
+    // loss-first, not cheapest-first), so `slice(1)` would drop the real
+    // index-0 order AND re-queue the probe that just executed — a
+    // duplicate order on a live account.
+    deferred: pending.filter(o => o !== probe),
+  };
+}
+```
 
-## The guardrails are the point
+That comment is there because the first version used `slice(1)`, which drops whatever is first in the queue. The figure shows why that is the wrong thing to drop.
 
-Anyone can write a loop that places market orders. The interesting engineering is everything that stops it from doing something stupid with real money:
+![Two panels showing a queue of three sell orders where the cheapest, chosen as the probe, sits at position 2 not position 0: dropping the first element by position throws away the real first order and re-queues the probe for a second execution, while filtering the probe out by object identity leaves exactly the two other orders deferred.](/images/blog/sovereign-probe-by-identity.svg)
 
-- **Validation-first execution.** Before it will batch a rebalance, the executor proves a live fill on the single smallest order and confirms it against IBKR's own execution records. No confirmed fill, no batch.
-- **Executions are authoritative.** Fills are reconciled against IBKR's execution log, and the trade ledger is **idempotent** — the same fill can never be recorded twice, even if a confirmation arrives by two paths.
-- **Hard caps.** Absolute backstops on per-order notional, per-order % of NAV, and per-run notional — independent of the sizing math. A garbled input can't size a monster order.
-- **Data-sanity gates.** If NAV or a price tick looks impossible (zeroed, or a 100× move with no cash flow), the strategist refuses to generate orders that cycle rather than trade against garbage.
-- **Drawdown control.** De-risk and hard-stop thresholds that pull exposure down when the book is bleeding.
-- **State lives outside the checkout.** Positions and ledger sit in `STATE_DIR`, never entangled with the code — so a deploy can never clobber your holdings.
+A duplicate order on a live account is the whole class of failure this mode exists to prevent.
 
-Most of these exist because the honest way to build this is to assume your own code will misbehave and make sure the blast radius is bounded when it does.
+## Caps that do not trust the maths
 
-## Standalone, or under whatever you run
+Order sizes are worked out as a percentage of NAV. If the NAV is garbage, the percentage is garbage, so there is a second gate in absolute dollars that does not know about the sizing at all. `orderCapViolation` in `src/risk/data-sanity.ts` checks every order against three caps set by environment variables, and the executor halts the run if any is breached:
 
-Every agent is just `node dist/agents/<name>.js --once`. That one contract means Sovereign doesn't care how it's scheduled:
+| Cap | What it limits | Default |
+|---|---|---|
+| `MAX_ORDER_NOTIONAL_USD` | the value of any one order | 15,000 US dollars |
+| `MAX_ORDER_PCT_NAV` | any one order as a share of NAV | 50% |
+| `MAX_RUN_NOTIONAL_USD` | the total value of all orders in one run | 60,000 US dollars |
 
-- **Built-in scheduler** — `npm start` runs the whole fund on a cadence, zero dependencies.
-- **cron / systemd** — point timers at the `--once` scripts; examples in `deploy/`.
-- **Any orchestrator** — set `ENABLE_SCHEDULER=false` and let your platform drive the same scripts.
+In front of that, `navSanityViolation` and `priceSanityViolations` refuse to size anything when the numbers look impossible: a NAV of zero or less, a NAV below a floor, a NAV that has moved more than a configured percentage since the last cycle, or a price that has jumped more than a configured percentage. The strategist logs, alerts and gives up rather than generating orders against a NAV that reads zero or a price that reads a hundred times too low. On top of that, loss thresholds first reduce exposure and then stop trading altogether, and everything stateful lives in `STATE_DIR`, outside the checkout, so a deploy cannot overwrite the ledger.
 
-The core never imports the scheduler, so it genuinely runs both ways.
+## The NAV was in the wrong currency
 
-## Your book stays yours
+The risk register is a review of the executor against the live account before unpausing it, and its first finding was a units error. The account is held with Interactive Brokers Australia, with Australian dollars as its base currency. The API's `/summary` endpoint reports `totalcashvalue` and `netliquidation` in the base currency, so the cash check was comparing US-dollar purchase costs against Australian-dollar cash, and the strategist was sizing US shares as a fraction of a NAV stated in Australian dollars.
 
-The public repo ships a **generic sample portfolio** (a diversified ETF template) and runs against **paper** out of the box. Your real allocation goes in a gitignored `src/portfolios/local.ts` that takes precedence automatically and never leaves your machine. Everything else — caps, thresholds, cadences, optimizer choice — is environment-driven. Nothing about *your* positions lives in the source.
+I expected `/summary` to be the account's cash. What the live `/ledger` endpoint showed was a separate balance for each currency, which IBKR does not convert: a US-dollar cash balance of $0, US-dollar settled cash of $0, and most of the NAV held in US stock. A cash account cannot borrow US dollars, so US-dollar purchases have to be funded by the proceeds of the US-dollar sales that run first, which the sells-before-buys ordering already guarantees. The fix is `gateway.getUsdBalances()`, which reads `/ledger` and returns US-dollar cash and US-dollar NAV, skipping the `BASE` row (IBKR's total in the base currency rather than a real currency). That last clause matters: with `BASE` included, the NAV came out roughly doubled.
 
-## Backtesting
+Re-running the strategist on the corrected numbers, verified against the live account (US-dollar cash $0.00, US-dollar NAV $29,155.64), showed the old quantities were oversized by the exchange rate:
 
-There's a full backtest engine (HRP, risk-parity, Black-Litterman, regime overlay, vol targeting). The historical dataset is gitignored — you generate it yourself from Yahoo Finance with `npm run fetch-data`, and the backtest suites skip cleanly until it exists, so a fresh clone is green on the first `npm test`.
+| Order | Sized on the mixed-currency NAV | Sized on the US-dollar NAV |
+|---|---|---|
+| AVGO | 9 shares | 6 shares |
+| TLT | 39 shares | 27 shares |
+
+The weights now sum to about 100%, and the concentrated holding's true weight was 41.6%, not the 29% the mixed-currency maths had reported.
+
+## A timeout is not a cancel
+
+Second finding. When the wait for a fill confirmation timed out, the executor dropped the order rather than requeue it, on the stated assumption that the strategist would rebuild the queue from live positions. The strategist reads positions only; it knows nothing about orders still open at the broker. If the timed-out order was still working at IBKR, the drift persisted, the strategist's next run generated the same order again, and the executor submitted it a second time.
+
+The fix was already one route away: bezant exposes `DELETE /accounts/{id}/orders/{orderId}`, and it just was not wired up. `gateway.cancelOrder()` now runs, on a best-effort basis, after a confirmation timeout, an error on the confirmation stream, or a partial fill that timed out, before the run halts. A failed cancel leaves the risk that was already there; it never throws.
+
+## Matching sales by record is not matching them by share
+
+Third finding. The original tax-lot matcher paired each sale with exactly one earliest unmatched purchase record and ignored quantities. A sale that spanned two purchase lots priced the whole quantity off one lot, which could flip the sign of the realised profit or loss. That matters because only a sale at a loss opens a wash-sale window (the rule that disallows a tax loss if the same stock is bought back within a set number of days), so a loss that was wrongly reported as a gain let the strategist buy the stock back inside 31 days. And a sale smaller than its lot marked the whole lot consumed, so the next sale of the same symbol found no cost basis at all.
+
+`matchSellFifo` in `src/tax/fifo.ts` now replays the history, reduces each purchase lot by the shares that earlier sales already consumed, and consumes the current sale oldest lot first, producing a weighted cost basis, a `longTermQty` (the shares held over a year, which qualify for the Australian capital-gains discount), and a `matchedLots[]` array on the trade record. Eight unit tests cover it, including the multi-lot sign flip.
+
+## IBKR's execution records win
+
+Fills reach the ledger by two paths: the executor records what the WebSocket stream confirmed, and `src/execution/reconcile.ts` backfills from IBKR's execution history. The reconciler records each execution id once however many times it sees it, with a fallback key for records written before execution ids were captured, so a fill that arrives by both paths is recorded once. If the stream said an order did not fill and IBKR's executions say it did, the executions win and the ledger is corrected with a logged `RECONCILED` line.
+
+## Run it under any scheduler
+
+`npm start` runs the built-in scheduler and a status server, with each agent on the cadence above (`SCHED_*_SEC` to tune). Set `ENABLE_SCHEDULER=false` and any scheduler (cron, systemd timers, something else) can drive the same `--once` scripts; `deploy/` has systemd unit and timer files. The core never imports the scheduler.
+
+## Your real portfolio stays out of git
+
+The public repo ships `src/portfolios/sample.ts`, a template of eight exchange-traded funds, and runs against a paper account out of the box:
+
+| Fund | QQQ | XLI | XLV | XLF | VIG | VDC | TLT | GLD |
+|---|---|---|---|---|---|---|---|---|
+| Target weight | 20% | 10% | 10% | 10% | 15% | 10% | 15% | 10% |
+
+Weights must sum to 100 and `validateTargets()` enforces it. A real allocation goes in `src/portfolios/local.ts`, which is gitignored and takes precedence automatically. Caps, thresholds, cadences and the choice of optimiser are all environment variables; nothing about a real position is in source.
+
+The backtest engine runs on a Yahoo Finance daily price dataset that is also gitignored: `npm run fetch-data` writes it, and the backtest suites skip until it exists, so a fresh clone is green on the first `npm test`.
 
 ## Status and licensing
 
-- **v0.1** — runs end-to-end against IBKR paper accounts; the API and agent set will evolve.
-- **Dual-licensed Apache-2.0 OR MIT.**
-- **Requires a running [bezant](https://github.com/isaacrowntree/bezant) gateway** — that's how it talks to IBKR.
-- **Not affiliated with Interactive Brokers.** This is not financial advice. It places real trades — **start on paper**, and understand every guardrail before you flip `TRADING_MODE=live`.
+- **v0.1.0**: runs end-to-end against IBKR paper accounts; the set of agents will evolve.
+- **Dual-licensed under Apache-2.0 or MIT.**
+- **Requires a running [bezant](https://github.com/isaacrowntree/bezant) gateway**, on `http://localhost:8080` by default.
+- **Not affiliated with Interactive Brokers.** This is not financial advice. It places real trades: **start on a paper account**, and read every guardrail before setting `TRADING_MODE=live`.
 
-If bezant was about making IBKR *programmable*, Sovereign is about making a portfolio *governable* — trading on rules you can read, with brakes you can trust. If you're running money through IBKR and you'd rather it followed a written policy than your 11pm instincts, clone it and point it at your own bezant. Contributions welcome — especially on the optimizers and the risk engine.
+The lesson from the register is that the dangerous bugs were not in the optimiser. They were units, identity and ordering: Australian dollars where US dollars were assumed, a queue position where an object reference was needed, a record where a share count was needed. Each was caught by reading the live account's actual responses against what the code assumed, and each now has a test. If bezant made IBKR programmable, Sovereign is the part that makes a portfolio follow a written policy, with brakes that are independent of the policy. Contributions welcome, especially on the optimisers and the risk engine.

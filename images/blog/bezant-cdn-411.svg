@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" width="1200" height="420" role="img" aria-label="Two panels: a POST with no body and no Content-Length header is stopped at the Akamai content delivery network with 411 Length Required and never reaches IBKR; the same POST with an explicit Content-Length of zero passes through Akamai to IBKR's API">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .box{fill:#181c24;stroke:#3a4150;stroke-width:2;rx:10}
+      .boxdim{fill:#141821;stroke:#2a2f3a;stroke-width:2;rx:10}
+      .cdn{fill:#181c24;stroke:#ffc400;stroke-width:3;rx:10}
+      .arrow{stroke:#7c5cff;stroke-width:4;fill:none}
+      .arrowok{stroke:#40dca0;stroke-width:4;fill:none}
+      .arrowbad{stroke:#ff5d5d;stroke-width:4;fill:none;stroke-dasharray:10 8}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .dim{font:600 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#4a5160}
+      .bad{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ff5d5d}
+      .good{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .code{font:600 18px ui-monospace,Menlo,Consolas,monospace;fill:#fff}
+      .sep{stroke:#2a2f3a;stroke-width:2}
+    </style>
+    <marker id="ap" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#7c5cff"/></marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#40dca0"/></marker>
+  </defs>
+  <rect class="bg" width="1200" height="420"/>
+  <line class="sep" x1="600" y1="40" x2="600" y2="380"/>
+
+  <!-- Panel 1 -->
+  <text class="h" x="300" y="60" text-anchor="middle">POST with no body, no length header</text>
+  <text class="s" x="300" y="88" text-anchor="middle">what the generated client sends</text>
+  <rect class="box" x="40" y="170" width="140" height="70"/>
+  <text class="lbl" x="110" y="212" text-anchor="middle">bezant</text>
+  <rect class="cdn" x="230" y="160" width="160" height="90"/>
+  <text class="lbl" x="310" y="200" text-anchor="middle">Akamai</text>
+  <text class="s" x="310" y="228" text-anchor="middle">the CDN</text>
+  <rect class="boxdim" x="440" y="170" width="130" height="70"/>
+  <text class="dim" x="505" y="212" text-anchor="middle">IBKR API</text>
+  <path class="arrow" d="M180,205 L228,205" marker-end="url(#ap)"/>
+  <path class="arrowbad" d="M390,205 L438,205"/>
+  <line x1="400" y1="185" x2="430" y2="225" stroke="#ff5d5d" stroke-width="4"/>
+  <line x1="430" y1="185" x2="400" y2="225" stroke="#ff5d5d" stroke-width="4"/>
+  <text class="bad" x="300" y="310" text-anchor="middle">411 Length Required</text>
+  <text class="s" x="300" y="340" text-anchor="middle">the request never reaches IBKR</text>
+
+  <!-- Panel 2 -->
+  <text class="h" x="900" y="60" text-anchor="middle">POST with Content-Length: 0</text>
+  <text class="s" x="900" y="88" text-anchor="middle">what bezant now sends</text>
+  <rect class="box" x="640" y="170" width="140" height="70"/>
+  <text class="lbl" x="710" y="212" text-anchor="middle">bezant</text>
+  <rect class="cdn" x="830" y="160" width="160" height="90"/>
+  <text class="lbl" x="910" y="200" text-anchor="middle">Akamai</text>
+  <text class="s" x="910" y="228" text-anchor="middle">the CDN</text>
+  <rect class="box" x="1040" y="170" width="130" height="70"/>
+  <text class="lbl" x="1105" y="212" text-anchor="middle">IBKR API</text>
+  <path class="arrowok" d="M780,205 L828,205" marker-end="url(#ag)"/>
+  <path class="arrowok" d="M990,205 L1038,205" marker-end="url(#ag)"/>
+  <text class="code" x="710" y="140" text-anchor="middle">Content-Length: 0</text>
+  <text class="good" x="900" y="310" text-anchor="middle">passes through to IBKR</text>
+  <text class="s" x="900" y="340" text-anchor="middle">the header is set by hand, not by the HTTP library</text>
+</svg>

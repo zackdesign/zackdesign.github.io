@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 460" width="1200" height="460" role="img" aria-label="A single timeline of camera preview frames. The first frames are red because the picture is still moving; then the scene has to stay still for 180 milliseconds; then two consecutive frames must each score above 350 on the sharpness test, at which point the shutter fires; after that the gate stays latched and ignores the page until the picture changes by more than 10 percent, when it re-arms.">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .good{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .bad{font:600 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ff5d5d}
+      .warn{font:700 22px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ffc400}
+      .moving{fill:#ff5d5d;stroke:#0f1115;stroke-width:2}
+      .still{fill:#5b52a0;stroke:#0f1115;stroke-width:2}
+      .sharp{fill:#40dca0;stroke:#0f1115;stroke-width:2}
+      .latched{fill:#2a2f3a;stroke:#0f1115;stroke-width:2}
+      .brace{stroke:#9aa3b2;stroke-width:2;fill:none}
+      .fire{stroke:#ffc400;stroke-width:4}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="460"/>
+  <text class="h" x="80" y="50">When the phone decides to take the shot</text>
+  <text class="s" x="80" y="80">each box is one preview frame, left to right in time</text>
+
+  <g transform="translate(80,130)">
+    <rect class="moving" x="0" y="0" width="44" height="60"/><rect class="moving" x="46" y="0" width="44" height="60"/><rect class="moving" x="92" y="0" width="44" height="60"/><rect class="moving" x="138" y="0" width="44" height="60"/>
+    <rect class="still" x="184" y="0" width="44" height="60"/><rect class="still" x="230" y="0" width="44" height="60"/><rect class="still" x="276" y="0" width="44" height="60"/><rect class="still" x="322" y="0" width="44" height="60"/><rect class="still" x="368" y="0" width="44" height="60"/>
+    <rect class="sharp" x="414" y="0" width="44" height="60"/><rect class="sharp" x="460" y="0" width="44" height="60"/>
+    <line class="fire" x1="506" y1="-30" x2="506" y2="70"/>
+    <rect class="latched" x="510" y="0" width="44" height="60"/><rect class="latched" x="556" y="0" width="44" height="60"/><rect class="latched" x="602" y="0" width="44" height="60"/><rect class="latched" x="648" y="0" width="44" height="60"/><rect class="latched" x="694" y="0" width="44" height="60"/><rect class="latched" x="740" y="0" width="44" height="60"/><rect class="latched" x="786" y="0" width="44" height="60"/>
+    <rect class="moving" x="832" y="0" width="44" height="60"/><rect class="moving" x="878" y="0" width="44" height="60"/><rect class="moving" x="924" y="0" width="44" height="60"/>
+
+    <text class="warn" x="506" y="-40" text-anchor="middle">shutter fires</text>
+
+    <!-- row A: moving, sharp, page turned -->
+    <text class="bad" x="91" y="92" text-anchor="middle">moving</text>
+    <text class="s" x="91" y="116" text-anchor="middle">frame differs from the last</text>
+    <text class="s" x="91" y="140" text-anchor="middle">by more than 3%</text>
+
+    <text class="good" x="459" y="92" text-anchor="middle">two frames in a row</text>
+    <text class="good" x="459" y="116" text-anchor="middle">sharper than 350</text>
+
+    <text class="bad" x="900" y="92" text-anchor="middle">page turned</text>
+    <text class="s" x="900" y="116" text-anchor="middle">picture changes by</text>
+    <text class="s" x="900" y="140" text-anchor="middle">more than 10%, so re-armed</text>
+
+    <!-- row B: still, latched -->
+    <path class="brace" d="M184,165 L184,175 L412,175 L412,165"/>
+    <text class="lbl" x="298" y="202" text-anchor="middle">still for 180 ms</text>
+    <text class="s" x="298" y="226" text-anchor="middle">and neither too dark nor too bright</text>
+
+    <path class="brace" d="M510,165 L510,175 L830,175 L830,165"/>
+    <text class="lbl" x="670" y="202" text-anchor="middle">latched: one page, one photo</text>
+    <text class="s" x="670" y="226" text-anchor="middle">nothing fires while the picture stays the same</text>
+  </g>
+  <text class="s" x="600" y="410" text-anchor="middle">Sharpness is the variance of a Laplacian edge filter over the centre of the frame.</text>
+  <text class="s" x="600" y="436" text-anchor="middle">Motion blur and focus hunting score below 350; a well-lit macro shot scores 400 to 600.</text>
+</svg>

@@ -1,8 +1,8 @@
 ---
 layout: post
 title: "Taking over Sequin: adopting an orphaned CDC engine, fixing the Dragonfly crash, and putting it behind Cloudflare Access"
-description: "Adopting Sequin — an open-source Postgres change-data-capture engine — after the company behind it wound down: what I use it for, the Redis mutex bug that let a Dragonfly redeploy take the whole thing down, the fix, and adding Cloudflare Access SSO to a fork I now help maintain."
-excerpt: "A search pipeline I work on runs on Sequin, a Postgres CDC engine. Then a routine Dragonfly redeploy started taking it down — and the company behind Sequin had gone dark. So the project got forked, the crash got fixed, and it ended up behind Cloudflare Access."
+description: "Every Dragonfly redeploy on Railway took down the Postgres change-data-capture pipeline behind CamperMate's search, and the company behind Sequin had wound down. The crash was an invalid return value from a state machine under a supervisor that stops every process when one dies. This is the fix, the test that passed for the wrong reason, and the Cloudflare Access plug that replaced Sequin's login screen on the fork I now maintain."
+excerpt: "A routine Dragonfly redeploy was taking down Sequin, the change-data-capture engine behind CamperMate's search, and upstream had gone into maintenance mode. The crash turned out to be three lines in a state machine under a supervisor that stops every process when one dies. I forked it, fixed it, found my first test passed in CI without testing anything, and then put the console behind Cloudflare Access."
 image: /images/blog/taking-over-sequin.jpg
 image_alt: A long-exposure photograph of a river forcing its way through a channel of dark rock — the water never stops moving, finding a path around every obstruction
 date: 2026-07-01
@@ -11,81 +11,100 @@ categories: [engineering]
 tags: [sequin, cdc, change-data-capture, postgres, elixir, redis, dragonfly, cloudflare-access, railway, open-source, campermate, typesense]
 ---
 
-[Sequin](https://github.com/sequinstream/sequin) is an open-source Postgres change-data-capture engine written in Elixir. It tails a Postgres logical replication slot and streams every insert, update, and delete out to sinks — Typesense, webhooks, Kafka, SQS — with Elixir functions in the middle to transform or filter each row. I use it to keep the search index and a few downstream services for [CamperMate](https://campermate.com) — the free-camping and campground app across Australia and New Zealand, [iOS](https://apps.apple.com/app/campermate/id578975305) and [Android](https://play.google.com/store/apps/details?id=nz.co.campermate.app), 1M+ downloads — in lockstep with the source-of-truth Postgres database.
-
-This is the story of how a tool I adopted became a tool I help maintain: how I found it, ran it in production, watched it fall over for a reason that wasn't really its fault, went looking for help from a company that no longer existed, and ended up forking it, fixing it, and extending it.
+[Sequin](https://github.com/sequinstream/sequin) is an open-source change-data-capture engine for Postgres, written in Elixir: it watches a database and streams every row change onward. It reads Postgres's own stream of changes (a logical replication slot) and sends every insert, update and delete to destinations such as Typesense (a search engine), webhooks, Kafka and SQS, with Elixir functions in the middle to transform or filter each row. I run it as the pipeline between the source Postgres database and the search index for [CamperMate](https://campermate.com), the free-camping and campground app across Australia and New Zealand ([iOS](https://apps.apple.com/app/campermate/id578975305) and [Android](https://play.google.com/store/apps/details?id=nz.co.campermate.app), over a million downloads). In March every consumer in that pipeline started stopping at once, with no deploy and no traffic change, and the only thing that cleared it was a restart. The trigger was a managed Dragonfly instance redeploying itself. The cause was three lines in a state machine.
 
 <!-- more -->
 
-## Why I reached for Sequin
+This is the story of adopting a dependency whose maintainer had gone: what the crash actually was (`{:shutdown, :err_keeping_mutex}` is not a value a `GenStateMachine`, Elixir's state-machine process type, is allowed to return), why a supervisor configured to restart all of its children when one dies turned one process's death into a total outage, the fix and the second fix, the firewall-rule test that passed in CI for the wrong reason, and the Cloudflare Access plug (a piece of request middleware) that now signs people into the fork's console without Sequin's own login form.
 
-The problem Sequin solves is the boring, load-bearing kind. The POI, review, and translation data lives in Postgres (on [Neon](https://neon.tech)). Search runs on [Typesense](https://typesense.org). Several other services — a translation workflow, a delta cache for the mobile app — need to know the instant a row changes. The naive version of this is a spray of application-level hooks and cron jobs that drift out of sync the moment anything fails silently.
+## What Sequin does for CamperMate
 
-CDC inverts that. Postgres already writes every change to its write-ahead log; Sequin reads the log and fans each change out reliably, with retries and backfills, so the index and the database can't disagree for long. The whole thing is a dozen sinks driven by a single declarative [`sequin.yaml`](https://github.com/sequinstream/sequin), version-controlled and applied from CI:
+The source of truth is Postgres on [Neon](https://neon.tech). Search is [Typesense](https://typesense.org). A translation workflow and a change cache for the mobile app need to know when a row changes. Sequin reads the database's write-ahead log through a replication slot and fans each change out with retries and backfills, so the index and the database cannot disagree for long.
 
-```
-   Postgres (Neon)  →  Sequin  →  Typesense collections (POIs, reviews, translations)
-   logical slot        transforms →  Webhooks (translation pipeline, delta sync)
-```
+The whole thing is one `sequin.yaml` in version control: 12 sinks over one database, each a mapping from a table to a destination with a named function in the middle. `poi_app` and `poi_public` go to Typesense collections through `poi-typesense`; the `poi_app_translations` table, which holds one row per translated field, goes through `poi-translations-typesense`, which turns one `{uuid, language, key, value}` row into a partial document like `{"id": ..., "name_fr": "Nom du POI"}` or `{"id": ..., "feature_names_de": ["Restaurant", "Outdoor Dining"]}` for Typesense to merge into the existing document; a `public-filter` function drops non-public rows before the public collection ever sees them; `translation-webhook` and `delta-webhook` sinks feed the two downstream services. The transforms are Elixir, and they have their own `mix test` suite in CI, which is the part of this setup I would keep even if I replaced everything else.
 
-The transforms are the nice part. A small Elixir function denormalises a POI's feature list into boolean columns, builds language-suffixed fields (`description_en`, `description_mi`) from a tall translations table, and filters out non-public rows before they ever reach the public index. It's the right amount of logic in the right place, and for a good while it just worked.
+## Every consumer stopped at once
 
-## The night Dragonfly took Sequin with it
+The symptom was all-or-nothing. Sequin would be processing normally, then every sink would go quiet in the same second, the index would fall behind, and the process would sit there until someone restarted it. There was no deploy and no spike. The correlation, once I lined up timestamps, was with Dragonfly, the Redis-compatible store Sequin uses for coordination, running as a managed service on [Railway](https://railway.app), redeploying for maintenance. A dependency's routine update was taking down the engine.
 
-Then came outages that made no sense. Sequin would be humming along, and then — with no deploy, no traffic spike, no obvious cause — every consumer would stop at once. The sinks would go cold, the index would fall behind, and the only fix was a restart.
+## Three lines in a state machine
 
-The correlation, once I traced it, was infuriating: it happened whenever **Dragonfly** — the Redis-compatible store Sequin uses for coordination, running as a managed service on [Railway](https://railway.app) — redeployed itself. A routine maintenance update to a *dependency* was taking down the whole engine.
+Sequin elects a leader with a lock held in Redis. `Sequin.MutexOwner` is a `GenStateMachine` that writes a key with a random token and a five-second expiry (`lock_expiry`), then refreshes it every four seconds, at 80% of the expiry. It lives under `Sequin.MutexedSupervisor`, which is deliberately configured with `strategy: :one_for_all`, meaning that if any one child process dies, the supervisor stops every child. The intent is that if the owner loses the lock, every consumer under the same supervisor must stop too, because another node now holds it. That is correct for "lost the lock". It is catastrophic for "could not reach Redis", and the code before the fix treated them the same:
 
-The mechanism is a textbook Erlang supervision-tree footgun. Sequin uses a Redis-backed mutex to elect a single leader across nodes — a `MutexOwner` GenServer that holds a lock and refreshes it before it expires. When Dragonfly restarted, the connection blipped, the mutex refresh failed, and `MutexOwner` did the most literal possible thing: it crashed. And because it sits under a supervisor with a `:one_for_all` restart strategy, its death took **every sibling down with it** — the entire runtime supervisor, all consumers, all sinks. A two-second Redis blip became a total outage that only a human restart would clear.
-
-```
-MutexedSupervisor (:one_for_all)
-  └── MutexOwner  ✗  Redis blips → mutex refresh fails → crash
-        ⇒ :one_for_all fires ⇒ every consumer & sink is torn down with it
+```elixir
+:error ->
+  Logger.error("MutexOwner had trouble reaching Redis.")
+  # Unable to reach redis? Die.
+  {:shutdown, :err_keeping_mutex}
 ```
 
-That's not really Sequin doing something wrong so much as an assumption — "Redis is always there" — that doesn't hold on a platform where your Redis can redeploy under you at any moment.
+Two things are wrong here. The intent was to stop, and stopping takes every sibling down. But `{:shutdown, reason}` is not a value a `GenStateMachine` event handler is allowed to return at all (the valid form is `{:stop, {:shutdown, reason}}`), so what actually happened was a crash with `{:bad_return_from_state_function, {:shutdown, :err_keeping_mutex}}`. Either way the supervisor did what it was told and every consumer and sink came down with it.
 
-## Upstream had gone dark
+![Two panels of the same supervision tree: a one-for-all supervisor with the mutex owner and three consumers underneath, and Redis to the side. Before the fix, Redis becoming unreachable makes the mutex owner crash and the supervisor stops every consumer with it. After the fix the mutex owner keeps its state and retries with backoff, and the consumers keep running.](/images/blog/sequin-one-for-all-cascade.svg)
 
-So I did the normal thing: went to fix it upstream, or at least to ask. And found the lights off. The project had moved into **maintenance mode**, the company behind Sequin had wound down, and there was no one on the other end of the issue tracker to merge a patch or ship a release. A tool at the centre of a data pipeline had, effectively, been orphaned.
+The Redis side is worth one sentence too: `eredis`, the Redis client library, keeps its connection process alive across an outage and answers every query with `{:error, :no_connection}`; `Sequin.Redis.command/2` maps that to a `ServiceError`, `Sequin.Mutex` maps it to `:error`, and `:error` was the branch above. A two-second connection blip was a full outage that only a human could clear.
 
-This is the quiet risk of building on someone else's open source: the licence guarantees you the code, but nothing guarantees you a maintainer. When the maintainer disappears, you have exactly two choices — rip the dependency out, or adopt it.
+## Nobody upstream to send it to
 
-## So I adopted it
+The normal move is to send the patch upstream. Upstream's README had been rewritten to say the project was in maintenance mode, the company behind Sequin had wound down, and the crash was already filed as issue #2072 with no fix behind it. The licence guarantees you the code. Nothing guarantees you a maintainer.
 
-Ripping out CDC and rebuilding the sink pipeline from scratch would have been weeks of work to end up back where I started. Adoption was the better trade. The project got forked into [`github.com/triptechtravel/sequin`](https://github.com/triptechtravel/sequin), with its own build and release pipeline, and from then on it was treated as what it now was: code I own.
+That leaves two options: rip out CDC and rebuild the sink pipeline, or adopt the project. Rebuilding would have been weeks to arrive back where I was. Adoption was the better trade.
 
-That meant the unglamorous infrastructure of ownership. A GitHub Actions workflow that builds a patched image and pushes it to GHCR. Deployment to Railway. Fixing the parts of the build that assumed a corporate CI — a missing `cmake` for a Kafka NIF, a Sentry DSN that was baked in at build time and now had to be optional. None of it is exciting. All of it is the price of being the maintainer instead of a user.
+## Owning it
 
-## Fixing the crash properly
+The fork lives at [`github.com/triptechtravel/sequin`](https://github.com/triptechtravel/sequin) on a `tt/v0.14.6-patches` branch. Ownership is mostly unglamorous plumbing:
 
-With the fork in hand, the Dragonfly bug got fixed at the root. `MutexOwner` no longer treats a Redis error as fatal. While it holds the mutex and Redis becomes unreachable, it now **retries indefinitely with exponential backoff** (capped at an hour) instead of crashing — Redis going down should degrade Sequin gracefully, never take it out. When Redis comes back, it re-acquires the lock and resumes as if nothing happened. The invalid GenStateMachine stop value that caused the original crash got corrected too, and the LiveView metrics pages were hardened so a Redis blip renders an empty chart instead of a `MatchError`.
+- `.github/workflows/tt-docker-build.yml` builds a Docker image for 64-bit Linux whenever a tag matching `v*-tt*` is pushed, and publishes it to `ghcr.io/triptechtravel/sequin:<tag>`, which Railway deploys.
+- The Dockerfile needed `cmake`, because the `crc32cer` native extension inside the `kafka_protocol` library (C code called from Elixir) will not build without it.
+- The release build assumed a Sentry DSN (the address an application reports its errors to) was baked in at build time, and raised an error at boot if it was not. The Dockerfile copies the `SENTRY_DSN` build argument into an environment variable unconditionally, so a build argument that was never supplied arrives as an empty string, which Sentry's configuration check rejects. `config/prod.exs` now turns an empty string into `nil`, and `lib/sequin/sentry.ex` treats a missing DSN as "Sentry off" instead of a bug.
 
-The part I'm most pleased with is the test. It's easy to write a unit test that mocks a Redis error; it's much more convincing to simulate the actual failure. The integration test uses `iptables` to **REJECT** traffic to Redis mid-run — a real network partition, the same thing a Dragonfly redeploy looks like from the process's point of view — and asserts that the `MutexOwner` survives the outage and recovers when the rule is dropped. That's the difference between "handles a mocked error" and "survives the thing that was actually paging me."
+None of it is interesting. All of it is the difference between being a user and being the maintainer.
 
-The outages stopped.
+## The fix, twice
 
-## Then it went behind Cloudflare Access
+The first fix made `MutexOwner` retry up to five times with a short wait between attempts and then give up with a proper `{:stop, {:shutdown, :err_keeping_mutex}}`. That is better, and it is still wrong: a Dragonfly redeploy can take longer than five short retries, and giving up still takes everything down. The second fix removed the limit. While holding the lock and unable to reach Redis, the owner now retries indefinitely, doubling the wait after each consecutive error (starting from the lock expiry and capped at one hour), and resets the counter on the first successful refresh:
 
-Once you own a fork, you stop just patching it and start shaping it. The most recent addition: real SSO on the admin console.
+{% raw %}
+```elixir
+:error ->
+  errors = data.consecutive_redis_errors + 1
+  # Exponential backoff: lock_expiry * 2^errors, capped at 1 hour
+  retry_interval = min(data.lock_expiry * Integer.pow(2, errors), @max_retry_interval)
+  {:keep_state, %{data | consecutive_redis_errors: errors},
+   [{{:timeout, :keep_mutex}, retry_interval, nil}]}
+```
+{% endraw %}
 
-Out of the box, self-hosted Sequin authenticates users with an email-and-password login sitting in its own Postgres table. For an internal tool that a whole team touches, that's the wrong model — there's already Google identity and [Cloudflare Zero Trust](https://www.cloudflare.com/zero-trust/) in front of everything else. So the Sequin console went behind **Cloudflare Access**, and Sequin learned to trust it.
+Losing the lock to another owner still stops the process, because that case is real. The trade-off is documented in the module's documentation: while Redis is unreachable the key expires, so on a deployment with several nodes another node can acquire it, and the stale node only finds out on its next retry. For a single-instance deployment that window is fine. The metrics pages (built with Phoenix LiveView) got the same treatment; a Redis error now draws a flat zero line instead of crashing on a pattern-match error.
 
-The mechanics, mirroring the same trusted-header pattern I've used for a [Payload CMS](https://payloadcms.com):
+## The test that passed for the wrong reason
 
-- **Cloudflare Access** gates the console with a Google-SSO policy. On every request it forwards, it injects a signed JWT in the `Cf-Access-Jwt-Assertion` header.
-- A new Elixir plug **verifies that JWT** — fetching the Access application's public keys (JWKS), checking the signature, issuer, audience, and expiry — and then transparently signs the user in. First time through, it **provisions the user just-in-time** from the verified email, adopting any existing account so nobody lands in an empty instance. You never see Sequin's own login screen.
-- The tricky part is machine traffic. The search config is applied from CI, which authenticates with a token rather than a browser SSO session. Cloudflare Access lets you scope policies so interactive console traffic goes through Google while automated, token-authenticated callers are validated on their own credentials — so the SSO gate never breaks the deploy pipeline.
-- Finally, the settings UI now reflects reality: it shows which identity provider you authenticated with and disables the email/password fields for SSO users, rather than presenting a dead form.
+My first tests for this were the convincing kind: integration tests that ran `iptables -A OUTPUT -p tcp --dport 6379 -j REJECT`, a firewall rule blocking the Redis port, in the middle of the run, so the process saw a real connection-refused error exactly as it would during a Dragonfly redeploy, then removed the rule and asserted recovery. They passed locally. They also passed in CI, and that should have bothered me sooner: the CI runner lacks the `NET_ADMIN` capability needed to change firewall rules, so `iptables` failed silently, Redis was never blocked, and the tests asserted that a process nobody had disturbed was still alive. The accompanying unit tests re-implemented the backoff arithmetic on local variables and would have passed if the fix regressed.
 
-The whole thing is feature-flagged, so the upstream password-login behaviour is still the default for anyone else running the code. It ships as a normal patched image through the same GHCR-to-Railway pipeline as every other fix.
+The replacement in `test/sequin/mutex_owner_test.exs` swaps the `Sequin.Redis.RedisClient` application env for a stub that returns the exact production failure:
+
+```elixir
+defmodule DownClient do
+  def q(_connection, _command), do: {:error, :no_connection}
+  def qp(_connection, commands), do: Enum.map(commands, fn _ -> {:error, :no_connection} end)
+end
+```
+
+The process test starts a real `MutexOwner` with a 50-millisecond lock expiry, waits for it to acquire the lock, swaps in `DownClient`, waits until the process state shows at least one consecutive Redis error, asserts the process is still alive with no exit message, restores the real client, and asserts it re-acquires the lock with the counter back at zero. Four handler-level tests pin the state transitions against the real `handle_event/4`. I cannot put the production outcome in a repository; this test is the part I can.
+
+## Putting the console behind Cloudflare Access
+
+Out of the box, self-hosted Sequin authenticates with an email and password in its own users table. For an internal console that a team touches, and with Google sign-in and [Cloudflare Zero Trust](https://www.cloudflare.com/zero-trust/) already in front of everything else, that is a second login nobody wants. So the console went behind Cloudflare Access, and Sequin learned to trust it, using the same trusted-header pattern I used for a [Payload CMS](https://payloadcms.com).
+
+Cloudflare enforces the Google single-sign-on policy at the hostname and adds a signed token (a JWT) in the `Cf-Access-Jwt-Assertion` header of every request it forwards. `SequinWeb.Plugs.CloudflareAccess` runs in the `:browser` pipeline before `fetch_current_user/2`. It does nothing when the feature is off or the session already has a user token; otherwise it reads the header and hands the token to `Sequin.CloudflareAccess`, a long-lived process that caches the public keys Cloudflare publishes for the Access application at `/cdn-cgi/access/certs`, verifies the signature with `JOSE.JWT.verify_strict` accepting only the RS256 algorithm, checks the issuer, audience, expiry and not-before time with five seconds of allowance for clock drift, and refetches the keys at most once every five minutes when a token references a key id it has not seen, which is how Cloudflare's key rotation shows up.
+
+A verified email then goes through `Accounts.find_or_create_cloudflare_access_user/1`, which looks the address up across every sign-in method first, so an existing password user is adopted rather than duplicated, and only registers a new `:cloudflare_access` user, keyed on Cloudflare's subject identifier, if nobody matches. Nobody sees Sequin's sign-in screen. Machine callers are unaffected: the `/api` pipeline still authenticates with `VerifyApiToken`, and the plug never runs there.
+
+The settings page needed to catch up. Any account that does not sign in with a password now shows an "Authentication method" card and disables the email and password fields, because an editable email on a single-sign-on account would create a second user on the next login. The whole feature is behind `CF_ACCESS_ENABLED`, with `CF_ACCESS_TEAM_DOMAIN` and `CF_ACCESS_AUD` from the Access application, so password login stays the default for anyone else running the code.
 
 ## Owning a fork you didn't write
 
-There's a version of this story that reads as a cautionary tale about depending on startups. I don't think that's the lesson. Sequin was — is — a genuinely good piece of engineering, and the fact that it *could* be adopted, read, fixed, and extended with SSO is entirely because it was open source. A closed SaaS that shut down would have left nothing but a migration deadline.
-
-The real lesson is that "using open source" and "owning open source" are different commitments, and the gap between them can close overnight. When it does, the codebases you can actually take over are the ones written clearly enough to understand under pressure. Sequin was. You read the supervision tree, see why a Redis blip cascaded, and fix it — in someone else's code that has quietly become yours.
+The lesson is not "don't depend on startups". Sequin is a good piece of engineering, and the only reason it could be read, fixed and extended is that it was open source; a closed service shutting down leaves a migration deadline and nothing else. The lesson is that using open source and owning it are different commitments, the gap can close overnight, and the code you can take over under pressure is the code written clearly enough to read under pressure. Sequin was: the supervision tree says "stop everyone when one dies", the state machine returns a value it is not allowed to, and the bug is right there.
 
 If you're travelling Australia or New Zealand, the search that lands you at the right campsite is riding on this pipeline. [Grab CamperMate on iOS](https://apps.apple.com/app/campermate/id578975305) or [Android](https://play.google.com/store/apps/details?id=nz.co.campermate.app) — free, no account required.
 

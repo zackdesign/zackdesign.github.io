@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" width="1200" height="520" role="img" aria-label="Two panels. Left: a whole-screen pixel buffer for the 240 by 320 display does not fit in the 98 kilobytes of free memory; even a 200 by 100 buffer fails to allocate. Right: one 240 by 20 band is reused down the screen; the whole curve is drawn in screen coordinates each time, only the pixels inside the band are kept, and each band is pushed to the panel in one call of about six milliseconds">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .screen{fill:#181c24;stroke:#2a2f3a;stroke-width:2}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .bad{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ff5d5d}
+      .good{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .bigbuf{fill:rgba(255,93,93,.12);stroke:#ff5d5d;stroke-width:3;stroke-dasharray:10 8}
+      .band{fill:rgba(64,220,160,.18);stroke:#40dca0;stroke-width:3}
+      .bandghost{fill:none;stroke:#40dca0;stroke-width:2;stroke-dasharray:6 6;opacity:.5}
+      .arc{fill:none;stroke:#7c5cff;stroke-width:6;stroke-linecap:round}
+      .arcdim{fill:none;stroke:#7c5cff;stroke-width:6;stroke-linecap:round;opacity:.25}
+      .sep{stroke:#2a2f3a;stroke-width:2}
+      .ref{fill:#ffc400}
+    </style>
+    <clipPath id="bandclip"><rect x="700" y="300" width="240" height="20"/></clipPath>
+  </defs>
+  <rect class="bg" width="1200" height="520"/>
+  <line class="sep" x1="600" y1="40" x2="600" y2="490"/>
+
+  <!-- Panel 1 -->
+  <text class="h" x="300" y="60" text-anchor="middle">One buffer for the whole screen</text>
+  <text class="s" x="300" y="88" text-anchor="middle">240 by 320 pixels, two bytes each</text>
+  <rect class="screen" x="180" y="120" width="240" height="320"/>
+  <rect class="bigbuf" x="180" y="120" width="240" height="320"/>
+  <path class="arcdim" d="M220,380 A80,80 0 1 1 380,380"/>
+  <text class="lbl" x="300" y="290" text-anchor="middle">153,600 bytes</text>
+  <text class="bad" x="300" y="475" text-anchor="middle">does not fit: 98 kB free,</text>
+  <text class="bad" x="300" y="500" text-anchor="middle">even 200 by 100 fails to allocate</text>
+
+  <!-- Panel 2 -->
+  <text class="h" x="900" y="60" text-anchor="middle">One band, reused down the screen</text>
+  <text class="s" x="900" y="88" text-anchor="middle">240 by 20 pixels, 9,600 bytes</text>
+  <rect class="screen" x="700" y="120" width="240" height="320"/>
+  <rect class="bandghost" x="700" y="120" width="240" height="20"/>
+  <rect class="bandghost" x="700" y="140" width="240" height="20"/>
+  <rect class="bandghost" x="700" y="160" width="240" height="20"/>
+  <rect class="bandghost" x="700" y="180" width="240" height="20"/>
+  <rect class="bandghost" x="700" y="200" width="240" height="20"/>
+  <rect class="bandghost" x="700" y="220" width="240" height="20"/>
+  <rect class="bandghost" x="700" y="240" width="240" height="20"/>
+  <rect class="bandghost" x="700" y="260" width="240" height="20"/>
+  <rect class="bandghost" x="700" y="280" width="240" height="20"/>
+  <path class="arcdim" d="M740,380 A80,80 0 1 1 900,380"/>
+  <g clip-path="url(#bandclip)">
+    <path class="arc" d="M740,380 A80,80 0 1 1 900,380"/>
+  </g>
+  <rect class="band" x="700" y="300" width="240" height="20"/>
+  <text class="lbl" x="965" y="316" text-anchor="start">current band</text>
+  <text class="s" x="965" y="342" text-anchor="start">the whole curve is drawn,</text>
+  <text class="s" x="965" y="366" text-anchor="start">only the pixels inside</text>
+  <text class="s" x="965" y="390" text-anchor="start">the band are kept</text>
+  <text class="s" x="965" y="150" text-anchor="start">bands already pushed</text>
+  <text class="good" x="900" y="475" text-anchor="middle">one push per band, about 6 ms,</text>
+  <text class="good" x="900" y="500" text-anchor="middle">then move down and reuse the buffer</text>
+</svg>

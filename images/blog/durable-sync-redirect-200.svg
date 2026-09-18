@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" width="1200" height="520" role="img" aria-label="Two sequences. Before the fix: the phone posts its queued writes, the expired Cloudflare Access session answers with a redirect to the login page, fetch follows it and reports a 200 with an HTML body, the client treats that as success and deletes the queued writes, and the workout is gone. After the fix: the same redirect arrives, the client checks the body is the server's own reply before trusting it, keeps the queue, and retries after sign-in.">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .h{font:700 24px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .t{font:600 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 16px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .bad{font:700 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ff5d5d}
+      .good{font:700 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .box{fill:#181b22;stroke:#7c5cff;stroke-width:3;rx:12}
+      .rbox{fill:#181b22;stroke:#ff5d5d;stroke-width:3;rx:12}
+      .gbox{fill:#181b22;stroke:#40dca0;stroke-width:3;rx:12}
+      .arrow{stroke:#9aa3b2;stroke-width:3;fill:none}
+      .sep{stroke:#2a2f3a;stroke-width:2}
+    </style>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9aa3b2"/></marker>
+  </defs>
+  <rect class="bg" width="1200" height="520"/>
+
+  <text class="h" x="40" y="50">Before: "success" meant any 200</text>
+  <g transform="translate(40,80)">
+    <rect class="box" width="200" height="90"/><text class="t" x="100" y="40" text-anchor="middle">Phone posts its</text><text class="t" x="100" y="64" text-anchor="middle">queued writes</text>
+  </g>
+  <line class="arrow" x1="240" y1="125" x2="292" y2="125" marker-end="url(#a)"/>
+  <g transform="translate(294,80)">
+    <rect class="box" width="230" height="90"/><text class="t" x="115" y="40" text-anchor="middle">Access session expired:</text><text class="t" x="115" y="64" text-anchor="middle">redirect to login page</text>
+  </g>
+  <line class="arrow" x1="524" y1="125" x2="576" y2="125" marker-end="url(#a)"/>
+  <g transform="translate(578,80)">
+    <rect class="rbox" width="230" height="90"/><text class="t" x="115" y="40" text-anchor="middle">fetch follows it and</text><text class="t" x="115" y="64" text-anchor="middle">reports 200, HTML body</text>
+  </g>
+  <line class="arrow" x1="808" y1="125" x2="860" y2="125" marker-end="url(#a)"/>
+  <g transform="translate(862,80)">
+    <rect class="rbox" width="300" height="90"/><text class="t" x="150" y="40" text-anchor="middle">Client deletes the queue</text><text class="bad" x="150" y="68" text-anchor="middle">the workout is gone</text>
+  </g>
+
+  <line class="sep" x1="40" y1="230" x2="1160" y2="230"/>
+
+  <text class="h" x="40" y="290">After: success means the server's own reply</text>
+  <g transform="translate(40,320)">
+    <rect class="box" width="200" height="90"/><text class="t" x="100" y="40" text-anchor="middle">Phone posts its</text><text class="t" x="100" y="64" text-anchor="middle">queued writes</text>
+  </g>
+  <line class="arrow" x1="240" y1="365" x2="292" y2="365" marker-end="url(#a)"/>
+  <g transform="translate(294,320)">
+    <rect class="box" width="230" height="90"/><text class="t" x="115" y="40" text-anchor="middle">Same redirect,</text><text class="t" x="115" y="64" text-anchor="middle">same 200 with HTML</text>
+  </g>
+  <line class="arrow" x1="524" y1="365" x2="576" y2="365" marker-end="url(#a)"/>
+  <g transform="translate(578,320)">
+    <rect class="gbox" width="230" height="90"/><text class="t" x="115" y="40" text-anchor="middle">Body checked: not the</text><text class="t" x="115" y="64" text-anchor="middle">server's reply shape</text>
+  </g>
+  <line class="arrow" x1="808" y1="365" x2="860" y2="365" marker-end="url(#a)"/>
+  <g transform="translate(862,320)">
+    <rect class="gbox" width="300" height="90"/><text class="t" x="150" y="40" text-anchor="middle">Queue kept, retried</text><text class="good" x="150" y="68" text-anchor="middle">after sign-in; nothing lost</text>
+  </g>
+</svg>

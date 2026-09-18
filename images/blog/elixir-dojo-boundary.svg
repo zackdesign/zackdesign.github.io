@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" width="1200" height="520" role="img" aria-label="Two panels: the laptop keeps the editor, git configuration and Docker; the container holds the Erlang virtual machine, Elixir and mix; one shared folder straddles the line, seen as workshop on the laptop and as /code inside the container">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .warn{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ffc400}
+      .host{fill:rgba(124,92,255,.14);stroke:#7c5cff;stroke-width:3}
+      .cont{fill:rgba(64,220,160,.14);stroke:#40dca0;stroke-width:3}
+      .shared{fill:rgba(255,196,0,.12);stroke:#ffc400;stroke-width:3;stroke-dasharray:10 8}
+      .sep{stroke:#2a2f3a;stroke-width:2}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="520"/>
+  <line class="sep" x1="600" y1="40" x2="600" y2="480"/>
+
+  <text class="h" x="300" y="60" text-anchor="middle">Your laptop</text>
+  <text class="s" x="300" y="88" text-anchor="middle">nothing Erlang-related is installed here</text>
+  <rect class="host" x="110" y="115" width="380" height="58" rx="10"/>
+  <text class="lbl" x="300" y="151" text-anchor="middle">Your editor (VS Code, vim, IntelliJ)</text>
+  <rect class="host" x="110" y="190" width="380" height="58" rx="10"/>
+  <text class="lbl" x="300" y="226" text-anchor="middle">Your git configuration</text>
+  <rect class="host" x="110" y="265" width="380" height="58" rx="10"/>
+  <text class="lbl" x="300" y="301" text-anchor="middle">Docker</text>
+
+  <text class="h" x="900" y="60" text-anchor="middle">Docker container</text>
+  <text class="s" x="900" y="88" text-anchor="middle">everything the image installs</text>
+  <rect class="cont" x="710" y="115" width="380" height="58" rx="10"/>
+  <text class="lbl" x="900" y="151" text-anchor="middle">Erlang virtual machine (the BEAM)</text>
+  <rect class="cont" x="710" y="190" width="380" height="58" rx="10"/>
+  <text class="lbl" x="900" y="226" text-anchor="middle">Elixir</text>
+  <rect class="cont" x="710" y="265" width="380" height="58" rx="10"/>
+  <text class="lbl" x="900" y="301" text-anchor="middle">mix, the build and test tool</text>
+
+  <rect class="shared" x="330" y="370" width="540" height="90" rx="12"/>
+  <text class="warn" x="600" y="406" text-anchor="middle">The workshop source folder</text>
+  <text class="s" x="600" y="440" text-anchor="middle">called workshop/ on the laptop  ·  called /code inside the container</text>
+  <text class="s" x="600" y="495" text-anchor="middle">one folder, seen from both sides: an edit saved on the laptop is what mix test runs against</text>
+</svg>

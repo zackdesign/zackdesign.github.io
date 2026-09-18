@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" width="1200" height="520" role="img" aria-label="Two panels. Left, at street zoom: the Victoria archive's bounding box crosses the state line into New South Wales, and the tiles it holds there were drawn from data that stops at the border, so they are opaque and empty; installed on top of the New South Wales archive they blank out its real map along the border. Right, at continent zoom: one zoom-6 tile spans most of Australia, and each region's archive draws only its own state in it and leaves the rest bare">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .land{fill:#181c24;stroke:#2a2f3a;stroke-width:2}
+      .nsw{fill:rgba(64,220,160,.25);stroke:#40dca0;stroke-width:3}
+      .vic{fill:rgba(124,92,255,.25);stroke:#7c5cff;stroke-width:3}
+      .bbox{fill:none;stroke:#ffc400;stroke-width:3;stroke-dasharray:10 8}
+      .blank{fill:rgba(255,93,93,.28);stroke:#ff5d5d;stroke-width:3}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .warn{font:700 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ffc400}
+      .bad{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ff5d5d}
+      .sep{stroke:#2a2f3a;stroke-width:2}
+      .tile{fill:none;stroke:#2a2f3a;stroke-width:1.5}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="520"/>
+  <line class="sep" x1="600" y1="40" x2="600" y2="490"/>
+
+  <!-- Panel 1: street zoom at the border -->
+  <text class="h" x="300" y="60" text-anchor="middle">Street zoom, at the state line</text>
+  <text class="s" x="300" y="88" text-anchor="middle">a per-state extract stops at the border; the archive's box does not</text>
+  <!-- NSW ground (top) and VIC ground (bottom), border horizontal -->
+  <rect class="nsw" x="90" y="120" width="420" height="140"/>
+  <rect class="vic" x="90" y="260" width="420" height="140"/>
+  <text class="lbl" x="110" y="150" text-anchor="start">New South Wales archive, real map</text>
+  <text class="lbl" x="110" y="385" text-anchor="start">Victoria archive, real map</text>
+  <!-- Victoria's bbox extends above the border -->
+  <rect class="bbox" x="150" y="190" width="300" height="210"/>
+  <text class="warn" x="300" y="182" text-anchor="middle">Victoria archive's bounding box</text>
+  <!-- blank opaque tiles over NSW -->
+  <rect class="blank" x="150" y="190" width="300" height="70"/>
+  <line class="tile" x1="225" y1="190" x2="225" y2="260"/><line class="tile" x1="300" y1="190" x2="300" y2="260"/><line class="tile" x1="375" y1="190" x2="375" y2="260"/>
+  <text class="lbl" x="300" y="232" text-anchor="middle">opaque tiles with nothing drawn</text>
+  <text class="bad" x="300" y="440" text-anchor="middle">install both and the border goes blank</text>
+  <text class="s" x="300" y="466" text-anchor="middle">in whichever order draws on top</text>
+
+  <!-- Panel 2: continent zoom -->
+  <text class="h" x="900" y="60" text-anchor="middle">Continent zoom, one tile</text>
+  <text class="s" x="900" y="88" text-anchor="middle">at zoom 6 a single tile spans most of Australia</text>
+  <!-- one tile square with three "states" -->
+  <rect class="land" x="700" y="120" width="400" height="280"/>
+  <text class="lbl" x="710" y="145" text-anchor="start">one zoom-6 tile</text>
+  <!-- state shapes: only VIC drawn, rest bare -->
+  <rect class="vic" x="880" y="290" width="200" height="90"/>
+  <text class="lbl" x="980" y="342" text-anchor="middle">Victoria</text>
+  <rect class="blank" x="880" y="170" width="200" height="120"/>
+  <text class="lbl" x="980" y="225" text-anchor="middle">New South Wales:</text>
+  <text class="lbl" x="980" y="249" text-anchor="middle">bare</text>
+  <rect class="blank" x="720" y="170" width="160" height="210"/>
+  <text class="lbl" x="800" y="270" text-anchor="middle">everything</text>
+  <text class="lbl" x="800" y="294" text-anchor="middle">else: bare</text>
+  <text class="bad" x="900" y="440" text-anchor="middle">each region draws its own state and leaves the rest,</text>
+  <text class="s" x="900" y="466" text-anchor="middle">and no clipping margin is as big as the tile</text>
+</svg>

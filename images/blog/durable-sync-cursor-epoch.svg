@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 440" width="1200" height="440" role="img" aria-label="Two panels. Left: a client holds cursor 120 from the old log; after the log is reset and rebuilt with only eight entries, asking for everything after 120 matches nothing, so the client silently never syncs again. Right: the log carries an epoch id that changes on reset; when a pull reply shows a different epoch the client discards its cursor and replays from zero">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .cell{fill:#181c24;stroke:#2a2f3a;stroke-width:2}
+      .cellgone{fill:none;stroke:#2a2f3a;stroke-width:2;stroke-dasharray:6 5}
+      .cursor{stroke:#ffc400;stroke-width:4}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 17px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .num{font:600 15px ui-monospace,Menlo,monospace;fill:#9aa3b2}
+      .bad{font:700 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ff5d5d}
+      .good{font:700 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .warn{font:700 17px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ffc400}
+      .epoch{font:600 15px ui-monospace,Menlo,monospace;fill:#7c5cff}
+      .sep{stroke:#2a2f3a;stroke-width:2}
+      .replay{fill:rgba(64,220,160,.25);stroke:#40dca0;stroke-width:3}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="440"/>
+  <line class="sep" x1="600" y1="40" x2="600" y2="410"/>
+
+  <!-- LEFT -->
+  <text class="h" x="300" y="60" text-anchor="middle">A cursor from a log that is gone</text>
+  <text class="s" x="300" y="88" text-anchor="middle">the client remembers the last sequence number it applied</text>
+  <!-- old log -->
+  <text class="lbl" x="60" y="130" text-anchor="start">old log, before the reset</text>
+  <g transform="translate(60,140)">
+    <rect class="cellgone" x="0" y="0" width="40" height="34"/><text class="num" x="20" y="22" text-anchor="middle">1</text>
+    <rect class="cellgone" x="44" y="0" width="40" height="34"/><text class="num" x="64" y="22" text-anchor="middle">2</text>
+    <text class="num" x="110" y="22" text-anchor="middle">…</text>
+    <rect class="cellgone" x="132" y="0" width="40" height="34"/><text class="num" x="152" y="22" text-anchor="middle">119</text>
+    <rect class="cellgone" x="176" y="0" width="40" height="34"/><text class="num" x="196" y="22" text-anchor="middle">120</text>
+    <line class="cursor" x1="216" y1="-8" x2="216" y2="42"/>
+    <text class="warn" x="226" y="22" text-anchor="start">client cursor: 120</text>
+  </g>
+  <!-- new log -->
+  <text class="lbl" x="60" y="230" text-anchor="start">rebuilt log, after the reset</text>
+  <g transform="translate(60,240)">
+    <rect class="cell" x="0" y="0" width="40" height="34"/><text class="num" x="20" y="22" text-anchor="middle">1</text>
+    <rect class="cell" x="44" y="0" width="40" height="34"/><text class="num" x="64" y="22" text-anchor="middle">2</text>
+    <rect class="cell" x="88" y="0" width="40" height="34"/><text class="num" x="108" y="22" text-anchor="middle">3</text>
+    <text class="num" x="154" y="22" text-anchor="middle">…</text>
+    <rect class="cell" x="176" y="0" width="40" height="34"/><text class="num" x="196" y="22" text-anchor="middle">8</text>
+    <line class="cursor" x1="470" y1="-8" x2="470" y2="42"/>
+    <text class="warn" x="460" y="22" text-anchor="end">cursor still says 120</text>
+  </g>
+  <text class="bad" x="300" y="330" text-anchor="middle">"everything after 120" matches nothing</text>
+  <text class="bad" x="300" y="354" text-anchor="middle">so every client silently never syncs again</text>
+
+  <!-- RIGHT -->
+  <text class="h" x="900" y="60" text-anchor="middle">The fix: the log names its generation</text>
+  <text class="s" x="900" y="88" text-anchor="middle">a random epoch id, stamped on first use and replaced by a reset</text>
+  <text class="lbl" x="660" y="130" text-anchor="start">what the client stored</text>
+  <text class="epoch" x="660" y="156" text-anchor="start">cursor 120, epoch 7f3a…</text>
+  <text class="lbl" x="660" y="200" text-anchor="start">what the next pull reply says</text>
+  <text class="epoch" x="660" y="226" text-anchor="start">epoch c091…  (different)</text>
+  <g transform="translate(660,250)">
+    <rect class="replay" x="0" y="0" width="40" height="34"/><text class="num" x="20" y="22" text-anchor="middle">1</text>
+    <rect class="replay" x="44" y="0" width="40" height="34"/><text class="num" x="64" y="22" text-anchor="middle">2</text>
+    <rect class="replay" x="88" y="0" width="40" height="34"/><text class="num" x="108" y="22" text-anchor="middle">3</text>
+    <text class="num" x="154" y="22" text-anchor="middle">…</text>
+    <rect class="replay" x="176" y="0" width="40" height="34"/><text class="num" x="196" y="22" text-anchor="middle">8</text>
+    <line class="cursor" x1="-8" y1="-8" x2="-8" y2="42"/>
+    <text class="warn" x="240" y="22" text-anchor="start">cursor reset to 0, replay all</text>
+  </g>
+  <text class="good" x="900" y="330" text-anchor="middle">applying an op twice is required to be harmless,</text>
+  <text class="good" x="900" y="354" text-anchor="middle">so a replay from zero is cheap and safe</text>
+  <text class="s" x="900" y="392" text-anchor="middle">a reply with no epoch keeps the one the client knows</text>
+</svg>

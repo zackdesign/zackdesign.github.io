@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 480" width="1200" height="480" role="img" aria-label="Two timelines of an extraction with cancel called partway through: on Android the loop stops at the next file boundary and the promise rejects straight away; on iOS the underlying library keeps extracting every remaining file and the promise only rejects after the whole archive is done">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .file{fill:#7c5cff;stroke:#0f1115;stroke-width:2}
+      .filedim{fill:#2a2f3a;stroke:#0f1115;stroke-width:2}
+      .filebad{fill:#ff5d5d;stroke:#0f1115;stroke-width:2}
+      .axis{stroke:#4a5160;stroke-width:2}
+      .cancel{stroke:#ffc400;stroke-width:4}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .bad{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ff5d5d}
+      .good{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .warn{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ffc400}
+      .sep{stroke:#2a2f3a;stroke-width:2}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="480"/>
+  <text class="s" x="1100" y="40" text-anchor="end">time runs left to right, one block per file</text>
+
+  <!-- Android -->
+  <text class="h" x="60" y="100">Android</text>
+  <text class="s" x="60" y="128">a coroutine that checks for cancellation at each file</text>
+  <line class="axis" x1="60" y1="185" x2="840" y2="185"/>
+  <g>
+    <rect class="file" x="60" y="160" width="70" height="50"/>
+    <rect class="file" x="130" y="160" width="70" height="50"/>
+    <rect class="file" x="200" y="160" width="70" height="50"/>
+    <rect class="file" x="270" y="160" width="70" height="50"/>
+    <rect class="filedim" x="340" y="160" width="70" height="50"/>
+    <rect class="filedim" x="410" y="160" width="70" height="50"/>
+    <rect class="filedim" x="480" y="160" width="70" height="50"/>
+    <rect class="filedim" x="550" y="160" width="70" height="50"/>
+    <rect class="filedim" x="620" y="160" width="70" height="50"/>
+    <rect class="filedim" x="690" y="160" width="70" height="50"/>
+    <rect class="filedim" x="760" y="160" width="70" height="50"/>
+  </g>
+  <line class="cancel" x1="305" y1="145" x2="305" y2="225"/>
+  <text class="warn" x="305" y="245" text-anchor="middle">cancel() called</text>
+  <text class="good" x="860" y="192">stops at the next file, rejects</text>
+  <text class="s" x="860" y="245">grey blocks: never extracted</text>
+
+  <!-- iOS -->
+  <text class="h" x="60" y="300">iOS</text>
+  <text class="s" x="60" y="328">SSZipArchive's progress callback can only return early, not abort</text>
+  <line class="axis" x1="60" y1="385" x2="840" y2="385"/>
+  <g>
+    <rect class="file" x="60" y="360" width="70" height="50"/>
+    <rect class="file" x="130" y="360" width="70" height="50"/>
+    <rect class="file" x="200" y="360" width="70" height="50"/>
+    <rect class="file" x="270" y="360" width="70" height="50"/>
+    <rect class="filebad" x="340" y="360" width="70" height="50"/>
+    <rect class="filebad" x="410" y="360" width="70" height="50"/>
+    <rect class="filebad" x="480" y="360" width="70" height="50"/>
+    <rect class="filebad" x="550" y="360" width="70" height="50"/>
+    <rect class="filebad" x="620" y="360" width="70" height="50"/>
+    <rect class="filebad" x="690" y="360" width="70" height="50"/>
+    <rect class="filebad" x="760" y="360" width="70" height="50"/>
+  </g>
+  <line class="cancel" x1="305" y1="345" x2="305" y2="425"/>
+  <text class="bad" x="860" y="392">extracts every file, then rejects</text>
+  <text class="s" x="860" y="445">red blocks: work done after cancel</text>
+  <text class="warn" x="305" y="445" text-anchor="middle">cancel() called</text>
+</svg>

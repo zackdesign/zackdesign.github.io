@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 460" width="1200" height="460" role="img" aria-label="Two horizontal bars each representing 4,086 ClickUp tasks from oldest on the left to newest on the right. In the top bar the ten-page sweep was meant to read the newest 990 tasks; in the bottom bar it actually read the oldest 990, leaving the other 3,096 tasks, including the newest, unread.">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .good{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .bad{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ff5d5d}
+      .track{fill:#2a2f3a}
+      .read-good{fill:#40dca0}
+      .read-bad{fill:#ff5d5d}
+      .sep{stroke:#2a2f3a;stroke-width:2}
+      .tick{stroke:#9aa3b2;stroke-width:2}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="460"/>
+
+  <!-- Panel 1: intended -->
+  <text class="h" x="80" y="60">What the search sweep was meant to read</text>
+  <text class="s" x="80" y="88">newest tasks first, ten pages of 99 rows</text>
+  <rect class="track" x="80" y="110" width="1040" height="44" rx="6"/>
+  <rect class="read-good" x="868" y="110" width="252" height="44" rx="6"/>
+  <text class="s" x="80" y="184">oldest task</text>
+  <text class="s" x="1120" y="184" text-anchor="end">newest task</text>
+  <text class="good" x="994" y="140" text-anchor="middle">990 newest read</text>
+
+  <line class="sep" x1="80" y1="215" x2="1120" y2="215"/>
+
+  <!-- Panel 2: actual -->
+  <text class="h" x="80" y="260">What it actually read</text>
+  <text class="s" x="80" y="288">"reverse" sorted oldest first, and the ten-page cap stopped it there</text>
+  <rect class="track" x="80" y="310" width="1040" height="44" rx="6"/>
+  <rect class="read-bad" x="80" y="310" width="252" height="44" rx="6"/>
+  <text class="bad" x="206" y="340" text-anchor="middle">990 oldest read</text>
+  <text class="lbl" x="726" y="340" text-anchor="middle">3,096 tasks never read, including every recent one</text>
+  <text class="s" x="80" y="384">oldest task</text>
+  <text class="s" x="1120" y="384" text-anchor="end">newest task</text>
+  <text class="s" x="600" y="430" text-anchor="middle">Workspace of 4,086 tasks. A search for a recent task returned one card out of four.</text>
+</svg>

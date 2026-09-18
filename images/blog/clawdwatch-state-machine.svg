@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" width="1200" height="520" role="img" aria-label="The four check states as circles: unknown, healthy, degraded and unhealthy. Arrows show the transitions: first success takes unknown to healthy silently; a failure takes healthy to degraded silently; three failures in a row take degraded to unhealthy and open an alert; a success takes degraded back to healthy silently, or unhealthy back to healthy with a recovered alert. The loop from unhealthy back to itself, which sends a reminder every hour while the check is still failing, is highlighted because the previous version had no such loop and went quiet after the first alert">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .node{fill:#181c24;stroke:#2a2f3a;stroke-width:3}
+      .nodebad{fill:#181c24;stroke:#ff5d5d;stroke-width:3}
+      .nodegood{fill:#181c24;stroke:#40dca0;stroke-width:3}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 17px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .name{font:700 22px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .edge{stroke:#9aa3b2;stroke-width:3;fill:none}
+      .edgealert{stroke:#7c5cff;stroke-width:4;fill:none}
+      .loop{stroke:#40dca0;stroke-width:5;fill:none}
+      .alert{font:700 17px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#7c5cff}
+      .good{font:700 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .bad{font:700 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ff5d5d}
+    </style>
+    <marker id="mg" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto"><path d="M0,0 L14,7 L0,14 z" fill="#9aa3b2"/></marker>
+    <marker id="ma" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto"><path d="M0,0 L14,7 L0,14 z" fill="#7c5cff"/></marker>
+    <marker id="ml" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="16" refX="13" refY="8" orient="auto"><path d="M0,0 L16,8 L0,16 z" fill="#40dca0"/></marker>
+  </defs>
+  <rect class="bg" width="1200" height="520"/>
+  <text class="h" x="600" y="50" text-anchor="middle">What a check can be, and what moves it</text>
+
+  <!-- nodes: unknown(120,270) healthy(380,270) degraded(640,270) unhealthy(900,270) -->
+  <circle class="node" cx="120" cy="270" r="60"/><text class="name" x="120" y="278" text-anchor="middle">unknown</text>
+  <circle class="nodegood" cx="380" cy="270" r="60"/><text class="name" x="380" y="278" text-anchor="middle">healthy</text>
+  <circle class="node" cx="640" cy="270" r="60"/><text class="name" x="640" y="278" text-anchor="middle">degraded</text>
+  <circle class="nodebad" cx="900" cy="270" r="60"/><text class="name" x="900" y="278" text-anchor="middle">unhealthy</text>
+
+  <!-- unknown -> healthy -->
+  <line class="edge" x1="180" y1="270" x2="318" y2="270" marker-end="url(#mg)"/>
+  <text class="s" x="250" y="250" text-anchor="middle">first success</text>
+  <text class="s" x="250" y="300" text-anchor="middle">silent</text>
+
+  <!-- healthy -> degraded (top arc) -->
+  <path class="edge" d="M425,228 Q510,150 595,228" marker-end="url(#mg)"/>
+  <text class="s" x="510" y="164" text-anchor="middle">a failure, below the threshold: silent</text>
+  <!-- degraded -> healthy (bottom arc) -->
+  <path class="edge" d="M595,312 Q510,390 425,312" marker-end="url(#mg)"/>
+  <text class="s" x="510" y="376" text-anchor="middle">a success before it opened: silent</text>
+
+  <!-- degraded -> unhealthy -->
+  <line class="edgealert" x1="700" y1="270" x2="838" y2="270" marker-end="url(#ma)"/>
+  <text class="s" x="762" y="238" text-anchor="middle">three failures in a row</text>
+  <text class="alert" x="770" y="302" text-anchor="middle">alert: OPENED</text>
+
+  <!-- unhealthy -> healthy (long bottom arc) -->
+  <path class="edgealert" d="M870,324 Q640,570 410,324" marker-end="url(#ma)"/>
+  <text class="s" x="640" y="474" text-anchor="middle">first success again</text>
+  <text class="alert" x="640" y="498" text-anchor="middle">alert: RECOVERED</text>
+
+  <!-- unhealthy self loop -->
+  <path class="loop" d="M925,215 C960,120 1080,130 1070,230 C1066,262 1010,300 960,306" marker-end="url(#ml)"/>
+  <text class="good" x="1050" y="86" text-anchor="middle">still failing, reminder due</text>
+  <text class="good" x="1050" y="110" text-anchor="middle">alert: REMINDER, every hour</text>
+  <text class="bad" x="1060" y="360" text-anchor="middle">the previous version</text>
+  <text class="bad" x="1060" y="384" text-anchor="middle">had no such loop, so it</text>
+  <text class="bad" x="1060" y="408" text-anchor="middle">alerted once and went quiet</text>
+</svg>

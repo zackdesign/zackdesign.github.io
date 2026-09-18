@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 500" width="1200" height="500" role="img" aria-label="Two panels showing a queue of three sell orders where the cheapest, chosen as the probe, sits at position 2 not position 0: dropping the first element by position throws away the real first order and re-queues the probe for a second execution, while filtering the probe out by object identity leaves exactly the two other orders deferred">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .row{fill:#181c24;stroke:#3a4150;stroke-width:2;rx:8}
+      .probe{fill:rgba(255,196,0,.12);stroke:#ffc400;stroke-width:3;rx:8}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .idx{font:600 18px ui-monospace,Menlo,Consolas,monospace;fill:#9aa3b2}
+      .code{font:600 20px ui-monospace,Menlo,Consolas,monospace;fill:#fff}
+      .bad{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ff5d5d}
+      .good{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .warn{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ffc400}
+      .strike{stroke:#ff5d5d;stroke-width:4}
+      .sep{stroke:#2a2f3a;stroke-width:2}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="500"/>
+  <line class="sep" x1="600" y1="40" x2="600" y2="460"/>
+
+  <!-- Panel 1: slice(1) -->
+  <text class="h" x="300" y="60" text-anchor="middle">Drop by position</text>
+  <text class="code" x="300" y="92" text-anchor="middle">deferred = pending.slice(1)</text>
+
+  <text class="idx" x="70" y="160">[0]</text>
+  <rect class="row" x="110" y="130" width="360" height="48"/>
+  <text class="lbl" x="130" y="161">Sell A, biggest loss</text>
+  <line class="strike" x1="110" y1="154" x2="470" y2="154"/>
+  <text class="bad" x="490" y="161">dropped</text>
+
+  <text class="idx" x="70" y="230">[1]</text>
+  <rect class="row" x="110" y="200" width="360" height="48"/>
+  <text class="lbl" x="130" y="231">Sell B</text>
+  <text class="s" x="490" y="231">deferred</text>
+
+  <text class="idx" x="70" y="300">[2]</text>
+  <rect class="probe" x="110" y="270" width="360" height="48"/>
+  <text class="lbl" x="130" y="301">Sell C, cheapest = probe</text>
+  <text class="warn" x="490" y="301">placed now</text>
+  <text class="bad" x="490" y="326">and deferred</text>
+
+  <text class="bad" x="300" y="400" text-anchor="middle">A is never placed; C is placed twice</text>
+  <text class="s" x="300" y="430" text-anchor="middle">a duplicate order on a live account</text>
+
+  <!-- Panel 2: filter by identity -->
+  <text class="h" x="900" y="60" text-anchor="middle">Drop by identity</text>
+  <text class="code" x="900" y="92" text-anchor="middle">deferred = pending.filter(o =&gt; o !== probe)</text>
+
+  <text class="idx" x="670" y="160">[0]</text>
+  <rect class="row" x="710" y="130" width="340" height="48"/>
+  <text class="lbl" x="730" y="161">Sell A, biggest loss</text>
+  <text class="good" x="1070" y="161">deferred</text>
+
+  <text class="idx" x="670" y="230">[1]</text>
+  <rect class="row" x="710" y="200" width="340" height="48"/>
+  <text class="lbl" x="730" y="231">Sell B</text>
+  <text class="good" x="1070" y="231">deferred</text>
+
+  <text class="idx" x="670" y="300">[2]</text>
+  <rect class="probe" x="710" y="270" width="340" height="48"/>
+  <text class="lbl" x="730" y="301">Sell C, cheapest = probe</text>
+  <text class="warn" x="1070" y="301">placed now</text>
+
+  <text class="good" x="900" y="400" text-anchor="middle">every order placed exactly once</text>
+  <text class="s" x="900" y="430" text-anchor="middle">the probe is rarely at position 0, because sells are queued loss-first</text>
+</svg>

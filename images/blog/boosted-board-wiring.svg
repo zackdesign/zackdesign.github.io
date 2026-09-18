@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" width="1200" height="520" role="img" aria-label="A wiring sketch: the USB power bank feeds a 5 volt supply and ground to both the Arduino and the LED strip; a 1000 microfarad capacitor bridges the supply and ground next to the strip; the Arduino's data wire passes through a 220 ohm resistor before reaching the strip's first LED">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .good{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .part{fill:rgba(124,92,255,.14);stroke:#7c5cff;stroke-width:3}
+      .must{fill:rgba(64,220,160,.16);stroke:#40dca0;stroke-width:3}
+      .v5{stroke:#ffc400;stroke-width:4;fill:none}
+      .gnd{stroke:#9aa3b2;stroke-width:4;fill:none}
+      .data{stroke:#40dca0;stroke-width:4;fill:none}
+      .plate{stroke:#40dca0;stroke-width:6}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="520"/>
+  <text class="h" x="600" y="60" text-anchor="middle">The two parts people skip, and where they sit</text>
+
+  <!-- power bank -->
+  <rect class="part" x="60" y="150" width="230" height="110" rx="10"/>
+  <text class="lbl" x="175" y="195" text-anchor="middle">USB power bank</text>
+  <text class="s" x="175" y="225" text-anchor="middle">5 volts, 2.4 amps</text>
+
+  <!-- LED strip -->
+  <rect class="part" x="900" y="150" width="240" height="110" rx="10"/>
+  <text class="lbl" x="1020" y="195" text-anchor="middle">LED strip, 30 LEDs</text>
+  <text class="s" x="1020" y="225" text-anchor="middle">data enters at the first LED</text>
+
+  <!-- Arduino -->
+  <rect class="part" x="470" y="340" width="260" height="110" rx="10"/>
+  <text class="lbl" x="600" y="385" text-anchor="middle">Arduino Uno</text>
+  <text class="s" x="600" y="415" text-anchor="middle">reads the accelerometer</text>
+
+  <!-- 5V and ground rails -->
+  <path class="v5" d="M290 180 H900"/>
+  <path class="gnd" d="M290 235 H900"/>
+  <text class="s" x="330" y="170">5 volt supply</text>
+  <text class="s" x="330" y="262">ground</text>
+  <!-- rails down to arduino -->
+  <path class="v5" d="M560 180 V340"/>
+  <path class="gnd" d="M640 235 V340"/>
+
+  <!-- capacitor across the rails near the strip -->
+  <line class="plate" x1="720" y1="196" x2="780" y2="196"/>
+  <line class="plate" x1="720" y1="219" x2="780" y2="219"/>
+  <path class="v5" d="M750 180 V196"/>
+  <path class="gnd" d="M750 219 V235"/>
+  <text class="good" x="700" y="122" text-anchor="middle">1000 µF capacitor</text>
+  <text class="s" x="700" y="146" text-anchor="middle">bridges supply and ground, close to the strip</text>
+
+  <!-- data wire with resistor -->
+  <path class="data" d="M730 395 H880"/>
+  <rect class="must" x="880" y="375" width="120" height="40" rx="6"/>
+  <text class="lbl" x="940" y="402" text-anchor="middle">220 Ω</text>
+  <path class="data" d="M1000 395 H1060 V260"/>
+  <text class="good" x="900" y="465" text-anchor="middle">220 Ω resistor on the data wire</text>
+  <text class="s" x="900" y="490" text-anchor="middle">protects the first LED's data input</text>
+  <text class="s" x="805" y="330" text-anchor="middle">data from the Arduino</text>
+</svg>

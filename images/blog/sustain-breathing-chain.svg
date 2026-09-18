@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" width="1200" height="420" role="img" aria-label="The circular-breathing drill chain in order: cheek-puff breathing three times, water spray twice, straw and glass three times plus a self-report, circular breathing on the didgeridoo twice, bridge the gap, then unbroken sets, which needs a measured 60-second unbroken note. Each drill unlocks only when the one before it has been demonstrated.">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .box{fill:#181b22;stroke:#7c5cff;stroke-width:3;rx:14}
+      .gate{fill:#181b22;stroke:#ffc400;stroke-width:3;rx:14}
+      .t{font:600 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 17px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .h{font:700 24px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .arrow{stroke:#40dca0;stroke-width:3;fill:none}
+      .k{font:600 17px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+    </style>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#40dca0"/></marker>
+  </defs>
+  <rect class="bg" width="1200" height="420"/>
+  <text class="h" x="600" y="52" text-anchor="middle">Each drill unlocks only once the one before it has been demonstrated</text>
+
+  <g transform="translate(40,120)">
+    <rect class="box" width="180" height="110"/>
+    <text class="t" x="90" y="45" text-anchor="middle">Cheek-puff</text>
+    <text class="t" x="90" y="70" text-anchor="middle">breathing</text>
+    <text class="s" x="90" y="96" text-anchor="middle">3 demonstrations</text>
+  </g>
+  <line class="arrow" x1="220" y1="175" x2="262" y2="175" marker-end="url(#a)"/>
+  <g transform="translate(264,120)">
+    <rect class="box" width="180" height="110"/>
+    <text class="t" x="90" y="58" text-anchor="middle">Water spray</text>
+    <text class="s" x="90" y="96" text-anchor="middle">2 demonstrations</text>
+  </g>
+  <line class="arrow" x1="444" y1="175" x2="486" y2="175" marker-end="url(#a)"/>
+  <g transform="translate(488,120)">
+    <rect class="box" width="220" height="110"/>
+    <text class="t" x="110" y="45" text-anchor="middle">Straw and glass</text>
+    <text class="s" x="110" y="72" text-anchor="middle">3 demonstrations, plus</text>
+    <text class="s" x="110" y="96" text-anchor="middle">"bubbles unbroken through a sniff?"</text>
+  </g>
+  <line class="arrow" x1="708" y1="175" x2="750" y2="175" marker-end="url(#a)"/>
+  <g transform="translate(752,120)">
+    <rect class="box" width="200" height="110"/>
+    <text class="t" x="100" y="45" text-anchor="middle">Circular breathing</text>
+    <text class="t" x="100" y="70" text-anchor="middle">on the didgeridoo</text>
+    <text class="s" x="100" y="96" text-anchor="middle">2 demonstrations</text>
+  </g>
+  <line class="arrow" x1="952" y1="175" x2="994" y2="175" marker-end="url(#a)"/>
+  <g transform="translate(996,120)">
+    <rect class="box" width="170" height="110"/>
+    <text class="t" x="85" y="58" text-anchor="middle">Bridge the gap</text>
+  </g>
+
+  <path class="arrow" d="M1081,230 L1081,270 L600,270 L600,296" marker-end="url(#a)"/>
+  <g transform="translate(470,300)">
+    <rect class="gate" width="260" height="90"/>
+    <text class="t" x="130" y="38" text-anchor="middle">Unbroken sets</text>
+    <text class="s" x="130" y="66" text-anchor="middle">needs a measured 60-second note</text>
+  </g>
+  <text class="k" x="760" y="352">a measurement, not a self-report</text>
+</svg>

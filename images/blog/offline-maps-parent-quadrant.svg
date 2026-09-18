@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" width="1200" height="520" role="img" aria-label="Two panels. Left: the 256-pixel tile requested at zoom z is drawn from the 512-pixel vector tile one zoom level up, of which it is one quarter, so it carries the coarser level's detail. Right: the worked Tasmanian case, where the child tile's own vector data holds seven river features but the parent's quadrant holds nothing, so the tile shipped blank">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .parent{fill:#181c24;stroke:#2a2f3a;stroke-width:2}
+      .quad{fill:rgba(255,196,0,.12);stroke:#ffc400;stroke-width:3}
+      .child{fill:#181c24;stroke:#40dca0;stroke-width:3}
+      .grid{stroke:#2a2f3a;stroke-width:2}
+      .river{fill:none;stroke:#7c5cff;stroke-width:4;stroke-linecap:round}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .warn{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ffc400}
+      .bad{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ff5d5d}
+      .good{font:700 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .sep{stroke:#2a2f3a;stroke-width:2}
+      .arrow{stroke:#9aa3b2;stroke-width:3;fill:none}
+      .ah{fill:#9aa3b2}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="520"/>
+  <line class="sep" x1="600" y1="40" x2="600" y2="490"/>
+
+  <!-- Panel 1 -->
+  <text class="h" x="300" y="60" text-anchor="middle">What the 256-pixel route draws from</text>
+  <text class="s" x="300" y="88" text-anchor="middle">the requested tile is one quarter of the tile one zoom level up</text>
+  <rect class="parent" x="120" y="120" width="280" height="280"/>
+  <line class="grid" x1="260" y1="120" x2="260" y2="400"/>
+  <line class="grid" x1="120" y1="260" x2="400" y2="260"/>
+  <rect class="quad" x="260" y="120" width="140" height="140"/>
+  <text class="lbl" x="260" y="422" text-anchor="middle">parent vector tile, one zoom level up</text>
+  <text class="warn" x="330" y="235" text-anchor="middle">tile you asked for</text>
+  <text class="s" x="300" y="454" text-anchor="middle">so every tile carries the detail</text>
+  <text class="s" x="300" y="478" text-anchor="middle">of the zoom level above its filename</text>
+
+  <!-- Panel 2 -->
+  <text class="h" x="900" y="60" text-anchor="middle">Why 752 Tasmanian tiles came out blank</text>
+  <text class="s" x="900" y="88" text-anchor="middle">zoom 12, column 3705, row 1515</text>
+  <!-- child's own data -->
+  <rect class="child" x="660" y="130" width="180" height="180"/>
+  <path class="river" d="M675,290 C700,240 730,250 750,200 S800,160 830,150"/>
+  <path class="river" d="M670,180 C700,190 720,170 760,230 S810,280 835,300"/>
+  <text class="lbl" x="750" y="340" text-anchor="middle">the child's own vector tile:</text>
+  <text class="good" x="750" y="364" text-anchor="middle">seven river features</text>
+  <!-- parent quadrant -->
+  <rect class="parent" x="960" y="130" width="180" height="180"/>
+  <rect class="quad" x="960" y="130" width="180" height="180"/>
+  <text class="lbl" x="1050" y="340" text-anchor="middle">the parent's quadrant:</text>
+  <text class="bad" x="1050" y="364" text-anchor="middle">nothing</text>
+  <line class="arrow" x1="850" y1="220" x2="936" y2="220"/><polygon class="ah" points="936,212 950,220 936,228"/>
+  <text class="s" x="900" y="206" text-anchor="middle">drawn from</text>
+  <text class="bad" x="900" y="436" text-anchor="middle">shipped as flat background,</text>
+  <text class="bad" x="900" y="460" text-anchor="middle">and the build log said done</text>
+</svg>

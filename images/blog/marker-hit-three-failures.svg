@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" width="1200" height="520" role="img" aria-label="Three panels: on MapKit a finger on pin B's head inside pin A's rectangular frame selects A; on Google Maps a finger dead-centre on pin b is named c because c's hit region is offset upward; on Mapbox a finger in the empty corner of pin A's collision rectangle, over pin B's head, selects A">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .pinA{fill:#7c5cff;stroke:#fff;stroke-width:3}
+      .pinB{fill:#40dca0;stroke:#fff;stroke-width:3}
+      .frame{fill:none;stroke:#ff5d5d;stroke-width:3;stroke-dasharray:10 8}
+      .gframe{fill:rgba(255,196,0,.10);stroke:#ffc400;stroke-width:3;stroke-dasharray:10 8}
+      .finger{fill:rgba(255,255,255,.18);stroke:#fff;stroke-width:3}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .bad{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ff5d5d}
+      .warn{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ffc400}
+      .dot{fill:#fff}
+      .sep{stroke:#2a2f3a;stroke-width:2}
+    </style>
+    <g id="pin">
+      <path d="M-30,-90 L0,0 L30,-90 z"/>
+      <circle cx="0" cy="-102" r="38"/>
+    </g>
+  </defs>
+  <rect class="bg" width="1200" height="520"/>
+  <line class="sep" x1="400" y1="40" x2="400" y2="480"/>
+  <line class="sep" x1="800" y1="40" x2="800" y2="480"/>
+
+  <!-- Panel 1: MapKit -->
+  <text class="h" x="200" y="60" text-anchor="middle">iOS · MapKit</text>
+  <text class="s" x="200" y="88" text-anchor="middle">hit-tests the annotation's frame</text>
+  <g transform="translate(150,320)">
+    <!-- B behind, offset right -->
+    <g transform="translate(46,18)"><use href="#pin" class="pinB"/><text class="lbl" x="0" y="-96" text-anchor="middle">B</text></g>
+    <!-- A in front -->
+    <use href="#pin" class="pinA"/><text class="lbl" x="0" y="-96" text-anchor="middle">A</text>
+    <!-- A's frame -->
+    <rect class="frame" x="-40" y="-150" width="80" height="155"/>
+    <!-- finger on B's head, inside A's frame -->
+    <circle class="finger" cx="30" cy="-72" r="18"/>
+    <circle class="dot" cx="0" cy="0" r="4"/>
+  </g>
+  <text class="s" x="200" y="390" text-anchor="middle">finger on B's head,</text>
+  <text class="s" x="200" y="416" text-anchor="middle">inside A's rectangle</text>
+  <text class="bad" x="200" y="452" text-anchor="middle">→ MapKit reports A</text>
+
+  <!-- Panel 2: Google Maps -->
+  <text class="h" x="600" y="60" text-anchor="middle">Android · Google Maps</text>
+  <text class="s" x="600" y="88" text-anchor="middle">hit region offset above the bitmap</text>
+  <g transform="translate(560,330)">
+    <!-- c to the right/behind -->
+    <g transform="translate(80,0)"><use href="#pin" class="pinB"/><text class="lbl" x="0" y="-96" text-anchor="middle">c</text>
+      <!-- c's offset hit region: shifted up and left over b's head -->
+      <rect class="gframe" x="-120" y="-215" width="150" height="150"/>
+    </g>
+    <use href="#pin" class="pinA"/><text class="lbl" x="0" y="-96" text-anchor="middle">b</text>
+    <!-- finger dead-centre on b -->
+    <circle class="finger" cx="0" cy="-102" r="18"/>
+    <circle class="dot" cx="0" cy="0" r="4"/>
+  </g>
+  <text class="s" x="600" y="390" text-anchor="middle">finger dead-centre on b,</text>
+  <text class="s" x="600" y="416" text-anchor="middle">inside c's offset region</text>
+  <text class="warn" x="600" y="452" text-anchor="middle">→ Google names c</text>
+
+  <!-- Panel 3: Mapbox -->
+  <text class="h" x="1000" y="60" text-anchor="middle">Web · Mapbox GL</text>
+  <text class="s" x="1000" y="88" text-anchor="middle">hit-tests the icon's collision rectangle</text>
+  <g transform="translate(960,330)">
+    <!-- B behind, lower-right -->
+    <g transform="translate(64,14)"><use href="#pin" class="pinB"/><text class="lbl" x="0" y="-96" text-anchor="middle">B</text></g>
+    <use href="#pin" class="pinA"/><text class="lbl" x="0" y="-96" text-anchor="middle">A</text>
+    <!-- A's padded collision rectangle, larger than the pin -->
+    <rect class="frame" x="-62" y="-165" width="124" height="180"/>
+    <!-- finger in A's empty corner, over B's head -->
+    <circle class="finger" cx="44" cy="-70" r="18"/>
+    <circle class="dot" cx="0" cy="0" r="4"/>
+  </g>
+  <text class="s" x="1000" y="390" text-anchor="middle">finger in A's empty corner,</text>
+  <text class="s" x="1000" y="416" text-anchor="middle">over B's head</text>
+  <text class="bad" x="1000" y="452" text-anchor="middle">→ Mapbox selects A</text>
+</svg>

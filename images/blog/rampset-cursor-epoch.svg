@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 460" width="1200" height="460" role="img" aria-label="Two panels: after the journal is rebuilt its sequence numbers restart at 1, but the device still holds a cursor at 912 from the old journal, so asking for entries newer than 912 returns nothing and the device silently never syncs again; with an epoch stamped on the journal, a device that sees a new epoch resets its cursor to zero and replays every entry">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .row{fill:#181c24;stroke:#3a4150;stroke-width:2;rx:6}
+      .rowgood{fill:rgba(64,220,160,.12);stroke:#40dca0;stroke-width:2;rx:6}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .mono{font:600 18px ui-monospace,Menlo,Consolas,monospace;fill:#fff}
+      .bad{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ff5d5d}
+      .good{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .warn{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ffc400}
+      .cursor{stroke:#ffc400;stroke-width:4;fill:none}
+      .sep{stroke:#2a2f3a;stroke-width:2}
+    </style>
+    <marker id="ay" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#ffc400"/></marker>
+  </defs>
+  <rect class="bg" width="1200" height="460"/>
+  <line class="sep" x1="600" y1="40" x2="600" y2="420"/>
+
+  <!-- Panel 1 -->
+  <text class="h" x="300" y="60" text-anchor="middle">Rebuilt journal, no epoch</text>
+  <text class="s" x="300" y="88" text-anchor="middle">sequence numbers restart at 1</text>
+  <text class="lbl" x="60" y="140">Journal on the server</text>
+  <g>
+    <rect class="row" x="60" y="155" width="90" height="44"/><text class="mono" x="105" y="184" text-anchor="middle">seq 1</text>
+    <rect class="row" x="160" y="155" width="90" height="44"/><text class="mono" x="205" y="184" text-anchor="middle">seq 2</text>
+    <rect class="row" x="260" y="155" width="90" height="44"/><text class="mono" x="305" y="184" text-anchor="middle">seq 3</text>
+    <rect class="row" x="360" y="155" width="90" height="44"/><text class="mono" x="405" y="184" text-anchor="middle">seq 4</text>
+  </g>
+  <text class="lbl" x="60" y="260">Device's cursor, from the old journal</text>
+  <path class="cursor" d="M60,290 L540,290" marker-end="url(#ay)"/>
+  <text class="warn" x="300" y="320" text-anchor="middle">"give me everything after seq 912"</text>
+  <text class="bad" x="300" y="380" text-anchor="middle">nothing is after 912: the device never syncs again</text>
+  <text class="s" x="300" y="408" text-anchor="middle">and reports no error</text>
+
+  <!-- Panel 2 -->
+  <text class="h" x="900" y="60" text-anchor="middle">Journal stamped with an epoch</text>
+  <text class="s" x="900" y="88" text-anchor="middle">the fix that shipped</text>
+  <text class="lbl" x="660" y="140">Journal on the server, epoch 2</text>
+  <g>
+    <rect class="rowgood" x="660" y="155" width="90" height="44"/><text class="mono" x="705" y="184" text-anchor="middle">seq 1</text>
+    <rect class="rowgood" x="760" y="155" width="90" height="44"/><text class="mono" x="805" y="184" text-anchor="middle">seq 2</text>
+    <rect class="rowgood" x="860" y="155" width="90" height="44"/><text class="mono" x="905" y="184" text-anchor="middle">seq 3</text>
+    <rect class="rowgood" x="960" y="155" width="90" height="44"/><text class="mono" x="1005" y="184" text-anchor="middle">seq 4</text>
+  </g>
+  <text class="lbl" x="660" y="260">Device sees epoch 1 became epoch 2</text>
+  <path class="cursor" d="M660,290 L700,290" marker-end="url(#ay)"/>
+  <text class="warn" x="900" y="320" text-anchor="middle">cursor reset to 0, replay from the start</text>
+  <text class="good" x="900" y="380" text-anchor="middle">every entry arrives; the device catches up</text>
+  <text class="s" x="900" y="408" text-anchor="middle">a cursor only means something against its epoch</text>
+</svg>

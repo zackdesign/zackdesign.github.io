@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 500" width="1200" height="500" role="img" aria-label="Three panels showing the upload in order: first the command line asks Slack for an upload address and gets back a one-time URL and a file id; second it sends the file bytes to that URL with no authentication header; third it tells Slack which channel and thread to share the finished file in.">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .code{font:500 17px Menlo,Consolas,monospace;fill:#40dca0}
+      .box{fill:none;stroke:#7c5cff;stroke-width:3;rx:8}
+      .box2{fill:none;stroke:#40dca0;stroke-width:3;rx:8}
+      .arrow{stroke:#fff;stroke-width:3;fill:none;marker-end:url(#head)}
+      .sep{stroke:#2a2f3a;stroke-width:2}
+    </style>
+    <marker id="head" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#fff"/></marker>
+  </defs>
+  <rect class="bg" width="1200" height="500"/>
+  <line class="sep" x1="400" y1="40" x2="400" y2="470"/>
+  <line class="sep" x1="800" y1="40" x2="800" y2="470"/>
+
+  <!-- Panel 1 -->
+  <text class="h" x="200" y="60" text-anchor="middle">Step 1 · ask for an address</text>
+  <rect class="box" x="60" y="100" width="280" height="70"/>
+  <text class="lbl" x="200" y="143" text-anchor="middle">slackbuzz file upload</text>
+  <path class="arrow" d="M200,175 L200,235"/>
+  <text class="s" x="215" y="212">filename and byte length</text>
+  <rect class="box2" x="60" y="240" width="280" height="70"/>
+  <text class="lbl" x="200" y="283" text-anchor="middle">Slack API</text>
+  <text class="code" x="200" y="330" text-anchor="middle">files.getUploadURLExternal</text>
+  <text class="s" x="200" y="372" text-anchor="middle">back comes a one-time upload URL</text>
+  <text class="s" x="200" y="398" text-anchor="middle">and a file id</text>
+
+  <!-- Panel 2 -->
+  <text class="h" x="600" y="60" text-anchor="middle">Step 2 · send the bytes</text>
+  <rect class="box" x="460" y="100" width="280" height="70"/>
+  <text class="lbl" x="600" y="143" text-anchor="middle">slackbuzz file upload</text>
+  <path class="arrow" d="M600,175 L600,235"/>
+  <text class="s" x="615" y="212">the file itself</text>
+  <rect class="box2" x="460" y="240" width="280" height="70"/>
+  <text class="lbl" x="600" y="283" text-anchor="middle">that one-time URL</text>
+  <text class="s" x="600" y="345" text-anchor="middle">a multipart form with one</text>
+  <text class="s" x="600" y="371" text-anchor="middle">"filename" field and</text>
+  <text class="s" x="600" y="397" text-anchor="middle">no authentication header</text>
+
+  <!-- Panel 3 -->
+  <text class="h" x="1000" y="60" text-anchor="middle">Step 3 · say where it goes</text>
+  <rect class="box" x="860" y="100" width="280" height="70"/>
+  <text class="lbl" x="1000" y="143" text-anchor="middle">slackbuzz file upload</text>
+  <path class="arrow" d="M1000,175 L1000,235"/>
+  <text class="s" x="1015" y="200">file id, channel,</text>
+  <text class="s" x="1015" y="224">comment, thread</text>
+  <rect class="box2" x="860" y="240" width="280" height="70"/>
+  <text class="lbl" x="1000" y="283" text-anchor="middle">Slack API</text>
+  <text class="code" x="1000" y="330" text-anchor="middle">files.completeUploadExternal</text>
+  <text class="s" x="1000" y="372" text-anchor="middle">the file appears in the channel,</text>
+  <text class="s" x="1000" y="398" text-anchor="middle">in the thread if one was given</text>
+
+  <text class="s" x="600" y="455" text-anchor="middle">The old single call, files.upload, did all three at once and now returns method_deprecated.</text>
+</svg>

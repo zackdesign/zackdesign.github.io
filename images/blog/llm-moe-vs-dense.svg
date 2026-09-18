@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 460" width="1200" height="460" role="img" aria-label="Two panels. Left: a dense 27-billion-parameter model drawn as 27 blocks, all lit, because every block is read from memory for every token. Right: a 35-billion-parameter mixture-of-experts model drawn as 35 blocks of which only 3 are lit, because only 3 billion parameters are read per token, though all 35 must still be stored.">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .good{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .warn{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ffc400}
+      .on{fill:#7c5cff;stroke:#fff;stroke-width:1.5}
+      .act{fill:#40dca0;stroke:#fff;stroke-width:1.5}
+      .off{fill:#22252e;stroke:#3a3f4b;stroke-width:1.5}
+      .sep{stroke:#2a2f3a;stroke-width:2}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="460"/>
+  <line class="sep" x1="600" y1="40" x2="600" y2="420"/>
+
+  <text class="h" x="300" y="60" text-anchor="middle">Dense model, 27B parameters</text>
+  <text class="s" x="300" y="88" text-anchor="middle">every block is read for every token</text>
+  <g transform="translate(120,110)">
+    <g class="on">
+      <rect x="0" y="0" width="36" height="36"/><rect x="40" y="0" width="36" height="36"/><rect x="80" y="0" width="36" height="36"/><rect x="120" y="0" width="36" height="36"/><rect x="160" y="0" width="36" height="36"/><rect x="200" y="0" width="36" height="36"/><rect x="240" y="0" width="36" height="36"/><rect x="280" y="0" width="36" height="36"/><rect x="320" y="0" width="36" height="36"/>
+      <rect x="0" y="40" width="36" height="36"/><rect x="40" y="40" width="36" height="36"/><rect x="80" y="40" width="36" height="36"/><rect x="120" y="40" width="36" height="36"/><rect x="160" y="40" width="36" height="36"/><rect x="200" y="40" width="36" height="36"/><rect x="240" y="40" width="36" height="36"/><rect x="280" y="40" width="36" height="36"/><rect x="320" y="40" width="36" height="36"/>
+      <rect x="0" y="80" width="36" height="36"/><rect x="40" y="80" width="36" height="36"/><rect x="80" y="80" width="36" height="36"/><rect x="120" y="80" width="36" height="36"/><rect x="160" y="80" width="36" height="36"/><rect x="200" y="80" width="36" height="36"/><rect x="240" y="80" width="36" height="36"/><rect x="280" y="80" width="36" height="36"/><rect x="320" y="80" width="36" height="36"/>
+    </g>
+  </g>
+  <text class="warn" x="300" y="290" text-anchor="middle">27B read from memory per token</text>
+  <text class="lbl" x="300" y="330" text-anchor="middle">about 16 GB on disk at 4-bit</text>
+  <text class="s" x="300" y="370" text-anchor="middle">measured about 9 tokens per second</text>
+  <text class="s" x="300" y="396" text-anchor="middle">on the M3 Pro (Qwen3.5-27B)</text>
+
+  <text class="h" x="900" y="60" text-anchor="middle">Mixture of experts, 35B total, 3B active</text>
+  <text class="s" x="900" y="88" text-anchor="middle">only the chosen experts are read for each token</text>
+  <g transform="translate(700,110)">
+    <g class="off">
+      <rect x="0" y="0" width="36" height="36"/><rect x="40" y="0" width="36" height="36"/><rect x="80" y="0" width="36" height="36"/><rect x="120" y="0" width="36" height="36"/><rect x="160" y="0" width="36" height="36"/><rect x="200" y="0" width="36" height="36"/><rect x="240" y="0" width="36" height="36"/><rect x="280" y="0" width="36" height="36"/><rect x="320" y="0" width="36" height="36"/><rect x="360" y="0" width="36" height="36"/>
+      <rect x="0" y="40" width="36" height="36"/><rect x="40" y="40" width="36" height="36"/><rect x="80" y="40" width="36" height="36"/><rect x="120" y="40" width="36" height="36"/><rect x="160" y="40" width="36" height="36"/><rect x="200" y="40" width="36" height="36"/><rect x="240" y="40" width="36" height="36"/><rect x="280" y="40" width="36" height="36"/><rect x="320" y="40" width="36" height="36"/><rect x="360" y="40" width="36" height="36"/>
+      <rect x="0" y="80" width="36" height="36"/><rect x="40" y="80" width="36" height="36"/><rect x="80" y="80" width="36" height="36"/><rect x="120" y="80" width="36" height="36"/><rect x="160" y="80" width="36" height="36"/><rect x="200" y="80" width="36" height="36"/><rect x="240" y="80" width="36" height="36"/><rect x="280" y="80" width="36" height="36"/><rect x="320" y="80" width="36" height="36"/><rect x="360" y="80" width="36" height="36"/>
+      <rect x="0" y="120" width="36" height="36"/><rect x="40" y="120" width="36" height="36"/><rect x="80" y="120" width="36" height="36"/><rect x="120" y="120" width="36" height="36"/><rect x="160" y="120" width="36" height="36"/>
+    </g>
+    <g class="act">
+      <rect x="80" y="0" width="36" height="36"/><rect x="240" y="40" width="36" height="36"/><rect x="40" y="120" width="36" height="36"/>
+    </g>
+  </g>
+  <text class="good" x="900" y="310" text-anchor="middle">3B read from memory per token</text>
+  <text class="lbl" x="900" y="350" text-anchor="middle">about 22 GB on disk at 4-bit: every expert is stored</text>
+  <text class="s" x="900" y="390" text-anchor="middle">measured about 35 to 48 tokens per second</text>
+  <text class="s" x="900" y="416" text-anchor="middle">on the same M3 Pro (Qwen3.6-35B-A3B)</text>
+</svg>

@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 460" width="1200" height="460" role="img" aria-label="Two overlapping pins. The finger is on the visible head of the front pin, but the back pin's tip happens to lie under the finger. Choosing the nearest tip picks the back pin, whose head is hidden; choosing the pin painted on top picks the one the user can see.">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .front{fill:#7c5cff;stroke:#fff;stroke-width:3}
+      .back{fill:#40dca0;stroke:#fff;stroke-width:3}
+      .finger{fill:rgba(255,255,255,.18);stroke:#fff;stroke-width:3}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .bad{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ff5d5d}
+      .good{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .lbl{font:600 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .tip{fill:#ffc400}
+      .sep{stroke:#2a2f3a;stroke-width:2}
+    </style>
+    <g id="p">
+      <path d="M-30,-90 L0,0 L30,-90 z"/>
+      <circle cx="0" cy="-102" r="38"/>
+    </g>
+  </defs>
+  <rect class="bg" width="1200" height="460"/>
+  <line class="sep" x1="600" y1="40" x2="600" y2="420"/>
+
+  <!-- LEFT: nearest tip (wrong) -->
+  <text class="h" x="300" y="60" text-anchor="middle">Rule 1: nearest tip wins</text>
+  <text class="s" x="300" y="88" text-anchor="middle">a pin's tip sits well below the head you see</text>
+  <g transform="translate(300,330)">
+    <!-- back pin: its tip sits right under the finger, its head hidden behind the front pin -->
+    <g transform="translate(12,-40)"><use href="#p" class="back"/></g>
+    <!-- front pin -->
+    <use href="#p" class="front"/>
+    <text class="lbl" x="0" y="-96" text-anchor="middle">A</text>
+    <!-- back pin's tip marker -->
+    <circle class="tip" cx="12" cy="-40" r="6"/>
+    <!-- finger on A's head -->
+    <circle class="finger" cx="14" cy="-100" r="20"/>
+    <text class="s" x="60" y="-46">B's tip, hidden</text>
+    <text class="s" x="60" y="-22">under A's pointer</text>
+  </g>
+  <text class="s" x="300" y="390" text-anchor="middle">finger on A's head; B's tip is closer</text>
+  <text class="bad" x="300" y="422" text-anchor="middle">→ selects B, which you cannot see</text>
+
+  <!-- RIGHT: painted on top (right) -->
+  <text class="h" x="900" y="60" text-anchor="middle">Rule 2: the pin painted on top wins</text>
+  <text class="s" x="900" y="88" text-anchor="middle">among pins whose shape contains the finger</text>
+  <g transform="translate(900,330)">
+    <g transform="translate(12,-40)"><use href="#p" class="back"/></g>
+    <use href="#p" class="front"/>
+    <text class="lbl" x="0" y="-96" text-anchor="middle">A</text>
+    <circle class="finger" cx="14" cy="-100" r="20"/>
+  </g>
+  <text class="s" x="900" y="390" text-anchor="middle">finger on A's head; A is drawn over B</text>
+  <text class="good" x="900" y="422" text-anchor="middle">→ selects A, the one you touched</text>
+</svg>

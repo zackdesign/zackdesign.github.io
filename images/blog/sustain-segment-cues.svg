@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" width="1200" height="300" role="img" aria-label="A timeline counting down to the start of the next segment. From four seconds before, the upcoming segment brightens steadily. At 3.2 seconds before, a chime sounds, but only if the coming segment is ten seconds or longer. At zero the segment reaches the strike point">
+  <defs>
+    <linearGradient id="ramp" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#7c5cff" stop-opacity="0.15"/>
+      <stop offset="1" stop-color="#7c5cff" stop-opacity="1"/>
+    </linearGradient>
+    <style>
+      .bg{fill:#0f1115}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .warn{font:700 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ffc400}
+      .good{font:700 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .axis{stroke:#2a2f3a;stroke-width:2}
+      .strike{stroke:#40dca0;stroke-width:4}
+      .chime{stroke:#ffc400;stroke-width:3}
+      .dim{fill:#7c5cff;opacity:.15}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="300"/>
+  <text class="h" x="60" y="56" text-anchor="start">Cues before the next segment arrives</text>
+
+  <!-- scale: 6 s before at x=200 to 0 at x=1040; 140 px per second -->
+  <line class="axis" x1="200" y1="220" x2="1100" y2="220"/>
+  <g class="s">
+    <text x="200" y="250" text-anchor="middle">6 s before</text>
+    <text x="480" y="250" text-anchor="middle">4 s</text>
+    <text x="592" y="250" text-anchor="middle">3.2 s</text>
+    <text x="760" y="250" text-anchor="middle">2 s</text>
+    <text x="1040" y="250" text-anchor="middle">now</text>
+  </g>
+  <!-- segment bar: dim until 4 s, then ramp to full at 0 -->
+  <rect class="dim" x="200" y="120" width="280" height="40" rx="4"/>
+  <rect x="480" y="120" width="560" height="40" rx="4" fill="url(#ramp)"/>
+  <text class="lbl" x="340" y="104" text-anchor="middle">next segment, dim</text>
+  <text class="lbl" x="760" y="104" text-anchor="middle">brightens steadily over the last 4 s</text>
+
+  <line class="chime" x1="592" y1="112" x2="592" y2="200"/>
+  <text class="warn" x="592" y="192" text-anchor="middle" dy="-90">chime</text>
+  <text class="s" x="592" y="290" text-anchor="middle">only for segments of 10 s or more</text>
+
+  <line class="strike" x1="1040" y1="100" x2="1040" y2="200"/>
+  <text class="good" x="1040" y="90" text-anchor="middle">strike point</text>
+</svg>

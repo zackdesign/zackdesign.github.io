@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 460" width="1200" height="460" role="img" aria-label="Two timelines. The top bar is the 4 minute 40 second studio recording with five coloured stretches, the sections the band played, separated by grey stretches they skipped. The bottom bar is the 1 minute 56 second live recording, where the same five sections sit back to back in order. Lines join each live section to where it came from in the studio track.">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .track{fill:#2a2f3a}
+      .seg{fill:#7c5cff;stroke:#0f1115;stroke-width:2}
+      .seg2{fill:#40dca0;stroke:#0f1115;stroke-width:2}
+      .link{stroke:#9aa3b2;stroke-width:2;stroke-dasharray:6 6;fill:none}
+      .tick{stroke:#9aa3b2;stroke-width:2}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="460"/>
+  <text class="h" x="80" y="50">Studio recording, 4:40</text>
+  <text class="s" x="400" y="50">grey = parts the band skipped</text>
+  <!-- original: 280 s over 1040 px => 3.714 px/s, x0 = 80 -->
+  <rect class="track" x="80" y="70" width="1040" height="50" rx="6"/>
+  <rect class="seg" x="124.6" y="70" width="66.9" height="50"/>
+  <rect class="seg2" x="265.7" y="70" width="167.1" height="50"/>
+  <rect class="seg" x="689.1" y="70" width="115.1" height="50"/>
+  <rect class="seg2" x="1019.7" y="70" width="37.1" height="50"/>
+  <rect class="seg" x="1094" y="70" width="7.4" height="50"/>
+  <text class="lbl" x="158" y="102" text-anchor="middle">1</text>
+  <text class="lbl" x="349" y="102" text-anchor="middle">2</text>
+  <text class="lbl" x="746" y="102" text-anchor="middle">3</text>
+  <text class="lbl" x="1038" y="102" text-anchor="middle">4</text>
+  <text class="lbl" x="1097" y="60" text-anchor="middle">5</text>
+  <text class="s" x="158" y="145" text-anchor="middle">0:12–0:30</text>
+  <text class="s" x="349" y="145" text-anchor="middle">0:50–1:35</text>
+  <text class="s" x="746" y="145" text-anchor="middle">2:44–3:15</text>
+  <text class="s" x="1038" y="145" text-anchor="middle">4:13–4:23</text>
+  <text class="s" x="960" y="175" text-anchor="end">section 5 = 4:33–4:35</text>
+  
+
+  <!-- links -->
+  <path class="link" d="M158,150 L165,300"/>
+  <path class="link" d="M349,150 L452,300"/>
+  <path class="link" d="M746,150 L797,300"/>
+  <path class="link" d="M1038,150 L985,300"/>
+  <path class="link" d="M1097,150 L1039,300"/>
+
+  <!-- performance: 116 s over 1040 px => 8.966 px/s -->
+  <text class="h" x="80" y="290">Live phone recording, 1:56</text>
+  <rect class="track" x="80" y="300" width="1040" height="50" rx="6"/>
+  <rect class="seg" x="80" y="300" width="170.4" height="50"/>
+  <rect class="seg2" x="250.4" y="300" width="403.5" height="50"/>
+  <rect class="seg" x="653.9" y="300" width="286.9" height="50"/>
+  <rect class="seg2" x="940.8" y="300" width="89.7" height="50"/>
+  <rect class="seg" x="1030.5" y="300" width="17.9" height="50"/>
+  <text class="lbl" x="165" y="332" text-anchor="middle">1</text>
+  <text class="lbl" x="452" y="332" text-anchor="middle">2</text>
+  <text class="lbl" x="797" y="332" text-anchor="middle">3</text>
+  <text class="lbl" x="985" y="332" text-anchor="middle">4</text>
+  <text class="lbl" x="1039" y="290" text-anchor="middle">5</text>
+  <text class="s" x="165" y="375" text-anchor="middle">0:00–0:19</text>
+  <text class="s" x="452" y="375" text-anchor="middle">0:19–1:04</text>
+  <text class="s" x="797" y="375" text-anchor="middle">1:04–1:36</text>
+  <text class="s" x="985" y="375" text-anchor="middle">1:36–1:46</text>
+  <text class="s" x="1120" y="400" text-anchor="end">section 5 = 1:46–1:48</text>
+  <text class="s" x="600" y="440" text-anchor="middle">The recut plays the studio audio for sections 1 to 5, in the live order, and nothing in between.</text>
+</svg>

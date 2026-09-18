@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 340" width="1200" height="340" role="img" aria-label="The build has two stages. Stage one, run once per region: an OpenStreetMap extract goes through planetiler and becomes a vector tile archive, the single source of truth. Stage two, run once per map style: tileserver-gl draws that vector archive into a raster tile archive, which is what the app loads and can be redrawn in any style without touching stage one">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .box{fill:#181c24;stroke:#2a2f3a;stroke-width:2}
+      .keep{fill:#181c24;stroke:#40dca0;stroke-width:3}
+      .h{font:700 24px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 18px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .stage{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#7c5cff}
+      .stage2{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .linkA{stroke:#7c5cff;stroke-width:4;fill:none}
+      .linkB{stroke:#40dca0;stroke-width:4;fill:none}
+      .arrowA{fill:#7c5cff}
+      .arrowB{fill:#40dca0}
+      .brace{stroke:#2a2f3a;stroke-width:2;fill:none}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="340"/>
+
+  <text class="stage" x="290" y="60" text-anchor="middle">Stage one: once per region</text>
+  <text class="stage2" x="910" y="60" text-anchor="middle">Stage two: once per map style</text>
+  <line class="brace" x1="40" y1="76" x2="540" y2="76"/>
+  <line class="brace" x1="660" y1="76" x2="1160" y2="76"/>
+
+  <!-- OSM extract -->
+  <rect class="box" x="40" y="120" width="180" height="110" rx="10"/>
+  <text class="h" x="130" y="168" text-anchor="middle">OpenStreetMap</text>
+  <text class="s" x="130" y="196" text-anchor="middle">extract for one region</text>
+
+  <line class="linkA" x1="220" y1="175" x2="256" y2="175"/><polygon class="arrowA" points="256,167 270,175 256,183"/>
+
+  <!-- planetiler -->
+  <rect class="box" x="270" y="120" width="140" height="110" rx="10"/>
+  <text class="h" x="340" y="168" text-anchor="middle">planetiler</text>
+  <text class="s" x="340" y="196" text-anchor="middle">builds tiles</text>
+
+  <line class="linkA" x1="410" y1="175" x2="446" y2="175"/><polygon class="arrowA" points="446,167 460,175 456,183 446,183"/>
+
+  <!-- vector MBTiles -->
+  <rect class="keep" x="460" y="110" width="200" height="130" rx="10"/>
+  <text class="h" x="560" y="158" text-anchor="middle">Vector tiles</text>
+  <text class="s" x="560" y="186" text-anchor="middle">one archive, no styling,</text>
+  <text class="s" x="560" y="210" text-anchor="middle">the single source of truth</text>
+
+  <line class="linkB" x1="660" y1="175" x2="696" y2="175"/><polygon class="arrowB" points="696,167 710,175 696,183"/>
+
+  <!-- tileserver-gl -->
+  <rect class="box" x="710" y="120" width="170" height="110" rx="10"/>
+  <text class="h" x="795" y="168" text-anchor="middle">tileserver-gl</text>
+  <text class="s" x="795" y="196" text-anchor="middle">draws each tile</text>
+
+  <line class="linkB" x1="880" y1="175" x2="916" y2="175"/><polygon class="arrowB" points="916,167 930,175 916,183"/>
+
+  <!-- raster MBTiles -->
+  <rect class="box" x="930" y="120" width="230" height="110" rx="10"/>
+  <text class="h" x="1045" y="168" text-anchor="middle">Picture tiles</text>
+  <text class="s" x="1045" y="196" text-anchor="middle">what the app loads</text>
+
+  <text class="s" x="290" y="290" text-anchor="middle">slow, but the data does not change often</text>
+  <text class="s" x="910" y="290" text-anchor="middle">redrawn in any style without touching stage one</text>
+</svg>

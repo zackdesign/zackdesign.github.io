@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" width="1200" height="520" role="img" aria-label="Two timelines. With the Worker's execution context, the error response goes back to the caller immediately and the report to Rollbar continues in the background while the runtime keeps the Worker alive. Without a context, the report is sent and waited for first, and the error response goes back only after Rollbar has answered">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .bad{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ff5d5d}
+      .good{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .axis{stroke:#2a2f3a;stroke-width:3}
+      .tick{stroke:#9aa3b2;stroke-width:2}
+      .err{fill:#ff5d5d}
+      .resp{fill:rgba(64,220,160,.25);stroke:#40dca0;stroke-width:3}
+      .rep{fill:rgba(124,92,255,.25);stroke:#7c5cff;stroke-width:3}
+      .sep{stroke:#2a2f3a;stroke-width:2}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="520"/>
+  <line class="sep" x1="40" y1="265" x2="1160" y2="265"/>
+
+  <!-- Panel 1 -->
+  <text class="h" x="60" y="60">With the Worker's execution context (the normal case)</text>
+  <text class="s" x="60" y="88">the report is handed to waitUntil and the response does not wait for it</text>
+  <line class="axis" x1="60" y1="200" x2="1140" y2="200"/>
+  <text class="s" x="1140" y="192" text-anchor="end">time →</text>
+  <circle class="err" cx="140" cy="200" r="10"/>
+  <text class="bad" x="140" y="175" text-anchor="middle">error thrown</text>
+  <rect class="resp" x="170" y="120" width="220" height="40" rx="8"/>
+  <text class="lbl" x="280" y="147" text-anchor="middle">500 sent to caller</text>
+  <rect class="rep" x="170" y="210" width="620" height="40" rx="8"/>
+  <text class="lbl" x="480" y="237" text-anchor="middle">report sent to Rollbar, in the background</text>
+  <text class="good" x="800" y="147">the runtime keeps the Worker alive</text>
+  <text class="good" x="800" y="173">until the report settles</text>
+
+  <!-- Panel 2 -->
+  <text class="h" x="60" y="310">Without a context (tests, or a caller that forgot to pass it)</text>
+  <text class="s" x="60" y="338">the report is awaited, because the alternative is losing it</text>
+  <line class="axis" x1="60" y1="450" x2="1140" y2="450"/>
+  <text class="s" x="1140" y="482" text-anchor="end">time →</text>
+  <circle class="err" cx="140" cy="450" r="10"/>
+  <text class="bad" x="140" y="425" text-anchor="middle">error thrown</text>
+  <rect class="rep" x="170" y="370" width="620" height="40" rx="8"/>
+  <text class="lbl" x="480" y="397" text-anchor="middle">report sent to Rollbar and waited for</text>
+  <rect class="resp" x="810" y="370" width="220" height="40" rx="8"/>
+  <text class="lbl" x="920" y="397" text-anchor="middle">500 sent to caller</text>
+</svg>

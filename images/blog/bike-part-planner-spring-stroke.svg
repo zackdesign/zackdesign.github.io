@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" width="1200" height="420" role="img" aria-label="Two panels of a shock with 50 millimetres of stroke drawn as a bar between two retainers: a 45 millimetre spring fits with 5 millimetres to spare at full extension, where the shock carries no load; a 55 millimetre spring is longer than the space between the retainers and would overrun them">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .stroke{fill:#181c24;stroke:#3a4150;stroke-width:2}
+      .retainer{fill:#9aa3b2}
+      .spring{fill:none;stroke:#40dca0;stroke-width:4}
+      .springbad{fill:none;stroke:#ff5d5d;stroke-width:4}
+      .gap{fill:rgba(255,196,0,.18);stroke:#ffc400;stroke-width:2;stroke-dasharray:6 6}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .bad{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ff5d5d}
+      .good{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .warn{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ffc400}
+      .sep{stroke:#2a2f3a;stroke-width:2}
+      .dim{stroke:#9aa3b2;stroke-width:2}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="420"/>
+  <line class="sep" x1="600" y1="40" x2="600" y2="380"/>
+
+  <!-- Panel 1: 45 mm spring -->
+  <text class="h" x="300" y="60" text-anchor="middle">45 mm spring in a 50 mm stroke</text>
+  <text class="s" x="300" y="88" text-anchor="middle">Cane Creek VALT Progressive, fully extended</text>
+  <!-- stroke bar 50 mm = 400 px -->
+  <rect class="stroke" x="100" y="170" width="400" height="60"/>
+  <rect class="retainer" x="84" y="150" width="16" height="100"/>
+  <rect class="retainer" x="500" y="150" width="16" height="100"/>
+  <!-- spring 45 mm = 360 px, from left retainer -->
+  <path class="spring" d="M100,200 l20,-22 l20,44 l20,-44 l20,44 l20,-44 l20,44 l20,-44 l20,44 l20,-44 l20,44 l20,-44 l20,44 l20,-44 l20,44 l20,-44 l20,44 l20,-44 l20,22"/>
+  <rect class="gap" x="460" y="170" width="40" height="60"/>
+  <text class="warn" x="480" y="270" text-anchor="middle">5 mm gap</text>
+  <line class="dim" x1="100" y1="120" x2="500" y2="120"/>
+  <text class="s" x="300" y="112" text-anchor="middle">50 mm between retainers</text>
+  <text class="good" x="300" y="330" text-anchor="middle">fits: the gap sits at full extension, where there is no load</text>
+
+  <!-- Panel 2: 55 mm spring -->
+  <text class="h" x="900" y="60" text-anchor="middle">55 mm spring in a 50 mm stroke</text>
+  <text class="s" x="900" y="88" text-anchor="middle">Sprindex, fully extended</text>
+  <rect class="stroke" x="700" y="170" width="400" height="60"/>
+  <rect class="retainer" x="684" y="150" width="16" height="100"/>
+  <rect class="retainer" x="1100" y="150" width="16" height="100"/>
+  <!-- spring 55 mm = 440 px, runs past the right retainer -->
+  <path class="springbad" d="M700,200 l20,-22 l20,44 l20,-44 l20,44 l20,-44 l20,44 l20,-44 l20,44 l20,-44 l20,44 l20,-44 l20,44 l20,-44 l20,44 l20,-44 l20,44 l20,-44 l20,44 l20,-44 l20,44 l20,-44 l20,22"/>
+  <text class="bad" x="1100" y="270" text-anchor="end">overruns the retainer by 5 mm</text>
+  <line class="dim" x1="700" y1="120" x2="1100" y2="120"/>
+  <text class="s" x="900" y="112" text-anchor="middle">50 mm between retainers</text>
+  <text class="bad" x="900" y="330" text-anchor="middle">does not fit: the spring would bind on the retainer</text>
+</svg>

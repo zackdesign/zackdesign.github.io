@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" width="1200" height="520" role="img" aria-label="Two panels. Without the guard, the browser asks the Worker for a photo, the Worker asks Image Resizing to transform it, Image Resizing fetches the source from the same Worker, which asks Image Resizing again, forever. With the guard, the Worker notices the via header that Image Resizing adds to its fetch and answers that one request with the untouched bytes from R2, so the transform runs once and the browser gets its photo">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .bad{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ff5d5d}
+      .good{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .code{font:600 18px Menlo,Consolas,monospace;fill:#ffc400}
+      .box{fill:rgba(124,92,255,.14);stroke:#7c5cff;stroke-width:3}
+      .store{fill:rgba(64,220,160,.14);stroke:#40dca0;stroke-width:3}
+      .arrow{stroke:#9aa3b2;stroke-width:4;fill:none}
+      .loop{stroke:#ff5d5d;stroke-width:4;fill:none}
+      .ok{stroke:#40dca0;stroke-width:4;fill:none}
+      .ah{fill:#9aa3b2}
+      .ahr{fill:#ff5d5d}
+      .ahg{fill:#40dca0}
+      .sep{stroke:#2a2f3a;stroke-width:2}
+    </style>
+    <marker id="g" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path class="ah" d="M0,0 L12,6 L0,12 z"/></marker>
+    <marker id="r" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path class="ahr" d="M0,0 L12,6 L0,12 z"/></marker>
+    <marker id="t" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path class="ahg" d="M0,0 L12,6 L0,12 z"/></marker>
+  </defs>
+  <rect class="bg" width="1200" height="520"/>
+  <line class="sep" x1="600" y1="40" x2="600" y2="480"/>
+
+  <!-- Panel 1: loop -->
+  <text class="h" x="300" y="60" text-anchor="middle">Without the guard</text>
+  <text class="s" x="300" y="88" text-anchor="middle">the Worker is its own image source</text>
+  <rect class="box" x="60" y="130" width="200" height="60" rx="10"/>
+  <text class="lbl" x="160" y="167" text-anchor="middle">Browser</text>
+  <path class="arrow" d="M160 190 V240" marker-end="url(#g)"/>
+  <rect class="box" x="60" y="245" width="200" height="60" rx="10"/>
+  <text class="lbl" x="160" y="282" text-anchor="middle">Worker</text>
+  <path class="loop" d="M260 265 H360" marker-end="url(#r)"/>
+  <rect class="box" x="365" y="245" width="210" height="60" rx="10"/>
+  <text class="lbl" x="470" y="282" text-anchor="middle">Image Resizing</text>
+  <path class="loop" d="M470 305 V360 H160 V310" marker-end="url(#r)"/>
+  <text class="s" x="315" y="388" text-anchor="middle">"fetch the source" hits the same Worker,</text>
+  <text class="s" x="315" y="414" text-anchor="middle">which asks for a transform again</text>
+  <text class="bad" x="300" y="456" text-anchor="middle">→ transform requests forever</text>
+
+  <!-- Panel 2: guard -->
+  <text class="h" x="900" y="60" text-anchor="middle">With the guard</text>
+  <text class="s" x="900" y="88" text-anchor="middle">the second request is answered from storage</text>
+  <rect class="box" x="660" y="130" width="200" height="60" rx="10"/>
+  <text class="lbl" x="760" y="167" text-anchor="middle">Browser</text>
+  <path class="arrow" d="M760 190 V240" marker-end="url(#g)"/>
+  <rect class="box" x="660" y="245" width="200" height="60" rx="10"/>
+  <text class="lbl" x="760" y="282" text-anchor="middle">Worker</text>
+  <path class="arrow" d="M860 265 H960" marker-end="url(#g)"/>
+  <rect class="box" x="965" y="245" width="210" height="60" rx="10"/>
+  <text class="lbl" x="1070" y="282" text-anchor="middle">Image Resizing</text>
+  <path class="ok" d="M1070 305 V360 H760 V310" marker-end="url(#t)"/>
+  <text class="code" x="915" y="352" text-anchor="middle">via: image-resizing</text>
+  <rect class="store" x="660" y="395" width="200" height="60" rx="10"/>
+  <text class="lbl" x="760" y="432" text-anchor="middle">R2 storage</text>
+  <text class="s" x="1015" y="410" text-anchor="middle">the Worker sees that header and</text>
+  <text class="s" x="1015" y="436" text-anchor="middle">returns the untouched bytes from R2</text>
+  <text class="good" x="900" y="484" text-anchor="middle">→ one transform, then the photo</text>
+</svg>

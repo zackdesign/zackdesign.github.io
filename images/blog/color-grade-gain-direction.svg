@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 480" width="1200" height="480" role="img" aria-label="Two panels. Left: three bars for the red, green and blue channel gains measured on a frame with a warm cast, red at 0.800 below the line marked 1.0, green at 1.0, blue at 1.391 above it. Right: the correct reading, that a gain below one means the channel is already too strong so the shot should be cooled, against the advice the code gave, which was to warm it further.">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .good{font:700 22px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .bad{font:700 22px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ff5d5d}
+      .warn{font:600 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ffc400}
+      .barR{fill:#ff5d5d}
+      .barG{fill:#40dca0}
+      .barB{fill:#7c5cff}
+      .one{stroke:#ffc400;stroke-width:3;stroke-dasharray:10 8}
+      .sep{stroke:#2a2f3a;stroke-width:2}
+      .axis{stroke:#2a2f3a;stroke-width:2}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="480"/>
+  <line class="sep" x1="600" y1="40" x2="600" y2="440"/>
+
+  <!-- Panel 1: bars. baseline y=380, scale 160px per 1.0 -->
+  <text class="h" x="300" y="60" text-anchor="middle">Gains measured on a warm frame</text>
+  <text class="s" x="300" y="88" text-anchor="middle">each gain is green's average divided by that channel's average</text>
+  <line class="axis" x1="90" y1="380" x2="510" y2="380"/>
+  <rect class="barR" x="130" y="252" width="90" height="128"/>
+  <rect class="barG" x="255" y="220" width="90" height="160"/>
+  <rect class="barB" x="380" y="157.4" width="90" height="222.6"/>
+  <line class="one" x1="90" y1="220" x2="510" y2="220"/>
+  <text class="warn" x="515" y="226">1.0 = balanced</text>
+  <text class="lbl" x="175" y="240" text-anchor="middle">0.800</text>
+  <text class="lbl" x="300" y="208" text-anchor="middle">1.000</text>
+  <text class="lbl" x="425" y="145" text-anchor="middle">1.391</text>
+  <text class="s" x="175" y="410" text-anchor="middle">red</text>
+  <text class="s" x="300" y="410" text-anchor="middle">green</text>
+  <text class="s" x="425" y="410" text-anchor="middle">blue</text>
+
+  <!-- Panel 2: reading -->
+  <text class="h" x="900" y="60" text-anchor="middle">What that means</text>
+  <text class="lbl" x="660" y="140">Red gain below 1: there is already too much red.</text>
+  <text class="lbl" x="660" y="170">Blue gain above 1: blue needs boosting.</text>
+  <text class="good" x="660" y="230">Correct advice: cool the shot</text>
+  <text class="bad" x="660" y="320">What auto_grade.py said: warm_shift</text>
+  <text class="s" x="660" y="348">It read a gain below 1 as "not enough red"</text>
+  <text class="s" x="660" y="374">and pushed the cast further the wrong way,</text>
+  <text class="s" x="660" y="400">from April until August.</text>
+</svg>

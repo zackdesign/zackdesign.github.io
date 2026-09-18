@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" width="1200" height="520" role="img" aria-label="Two panels of the same supervision tree: a one-for-all supervisor with the mutex owner and three consumers underneath, and Redis to the side. Before the fix, Redis becoming unreachable makes the mutex owner crash and the supervisor stops every consumer with it. After the fix the mutex owner keeps its state and retries with backoff, and the consumers keep running">
+  <defs>
+    <style>
+      .bg{fill:#0f1115}
+      .box{fill:#181c24;stroke:#3a4150;stroke-width:2;rx:8}
+      .boxbad{fill:rgba(255,93,93,.12);stroke:#ff5d5d;stroke-width:3;rx:8}
+      .boxwarn{fill:rgba(255,196,0,.12);stroke:#ffc400;stroke-width:3;rx:8}
+      .boxgood{fill:rgba(64,220,160,.12);stroke:#40dca0;stroke-width:3;rx:8}
+      .redis{fill:#181c24;stroke:#7c5cff;stroke-width:3;rx:8}
+      .tree{stroke:#4a5160;stroke-width:3;fill:none}
+      .h{font:700 26px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 19px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#9aa3b2}
+      .lbl{font:600 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .small{font:600 17px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .bad{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ff5d5d}
+      .good{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#40dca0}
+      .warn{font:700 20px -apple-system,Inter,Helvetica,Arial,sans-serif;fill:#ffc400}
+      .link{stroke:#7c5cff;stroke-width:3;stroke-dasharray:8 6;fill:none}
+      .sep{stroke:#2a2f3a;stroke-width:2}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="520"/>
+  <line class="sep" x1="600" y1="40" x2="600" y2="480"/>
+
+  <!-- Panel 1 -->
+  <text class="h" x="300" y="60" text-anchor="middle">Before the fix</text>
+  <text class="s" x="300" y="88" text-anchor="middle">Redis unreachable for two seconds</text>
+  <rect class="box" x="150" y="120" width="300" height="56"/>
+  <text class="lbl" x="300" y="148" text-anchor="middle">MutexedSupervisor</text>
+  <text class="s" x="300" y="170" text-anchor="middle">strategy: one for all</text>
+  <path class="tree" d="M300,176 L300,210 M80,210 L520,210 M80,210 L80,240 M226,210 L226,240 M373,210 L373,240 M520,210 L520,240"/>
+  <rect class="boxbad" x="20" y="240" width="120" height="70"/>
+  <text class="small" x="80" y="270" text-anchor="middle">MutexOwner</text>
+  <text class="bad" x="80" y="296" text-anchor="middle">crashes</text>
+  <rect class="boxbad" x="166" y="240" width="120" height="70"/>
+  <text class="small" x="226" y="270" text-anchor="middle">Consumer</text>
+  <text class="bad" x="226" y="296" text-anchor="middle">stopped</text>
+  <rect class="boxbad" x="313" y="240" width="120" height="70"/>
+  <text class="small" x="373" y="270" text-anchor="middle">Consumer</text>
+  <text class="bad" x="373" y="296" text-anchor="middle">stopped</text>
+  <rect class="boxbad" x="460" y="240" width="120" height="70"/>
+  <text class="small" x="520" y="270" text-anchor="middle">Sink</text>
+  <text class="bad" x="520" y="296" text-anchor="middle">stopped</text>
+  <rect class="redis" x="20" y="360" width="120" height="56"/>
+  <text class="lbl" x="80" y="394" text-anchor="middle">Redis</text>
+  <path class="link" d="M80,310 L80,360"/>
+  <line x1="62" y1="320" x2="98" y2="350" stroke="#ff5d5d" stroke-width="4"/>
+  <line x1="98" y1="320" x2="62" y2="350" stroke="#ff5d5d" stroke-width="4"/>
+  <text class="bad" x="300" y="450" text-anchor="middle">one process dies, the whole pipeline stops</text>
+  <text class="s" x="300" y="476" text-anchor="middle">and only a human restart clears it</text>
+
+  <!-- Panel 2 -->
+  <text class="h" x="900" y="60" text-anchor="middle">After the fix</text>
+  <text class="s" x="900" y="88" text-anchor="middle">same outage, same supervisor</text>
+  <rect class="box" x="750" y="120" width="300" height="56"/>
+  <text class="lbl" x="900" y="148" text-anchor="middle">MutexedSupervisor</text>
+  <text class="s" x="900" y="170" text-anchor="middle">strategy: one for all</text>
+  <path class="tree" d="M900,176 L900,210 M680,210 L1120,210 M680,210 L680,240 M826,210 L826,240 M973,210 L973,240 M1120,210 L1120,240"/>
+  <rect class="boxwarn" x="620" y="240" width="120" height="70"/>
+  <text class="small" x="680" y="270" text-anchor="middle">MutexOwner</text>
+  <text class="warn" x="680" y="296" text-anchor="middle">retries</text>
+  <rect class="boxgood" x="766" y="240" width="120" height="70"/>
+  <text class="small" x="826" y="270" text-anchor="middle">Consumer</text>
+  <text class="good" x="826" y="296" text-anchor="middle">running</text>
+  <rect class="boxgood" x="913" y="240" width="120" height="70"/>
+  <text class="small" x="973" y="270" text-anchor="middle">Consumer</text>
+  <text class="good" x="973" y="296" text-anchor="middle">running</text>
+  <rect class="boxgood" x="1060" y="240" width="120" height="70"/>
+  <text class="small" x="1120" y="270" text-anchor="middle">Sink</text>
+  <text class="good" x="1120" y="296" text-anchor="middle">running</text>
+  <rect class="redis" x="620" y="360" width="120" height="56"/>
+  <text class="lbl" x="680" y="394" text-anchor="middle">Redis</text>
+  <path class="link" d="M680,310 L680,360"/>
+  <line x1="662" y1="320" x2="698" y2="350" stroke="#ff5d5d" stroke-width="4"/>
+  <line x1="698" y1="320" x2="662" y2="350" stroke="#ff5d5d" stroke-width="4"/>
+  <text class="good" x="900" y="450" text-anchor="middle">the owner waits, doubling the delay each time</text>
+  <text class="s" x="900" y="476" text-anchor="middle">and re-acquires the lock when Redis returns</text>
+</svg>
