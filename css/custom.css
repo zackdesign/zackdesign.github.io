@@ -2217,7 +2217,7 @@ a:hover { color: var(--accent-hover); }
 
 .offer-case {
   display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 2.5rem clamp(2rem, 5vw, 5rem);
   align-items: center;
   padding: 3rem 0;
@@ -2260,7 +2260,7 @@ a:hover { color: var(--accent-hover); }
 
 /* Phone shot: crop to the top of the screen, keep it narrow */
 .offer-case__media--phone {
-  max-width: 300px;
+  max-width: 400px;
   margin: 0 auto;
   aspect-ratio: 9 / 14;
   border-radius: 2rem;
@@ -2552,7 +2552,7 @@ a:hover { color: var(--accent-hover); }
   .offer-case,
   .offer-case__aside { grid-template-columns: 1fr; }
   .offer-case--reverse .offer-case__media { order: 0; }
-  .offer-case__media--phone { max-width: 260px; }
+  .offer-case__media--phone { max-width: 300px; }
 }
 
 @media (max-width: 767.98px) {

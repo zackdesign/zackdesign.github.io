@@ -71,11 +71,13 @@ permalink: /react-native/
         <div class="offer-case__body">
           <h3>CamperMate</h3>
           <p class="offer-case__role">React Native app · Head of Tech, TripTech / THL</p>
-          <p>A travel app whose users are, by definition, out of range. Every place in a country ships to the phone as an encrypted SQLite snapshot: built weekly from Postgres with an FTS5 index for full-text search in 26 languages and an R*Tree for the map viewport, encrypted with SQLCipher, then re-keyed on install to a key that never leaves the device's keychain. Hourly patches keep it current. One filter expression compiles to both SQLite and the online search engine, so results match whether you have signal or not — and if the search index ever corrupts, it rebuilds itself.</p>
+          <p>A travel app whose users are, by definition, out of range. Every place in a country ships to the phone as an encrypted SQLite snapshot: built weekly from Postgres with an FTS5 index for search in 26 languages and an R*Tree for the map viewport, SQLCipher-encrypted, then re-keyed on install to a key that never leaves the device's keychain. Hourly patches keep it current, and one filter expression compiles to both SQLite and the online search engine, so results match with or without signal.</p>
+          <p>Where JavaScript wasn't enough, the answer was native: seven in-house Expo Modules in Swift and Kotlin, from an on-device tile server and a background snapshot downloader to a native marker renderer and memory-pressure hooks.</p>
           <ul class="offer-case__facts">
             <li>99.5%+ crash-free users through a full replatform</li>
-            <li>Encrypted at rest, FTS5 + R*Tree, hourly delta patches</li>
-            <li>35+ modules, 80%+ test coverage</li>
+            <li>Encrypted at rest; FTS5 + R*Tree; self-healing search index</li>
+            <li>7 Expo Modules in Swift and Kotlin</li>
+            <li>700+ test files, Maestro end-to-end, native harnesses run on device</li>
           </ul>
         </div>
         <figure class="offer-case__aside">
