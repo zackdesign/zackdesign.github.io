@@ -33,7 +33,7 @@ permalink: /react-native/
     <dl class="offer-results__row reveal">
       <div><dd>99.5%+</dd><dt>crash-free users through a full replatform</dt></div>
       <div><dd>21 GB → 2.3 GB</dd><dt>offline maps for nine ANZ regions, self-hosted</dt></div>
-      <div><dd>80%+</dd><dt>test coverage across 35+ app modules</dt></div>
+      <div><dd>~3×</dd><dt>category-median app engagement</dt></div>
       <div><dd>3 projects</dd><dt>open-source and in production: nitro-unzip, durable-sync, thinkbot</dt></div>
     </dl>
   </div>
@@ -65,20 +65,23 @@ permalink: /react-native/
       </div>
 
       <article class="offer-case">
-        <div class="offer-case__media offer-case__media--wide">
-          <img src="/images/blog/offline-maps-two-stages.svg" alt="The offline maps build in two stages: an OpenStreetMap extract becomes a vector tile archive, which is then drawn into the raster tiles the app loads" loading="lazy" decoding="async" width="1200" height="340">
+        <div class="offer-case__media offer-case__media--phone">
+          <img src="/images/sections/campermate-app.png" alt="CamperMate's map screen: campsite and point-of-interest pins around a lake, with a holiday park card and a Book button" loading="lazy" decoding="async" width="553" height="1200">
         </div>
         <div class="offer-case__body">
           <h3>CamperMate</h3>
           <p class="offer-case__role">React Native app · Head of Tech, TripTech / THL</p>
-          <p>A travel app whose users are, by definition, out of range. The app went through a full replatform without a break in iOS and Android releases, and its maps moved off a vendor SDK onto a self-hosted OpenStreetMap pipeline — vector tiles cut once per region, drawn to raster once per style, served hybrid online/offline on the device.</p>
+          <p>A travel app whose users are, by definition, out of range. Every place in a country ships to the phone as an encrypted SQLite snapshot: built weekly from Postgres with an FTS5 index for full-text search in 26 languages and an R*Tree for the map viewport, encrypted with SQLCipher, then re-keyed on install to a key that never leaves the device's keychain. Hourly patches keep it current. One filter expression compiles to both SQLite and the online search engine, so results match whether you have signal or not — and if the search index ever corrupts, it rebuilds itself.</p>
           <ul class="offer-case__facts">
-            <li>99.5%+ crash-free users</li>
+            <li>99.5%+ crash-free users through a full replatform</li>
+            <li>Encrypted at rest, FTS5 + R*Tree, hourly delta patches</li>
             <li>35+ modules, 80%+ test coverage</li>
-            <li>21 GB → 2.3 GB of map tiles across nine regions</li>
           </ul>
-          <a href="/offline-maps-vector-raster-mbtiles/">How the maps pipeline works</a>
         </div>
+        <figure class="offer-case__aside">
+          <img src="/images/blog/offline-maps-two-stages.svg" alt="The offline maps build in two stages: an OpenStreetMap extract becomes a vector tile archive, which is then drawn into the raster tiles the app loads" loading="lazy" decoding="async" width="1200" height="340">
+          <figcaption>The tiles underneath are self-hosted too: OpenStreetMap cut to vector tiles once per region, drawn to raster once per style, 21 GB down to 2.3 GB across nine regions. <a href="/offline-maps-vector-raster-mbtiles/">How the maps pipeline works</a>.</figcaption>
+        </figure>
       </article>
 
       <article class="offer-case offer-case--reverse">

@@ -2217,15 +2217,37 @@ a:hover { color: var(--accent-hover); }
 
 .offer-case {
   display: grid;
-  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-  gap: clamp(2rem, 5vw, 5rem);
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 2.5rem clamp(2rem, 5vw, 5rem);
   align-items: center;
   padding: 3rem 0;
   border-top: 1px solid var(--border-faint);
 }
 
-.offer-case--reverse { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
 .offer-case--reverse .offer-case__media { order: 2; }
+
+/* Secondary figure under a case: full width, diagram beside its caption */
+.offer-case__aside {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: 1.5rem clamp(1.5rem, 3vw, 3rem);
+  align-items: center;
+  margin: 0;
+  padding: 1.25rem;
+  border-radius: var(--radius-lg);
+  background: #0f1115;
+  box-shadow: 0 0 0 1px var(--border-faint);
+}
+
+.offer-case__aside img { display: block; width: 100%; height: auto; }
+
+.offer-case__aside figcaption {
+  color: var(--pearl-muted);
+  font-size: 0.92rem;
+  line-height: 1.55;
+  padding-right: 0.5rem;
+}
 
 .offer-case__media {
   border-radius: var(--radius-lg);
@@ -2235,9 +2257,6 @@ a:hover { color: var(--accent-hover); }
 }
 
 .offer-case__media img { display: block; width: 100%; height: auto; }
-
-/* The pipeline diagram has its own dark ground; pad it so it reads as a panel */
-.offer-case__media--wide { padding: 1.25rem; background: #0f1115; }
 
 /* Phone shot: crop to the top of the screen, keep it narrow */
 .offer-case__media--phone {
@@ -2531,7 +2550,7 @@ a:hover { color: var(--accent-hover); }
 @media (max-width: 991.98px) {
   .offer-results__row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .offer-case,
-  .offer-case--reverse { grid-template-columns: 1fr; }
+  .offer-case__aside { grid-template-columns: 1fr; }
   .offer-case--reverse .offer-case__media { order: 0; }
   .offer-case__media--phone { max-width: 260px; }
 }
