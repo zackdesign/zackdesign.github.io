@@ -8,10 +8,10 @@ permalink: /react-native/
 <!-- =============================== HERO =============================== -->
 <header class="offer-hero" data-parallax>
   <div class="offer-hero__photo parallax-post-photo">
-    {% picture hero images/blog/offline-maps-pipeline.jpg --alt A campervan parked on a remote road at dusk beneath a mountain, no town in sight --img loading="eager" fetchpriority="high" decoding="async" %}
+    {% picture hero images/sections/react-native-hero.jpg --alt Outback sunset at Menindee, New South Wales: a lone tree in silhouette against the last light, no town in sight --img loading="eager" fetchpriority="high" decoding="async" %}
   </div>
   <div class="offer-hero__wash"></div>
-  <a class="offer-hero__credit" href="https://unsplash.com/@marekpiwnicki" target="_blank" rel="noopener">Photo: Marek Piwnicki, Unsplash</a>
+  <a class="offer-hero__credit" href="https://unsplash.com/@dylanshaw" target="_blank" rel="noopener">Photo: Dylan Shaw, Unsplash</a>
   <div class="container">
     <div class="offer-hero__inner reveal">
       <span class="section-eyebrow section-eyebrow--rule">React Native consulting</span>
@@ -34,7 +34,7 @@ permalink: /react-native/
       <div><dd>99.5%+</dd><dt>crash-free users through a full replatform</dt></div>
       <div><dd>21 GB → 2.3 GB</dd><dt>offline maps for nine ANZ regions, self-hosted</dt></div>
       <div><dd>~3×</dd><dt>category-median app engagement</dt></div>
-      <div><dd>3 projects</dd><dt>open-source and in production: nitro-unzip, durable-sync, thinkbot</dt></div>
+      <div><dd>4 projects</dd><dt>open-source and in production: Rampset, durable-sync, nitro-unzip, thinkbot</dt></div>
     </dl>
   </div>
 </section>
@@ -94,11 +94,12 @@ permalink: /react-native/
         </div>
         <div class="offer-case__body">
           <h3>Rampset</h3>
-          <p class="offer-case__role">Installable offline-first web app · open source, MIT</p>
-          <p>A strength-training app for a room with no reception. The browser's own database is the source of truth; the network is an optimisation. Sync runs through a Durable Object per user with an append-only op log, and a production data-loss incident became durable-sync, the library that now stands in front of it.</p>
+          <p class="offer-case__role">Installable offline-first web app · free, open source, MIT</p>
+          <p>A strength-training app for a room with no reception. The browser's own database is the source of truth; the network is an optimisation. Sync runs through a Durable Object per user with an append-only op log, and a production data-loss incident became durable-sync, the library that now stands in front of it. It is free to use and self-host on your own Cloudflare account, and people do.</p>
           <ul class="offer-case__facts">
             <li>Installs from the browser, no app store</li>
             <li>Works fully offline; rest timer survives the phone locking</li>
+            <li>Free to run on your own Cloudflare account</li>
             <li>256 app tests, 87 in the sync library</li>
           </ul>
           <a href="/rampset/">The story</a>
@@ -184,13 +185,9 @@ permalink: /react-native/
     <div class="offer-proof reveal">
       <div class="offer-proof__intro">
         <h2 class="section-title">Also on the record</h2>
-        <p>Open-source work and platform leadership from CamperMate, where Isaac is Head of Tech (TripTech / THL). The full account is on <a href="https://isaacrowntree.com" target="_blank" rel="noopener">isaacrowntree.com</a>.</p>
+        <p>Beyond Rampset: the libraries and tooling around it, and platform leadership from CamperMate, where Isaac is Head of Tech (TripTech / THL). The full account is on <a href="https://isaacrowntree.com" target="_blank" rel="noopener">isaacrowntree.com</a>.</p>
       </div>
       <dl class="offer-proof__list">
-        <div>
-          <dt>Offline maps pipeline</dt>
-          <dd>Self-hosted OpenStreetMap tiles (planetiler, tileserver-gl, MapLibre on device). 21 GB cut to 2.3 GB across nine ANZ regions, with hybrid online/offline tiles for no-signal use. <a href="/offline-maps-vector-raster-mbtiles/">How it was done</a>.</dd>
-        </div>
         <div>
           <dt>react-native-nitro-unzip</dt>
           <dd>Open-source ZIP extraction for React Native built on Nitro Modules — streaming, progress, cancellation, password support. <a href="/react-native-nitro-unzip/">Write-up</a>.</dd>
@@ -261,7 +258,7 @@ permalink: /react-native/
 
       <details class="offer-faq__item">
         <summary>Do we need a native app at all?</summary>
-        <p>Sometimes not. If you don't need deep hardware access or app-store distribution, an installable progressive web app with an offline-first data layer can feel native, ship without review queues, and cost far less to run. Rampset and durable-sync above are that approach in production. The audit will say which side of the line you're on.</p>
+        <p>Sometimes not. If you don't need deep hardware access or app-store distribution, an installable progressive web app with an offline-first data layer can feel native, ship without review queues, and cost far less to run. Rampset and durable-sync above are that approach in production, and both are free and open source, so you can see exactly how. The audit will say which side of the line you're on.</p>
       </details>
 
       <details class="offer-faq__item">
