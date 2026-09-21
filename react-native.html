@@ -1,7 +1,7 @@
 ---
 layout: default
 title: React Native Consulting
-description: Senior React Native and offline-first PWA help for apps already in production — audits, fixed-scope rescue sprints, and fractional platform lead. Nitro modules, crash and performance work, offline maps and sync. Sydney, remote.
+description: Senior React Native and offline-first PWA help for apps already in production — audits, fixed-scope rescue sprints, and fractional platform lead. Native modules with Nitro or Expo Modules, crash and performance work, offline maps and sync. Sydney, remote.
 permalink: /react-native/
 ---
 
@@ -16,7 +16,7 @@ permalink: /react-native/
       </p>
       <div class="offer-hero__actions">
         <a href="mailto:isaac@zackdesign.biz" class="btn btn-primary">Email Isaac</a>
-        <a href="#packages" class="btn btn-outline-light">See the three packages</a>
+        <a href="#packages" class="btn btn-outline-light">See the four packages</a>
       </div>
     </div>
   </div>
@@ -26,23 +26,14 @@ permalink: /react-native/
 <section class="section section-ink">
   <div class="container">
     <div class="offer-fit reveal">
-      <div class="offer-fit__col">
-        <h2 class="offer-h2">A good fit</h2>
-        <ul class="offer-list">
-          <li>A production React Native or Expo app that has slowed down, crashes for real users, or is stuck between "the MVP shipped" and "this scales".</li>
-          <li>Native-module debt, a New Architecture migration, or an offline / sync / maps pipeline that needs someone who has built one before.</li>
-          <li>A product that wants a native-feeling app without an app store in the way: an installable, offline-first progressive web app with sync that doesn't lose data.</li>
-          <li>A US or ANZ team that wants senior React Native judgment in its morning standups. Sydney overlaps US mornings and works async the rest of the day.</li>
-        </ul>
-      </div>
-      <div class="offer-fit__col offer-fit__col--not">
-        <h2 class="offer-h2">Not the offer</h2>
-        <ul class="offer-list">
-          <li>Staff augmentation — a body on tickets for six months.</li>
-          <li>A new app from a Figma file. Start with an agency; come back when it's live and hurting.</li>
-          <li>Open-ended "support" retainers with no defined outcome.</li>
-        </ul>
-      </div>
+      <h2 class="offer-h2">A good fit</h2>
+      <ul class="offer-list">
+        <li>A production React Native or Expo app that has slowed down, crashes for real users, or is stuck between "the MVP shipped" and "this scales".</li>
+        <li>Native-module debt, a New Architecture migration, a Swift or Kotlin module to write with Nitro or Expo Modules, or an offline / sync / maps pipeline that needs someone who has built one before.</li>
+        <li>A product that wants a native-feeling app without an app store in the way: an installable, offline-first progressive web app with sync that doesn't lose data.</li>
+        <li>A mobile surface that ships without a safety net and needs one: an integration harness and end-to-end suite that stays green, with QA in the loop.</li>
+        <li>A US or ANZ team that wants senior React Native judgment in its morning standups. Sydney overlaps US mornings and works async the rest of the day.</li>
+      </ul>
     </div>
   </div>
 </section>
@@ -52,7 +43,7 @@ permalink: /react-native/
   <div class="container">
     <div class="offer-ledger reveal">
       <div class="offer-ledger__head">
-        <h2 class="section-title">Three ways to engage</h2>
+        <h2 class="section-title">Four ways to engage</h2>
         <p class="offer-ledger__note">Fixed scope, agreed exit criteria, contracted through Zack Design (Australia). Invoiced in USD or AUD.</p>
       </div>
 
@@ -76,11 +67,25 @@ permalink: /react-native/
           <p class="offer-row__when">When the app is in production pain and you need a finite intervention.</p>
         </div>
         <div class="offer-row__body">
-          <p>Hands-on in your repo with your engineers: stabilise crashes, cut jank, land a Nitro or native hot path, unstick an offline / maps pipeline, or take a web app installable and offline-first. Exit criteria agreed before day one.</p>
+          <p>Hands-on in your repo with your engineers: stabilise crashes, cut jank, land a native hot path as a Nitro or Expo module, unstick an offline / maps pipeline, or take a web app installable and offline-first. Exit criteria agreed before day one.</p>
         </div>
         <dl class="offer-row__terms">
           <div><dt>Duration</dt><dd>4–6 weeks</dd></div>
           <div><dt>Fee</dt><dd>US$48–90k</dd></div>
+        </dl>
+      </article>
+
+      <article class="offer-row">
+        <div class="offer-row__name">
+          <h3>Test harness</h3>
+          <p class="offer-row__when">When releases are a leap of faith and QA is finding what CI should have.</p>
+        </div>
+        <div class="offer-row__body">
+          <p>A full integration harness and end-to-end suite for your app, written and wired into CI, then kept green. Tests are composable building blocks your QA team can assemble into new flows without an engineer, and AI-driven: failures are triaged and explained on every run, and coverage grows from the incidents that actually happen.</p>
+        </div>
+        <dl class="offer-row__terms">
+          <div><dt>Duration</dt><dd>6–10 weeks, then monthly</dd></div>
+          <div><dt>Fee</dt><dd>US$70–130k, then US$6–12k / month</dd></div>
         </dl>
       </article>
 
@@ -131,6 +136,10 @@ permalink: /react-native/
         <div>
           <dt>durable-sync</dt>
           <dd>The sync layer from Rampset, extracted into a zero-dependency library after a production data-loss incident: an append-only op log in a Durable Object's SQLite and a durable outbox on the client. No Postgres, no container. 87 tests, on npm. <a href="/durable-sync/">Write-up</a>.</dd>
+        </div>
+        <div>
+          <dt>Nightly end-to-end suite with agent triage</dt>
+          <dd>A Playwright suite runs nightly against production; a failed run posts a signed report to thinkbot, an open-source Cloudflare Worker agent that investigates against GitHub, Datadog and Sentry and writes the explanation — and reports a suite that failed to run as its own incident, not as zero failures. <a href="/thinkbot/">How it works</a>.</dd>
         </div>
         <div>
           <dt>Platform leadership</dt>
@@ -194,8 +203,8 @@ permalink: /react-native/
       </details>
 
       <details class="offer-faq__item">
-        <summary>Is Nitro / performance / offline really the specialty?</summary>
-        <p>Yes. Nitro modules, crash and performance triage, and offline-first data and maps — in React Native and in the browser — are where the CamperMate and open-source work runs deepest, and the packages above are built around them.</p>
+        <summary>Is native modules / performance / offline really the specialty?</summary>
+        <p>Yes. Native modules in Swift and Kotlin — with Nitro when the hot path needs it, Expo Modules when it belongs in the Expo ecosystem — crash and performance triage, and offline-first data and maps — in React Native and in the browser — are where the CamperMate and open-source work runs deepest, and the packages above are built around them.</p>
       </details>
     </div>
   </div>

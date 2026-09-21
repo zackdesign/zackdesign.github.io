@@ -2174,19 +2174,8 @@ a:hover { color: var(--accent-hover); }
   background: var(--accent);
 }
 
-.offer-fit__col--not .offer-list li::before { background: var(--pearl-faint); }
-
-/* Fit: two columns, the "not" column visually recessed */
-.offer-fit {
-  display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-  gap: clamp(2rem, 5vw, 5rem);
-  max-width: 62rem;
-}
-
-.offer-fit__col--not { color: var(--pearl-faint); }
-.offer-fit__col--not .offer-h2 { color: var(--pearl-muted); }
-.offer-fit__col--not .offer-list li { color: var(--pearl-faint); }
+/* Fit: one list, running-text width */
+.offer-fit { max-width: 44rem; }
 
 /* Ledger: one row per package, rules between, terms in mono on the right */
 .offer-ledger { max-width: 62rem; }
@@ -2393,7 +2382,6 @@ a:hover { color: var(--accent-hover); }
   .offer-proof .section-title,
   .offer-process .section-title,
   .offer-faq .section-title { text-align: left; }
-  .offer-fit,
   .offer-proof { grid-template-columns: 1fr; }
   .offer-row { grid-template-columns: 1fr; gap: 1rem; padding: 1.5rem 0; }
   .offer-row__terms { grid-template-columns: 1fr 1fr; }
