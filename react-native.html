@@ -73,10 +73,12 @@ permalink: /react-native/
           <p class="offer-case__role">React Native app · Head of Tech, TripTech / THL</p>
           <p>A travel app whose users are, by definition, out of range. Every place in a country ships to the phone as an encrypted SQLite snapshot: built weekly from Postgres with an FTS5 index for search in 26 languages and an R*Tree for the map viewport, SQLCipher-encrypted, then re-keyed on install to a key that never leaves the device's keychain. Hourly patches keep it current, and one filter expression compiles to both SQLite and the online search engine, so results match with or without signal.</p>
           <p>Where JavaScript wasn't enough, the answer was native: seven in-house Expo Modules in Swift and Kotlin, from an on-device tile server and a background snapshot downloader to a native marker renderer and memory-pressure hooks.</p>
+          <p>The map's tap had picked the wrong pin for a year, on three SDKs, with the documentation followed to the letter. What fixed it was a test rig on each platform that puts real fingers on real pins and reads the pixels back: it disproved our own theory twice, found the bug, turned up three defects upstream in react-native-maps, and cut Android tap latency thirty-fold. <a href="/which-pin-did-you-tap/">Which pin did you tap?</a></p>
           <ul class="offer-case__facts">
             <li>99.5%+ crash-free users through a full replatform</li>
             <li>Encrypted at rest; FTS5 + R*Tree; self-healing search index</li>
             <li>7 Expo Modules in Swift and Kotlin</li>
+            <li>Marker hit-testing fixed on iOS, Android and web; 30× faster taps on Android</li>
             <li>700+ test files, Maestro end-to-end, native harnesses run on device</li>
           </ul>
         </div>
@@ -149,7 +151,7 @@ permalink: /react-native/
           <p class="offer-row__when">When releases are a leap of faith and QA is finding what CI should have.</p>
         </div>
         <div class="offer-row__body">
-          <p>A full integration harness and end-to-end suite for your app, written and wired into CI, then kept green. Tests are composable building blocks your QA team can assemble into new flows without an engineer, and AI-driven: failures are triaged and explained on every run, and coverage grows from the incidents that actually happen.</p>
+          <p>A full integration harness and end-to-end suite for your app, written and wired into CI, then kept green. Tests are composable building blocks your QA team can assemble into new flows without an engineer, and AI-driven: failures are triaged and explained on every run, and coverage grows from the incidents that actually happen. Where the platform won't tell you what it did, the rig reads the screen — the approach that fixed CamperMate's markers.</p>
         </div>
         <dl class="offer-row__terms">
           <div><dt>Duration</dt><dd>6–10 weeks, then monthly</dd></div>
@@ -234,7 +236,7 @@ permalink: /react-native/
 
       <details class="offer-faq__item">
         <summary>Couldn't we just point an AI model at the repo?</summary>
-        <p>You can, and I use the same tools. What a model can't do is carry the decision. It didn't take CamperMate's React Native app through a full replatform while it stayed at 99.5%+ crash-free, or decide that the offline maps should be self-hosted OpenStreetMap tiles cut from 21 GB to 2.3 GB rather than a vendor SDK. It won't be in your repo in month three when the plan meets reality, and nobody's name is on its recommendation. You're paying for the architect: the judgment about what to build, what not to, and the accountability that comes with it.</p>
+        <p>You can, and I use the same tools — CamperMate's marker fix started with Claude reading three SDKs' source instead of their docs. What a model can't do is carry the decision. It didn't take CamperMate's React Native app through a full replatform while it stayed at 99.5%+ crash-free, or decide that the offline maps should be self-hosted OpenStreetMap tiles cut from 21 GB to 2.3 GB rather than a vendor SDK. It won't be in your repo in month three when the plan meets reality, and nobody's name is on its recommendation. You're paying for the architect: the judgment about what to build, what not to, and the accountability that comes with it.</p>
       </details>
 
       <details class="offer-faq__item">
