@@ -2091,3 +2091,310 @@ a:hover { color: var(--accent-hover); }
     scroll-behavior: auto !important;
   }
 }
+
+/* -------------------------------------------------------------------------
+   22. Offer page (/react-native/)
+   One reveal per section; the packages ledger is the only loud element.
+   ------------------------------------------------------------------------- */
+.offer-hero {
+  padding: clamp(8rem, 18vh, 11rem) 0 clamp(3rem, 6vw, 4.5rem);
+  background: var(--ink);
+  position: relative;
+  overflow: hidden;
+}
+
+.offer-hero::before {
+  content: "";
+  position: absolute;
+  top: -220px;
+  left: -140px;
+  width: 640px;
+  height: 640px;
+  background: radial-gradient(circle, rgba(67, 97, 238, 0.14) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.offer-hero__inner { position: relative; max-width: 42rem; }
+
+.offer-hero__title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.6rem, 6.2vw, 4.6rem);
+  line-height: 1.02;
+  letter-spacing: -0.015em;
+  color: var(--pearl);
+  margin: 0 0 1.25rem;
+}
+
+.offer-hero__lead {
+  color: var(--pearl-soft);
+  font-size: clamp(1.05rem, 1.5vw, 1.2rem);
+  line-height: 1.6;
+  max-width: 58ch;
+  margin-bottom: 2rem;
+}
+
+.offer-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* Shared: a quieter h2 for paired columns, and a running-text list */
+.offer-h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.6rem, 2.6vw, 2rem);
+  line-height: 1.15;
+  color: var(--pearl);
+  margin-bottom: 1.25rem;
+}
+
+.offer-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.offer-list li {
+  position: relative;
+  padding-left: 1.4rem;
+  margin-bottom: 0.9rem;
+  color: var(--pearl-soft);
+  line-height: 1.6;
+}
+
+.offer-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.72em;
+  width: 0.55rem;
+  height: 1px;
+  background: var(--accent);
+}
+
+.offer-fit__col--not .offer-list li::before { background: var(--pearl-faint); }
+
+/* Fit: two columns, the "not" column visually recessed */
+.offer-fit {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: clamp(2rem, 5vw, 5rem);
+  max-width: 62rem;
+}
+
+.offer-fit__col--not { color: var(--pearl-faint); }
+.offer-fit__col--not .offer-h2 { color: var(--pearl-muted); }
+.offer-fit__col--not .offer-list li { color: var(--pearl-faint); }
+
+/* Ledger: one row per package, rules between, terms in mono on the right */
+.offer-ledger { max-width: 62rem; }
+
+.offer-ledger__head { margin-bottom: 2.5rem; }
+
+.offer-ledger__note {
+  color: var(--pearl-soft);
+  max-width: 60ch;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.offer-row {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 8fr) minmax(0, 4fr);
+  gap: 1.5rem clamp(1.5rem, 3vw, 3rem);
+  padding: 2rem 0;
+  border-top: 1px solid var(--border-soft);
+}
+
+.offer-row:last-of-type { border-bottom: 1px solid var(--border-soft); }
+
+.offer-row__name h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.6rem, 2.6vw, 2.1rem);
+  line-height: 1.1;
+  color: var(--pearl);
+  margin-bottom: 0.6rem;
+}
+
+.offer-row__when {
+  color: var(--pearl-muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.offer-row__body p {
+  color: var(--pearl-soft);
+  line-height: 1.65;
+  margin: 0;
+}
+
+.offer-row__terms {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+  margin: 0;
+}
+
+.offer-row__terms dt {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  color: var(--pearl-faint);
+  font-weight: 400;
+  margin-bottom: 0.15rem;
+}
+
+.offer-row__terms dd {
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  color: var(--pearl);
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.offer-ledger__foot {
+  color: var(--pearl-muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  max-width: 60ch;
+  margin: 1.75rem 0 0;
+}
+
+/* Proof: intro on the left, a definition list of the record on the right */
+.offer-proof {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  gap: clamp(2rem, 5vw, 5rem);
+  align-items: start;
+}
+
+.offer-proof__intro p {
+  color: var(--pearl-soft);
+  line-height: 1.6;
+  max-width: 44ch;
+  margin: 0;
+}
+
+.offer-proof__list { margin: 0; }
+
+.offer-proof__list > div {
+  padding: 1.25rem 0;
+  border-top: 1px solid var(--border-faint);
+}
+
+.offer-proof__list dt {
+  font-weight: 600;
+  color: var(--pearl);
+  margin-bottom: 0.35rem;
+}
+
+.offer-proof__list dd {
+  color: var(--pearl-soft);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Process: a real sequence, so it is numbered */
+.offer-process { max-width: 44rem; }
+
+.offer-steps {
+  list-style: none;
+  counter-reset: step;
+  padding: 0;
+  margin: 2rem 0 0;
+}
+
+.offer-steps li {
+  counter-increment: step;
+  position: relative;
+  padding: 0 0 1.4rem 3rem;
+  color: var(--pearl-soft);
+  line-height: 1.6;
+}
+
+.offer-steps li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0.1em;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--accent);
+}
+
+.offer-steps li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 0.3rem;
+  top: 1.6rem;
+  bottom: 0.4rem;
+  width: 1px;
+  background: var(--border-faint);
+}
+
+.offer-steps strong { color: var(--pearl); font-weight: 600; }
+
+/* FAQ: native disclosure so the motion answers a click */
+.offer-faq { max-width: 44rem; }
+.offer-faq .section-title { margin-bottom: 1.5rem; }
+
+.offer-faq__item { border-top: 1px solid var(--border-faint); }
+.offer-faq__item:last-of-type { border-bottom: 1px solid var(--border-faint); }
+
+.offer-faq__item summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 1.1rem 2.5rem 1.1rem 0;
+  font-weight: 600;
+  color: var(--pearl);
+  position: relative;
+  transition: color 0.25s var(--ease);
+}
+
+.offer-faq__item summary::-webkit-details-marker { display: none; }
+
+.offer-faq__item summary::after {
+  content: "";
+  position: absolute;
+  right: 0.35rem;
+  top: 50%;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-right: 1px solid var(--accent);
+  border-bottom: 1px solid var(--accent);
+  transform: translateY(-70%) rotate(45deg);
+  transition: transform 0.3s var(--ease);
+}
+
+.offer-faq__item[open] summary::after { transform: translateY(-30%) rotate(225deg); }
+.offer-faq__item summary:hover { color: var(--accent); }
+
+.offer-faq__item summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+.offer-faq__item p {
+  color: var(--pearl-soft);
+  line-height: 1.65;
+  margin: 0 0 1.25rem;
+  max-width: 62ch;
+}
+
+@media (max-width: 767.98px) {
+  .offer-hero { padding-top: 7rem; }
+  /* the global mobile rule centres .section-title; this page is left-set throughout */
+  .offer-ledger .section-title,
+  .offer-proof .section-title,
+  .offer-process .section-title,
+  .offer-faq .section-title { text-align: left; }
+  .offer-fit,
+  .offer-proof { grid-template-columns: 1fr; }
+  .offer-row { grid-template-columns: 1fr; gap: 1rem; padding: 1.5rem 0; }
+  .offer-row__terms { grid-template-columns: 1fr 1fr; }
+}
