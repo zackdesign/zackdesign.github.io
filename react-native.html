@@ -270,7 +270,7 @@ permalink: /react-native/
 </section>
 
 <!-- ============================== CTA ============================== -->
-<section class="section section-depth">
+<section class="section section-depth" id="contact-cta">
   <div class="container">
     <div class="row">
       <div class="col-lg-8 mx-auto">
@@ -287,3 +287,41 @@ permalink: /react-native/
     </div>
   </div>
 </section>
+
+<!-- Sticky CTA: shows once the hero has scrolled past, hides while the
+     closing contact card or the footer is on screen so it never covers them. -->
+<div class="offer-sticky" id="offer-sticky" aria-hidden="true">
+  <div class="container offer-sticky__inner">
+    <p class="offer-sticky__text">Four fixed-scope packages, from a two-week audit. Start with a short note.</p>
+    <a href="mailto:isaac@zackdesign.biz" class="btn btn-primary offer-sticky__btn" tabindex="-1">Email Isaac</a>
+  </div>
+</div>
+
+<script>
+(function () {
+  var bar = document.getElementById('offer-sticky');
+  var hero = document.querySelector('.offer-hero');
+  var stops = [document.getElementById('contact-cta'), document.querySelector('.footer')].filter(Boolean);
+  if (!bar || !hero || !('IntersectionObserver' in window)) return;
+
+  var pastHero = false, atEnd = false;
+  function update() {
+    var show = pastHero && !atEnd;
+    bar.classList.toggle('is-visible', show);
+    bar.setAttribute('aria-hidden', show ? 'false' : 'true');
+    bar.querySelector('a').tabIndex = show ? 0 : -1;
+  }
+  new IntersectionObserver(function (entries) {
+    pastHero = !entries[0].isIntersecting && entries[0].boundingClientRect.bottom < 0;
+    update();
+  }, { threshold: 0 }).observe(hero);
+
+  var seen = new Map();
+  var endObserver = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) { seen.set(e.target, e.isIntersecting); });
+    atEnd = Array.from(seen.values()).some(Boolean);
+    update();
+  }, { threshold: 0 });
+  stops.forEach(function (el) { endObserver.observe(el); });
+})();
+</script>
