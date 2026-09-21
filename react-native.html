@@ -1,7 +1,7 @@
 ---
 layout: default
 title: React Native Consulting
-description: Senior React Native help for apps already in production — audits, fixed-scope rescue sprints, and fractional platform lead. Nitro modules, crash and performance work, offline-first maps. Sydney, remote.
+description: Senior React Native and offline-first PWA help for apps already in production — audits, fixed-scope rescue sprints, and fractional platform lead. Nitro modules, crash and performance work, offline maps and sync. Sydney, remote.
 permalink: /react-native/
 ---
 
@@ -12,7 +12,7 @@ permalink: /react-native/
       <span class="section-eyebrow section-eyebrow--rule">React Native consulting</span>
       <h1 class="offer-hero__title">React Native that survives the field.</h1>
       <p class="offer-hero__lead">
-        For teams whose app is already in production and now has to hold up: crashes in the wild, a native module nobody owns, maps that must work with no signal. Senior, fixed-scope help from Sydney — not staff augmentation, not a greenfield agency.
+        For teams whose app is already in production and now has to hold up: crashes in the wild, a native module nobody owns, maps and sync that must work with no signal. React Native, or an installable web app that behaves like one. Senior, fixed-scope help from Sydney — not staff augmentation, not a greenfield agency.
       </p>
       <div class="offer-hero__actions">
         <a href="mailto:isaac@zackdesign.biz" class="btn btn-primary">Email Isaac</a>
@@ -31,6 +31,7 @@ permalink: /react-native/
         <ul class="offer-list">
           <li>A production React Native or Expo app that has slowed down, crashes for real users, or is stuck between "the MVP shipped" and "this scales".</li>
           <li>Native-module debt, a New Architecture migration, or an offline / sync / maps pipeline that needs someone who has built one before.</li>
+          <li>A product that wants a native-feeling app without an app store in the way: an installable, offline-first progressive web app with sync that doesn't lose data.</li>
           <li>A US or ANZ team that wants senior React Native judgment in its morning standups. Sydney overlaps US mornings and works async the rest of the day.</li>
         </ul>
       </div>
@@ -75,7 +76,7 @@ permalink: /react-native/
           <p class="offer-row__when">When the app is in production pain and you need a finite intervention.</p>
         </div>
         <div class="offer-row__body">
-          <p>Hands-on in your repo with your engineers: stabilise crashes, cut jank, land a Nitro or native hot path, or unstick an offline / maps pipeline. Exit criteria agreed before day one.</p>
+          <p>Hands-on in your repo with your engineers: stabilise crashes, cut jank, land a Nitro or native hot path, unstick an offline / maps pipeline, or take a web app installable and offline-first. Exit criteria agreed before day one.</p>
         </div>
         <dl class="offer-row__terms">
           <div><dt>Duration</dt><dd>4–6 weeks</dd></div>
@@ -122,6 +123,14 @@ permalink: /react-native/
         <div>
           <dt>react-native-nitro-unzip</dt>
           <dd>Open-source ZIP extraction for React Native built on Nitro Modules — streaming, progress, cancellation, password support. <a href="/react-native-nitro-unzip/">Write-up</a>.</dd>
+        </div>
+        <div>
+          <dt>Rampset</dt>
+          <dd>An open-source strength-training app built as an installable, offline-first PWA: the browser's own database as the source of truth, a rest timer that survives the phone locking, sync through a per-user Durable Object. 256 tests, MIT. <a href="/rampset/">The story</a>.</dd>
+        </div>
+        <div>
+          <dt>durable-sync</dt>
+          <dd>The sync layer from Rampset, extracted into a zero-dependency library after a production data-loss incident: an append-only op log in a Durable Object's SQLite and a durable outbox on the client. No Postgres, no container. 87 tests, on npm. <a href="/durable-sync/">Write-up</a>.</dd>
         </div>
         <div>
           <dt>Platform leadership</dt>
@@ -175,8 +184,13 @@ permalink: /react-native/
       </details>
 
       <details class="offer-faq__item">
+        <summary>Do we need a native app at all?</summary>
+        <p>Sometimes not. If you don't need deep hardware access or app-store distribution, an installable progressive web app with an offline-first data layer can feel native, ship without review queues, and cost far less to run. Rampset and durable-sync above are that approach in production. The audit will say which side of the line you're on.</p>
+      </details>
+
+      <details class="offer-faq__item">
         <summary>Is Nitro / performance / offline really the specialty?</summary>
-        <p>Yes. Nitro modules, crash and performance triage, and offline-first maps pipelines are where the CamperMate and open-source work runs deepest, and the packages above are built around them.</p>
+        <p>Yes. Nitro modules, crash and performance triage, and offline-first data and maps — in React Native and in the browser — are where the CamperMate and open-source work runs deepest, and the packages above are built around them.</p>
       </details>
     </div>
   </div>
