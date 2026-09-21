@@ -6,7 +6,12 @@ permalink: /react-native/
 ---
 
 <!-- =============================== HERO =============================== -->
-<header class="offer-hero">
+<header class="offer-hero" data-parallax>
+  <div class="offer-hero__photo parallax-post-photo">
+    {% picture hero images/blog/offline-maps-pipeline.jpg --alt A campervan parked on a remote road at dusk beneath a mountain, no town in sight --img loading="eager" fetchpriority="high" decoding="async" %}
+  </div>
+  <div class="offer-hero__wash"></div>
+  <a class="offer-hero__credit" href="https://unsplash.com/@marekpiwnicki" target="_blank" rel="noopener">Photo: Marek Piwnicki, Unsplash</a>
   <div class="container">
     <div class="offer-hero__inner reveal">
       <span class="section-eyebrow section-eyebrow--rule">React Native consulting</span>
@@ -21,6 +26,18 @@ permalink: /react-native/
     </div>
   </div>
 </header>
+
+<!-- ============================== RESULTS ============================== -->
+<section class="offer-results">
+  <div class="container">
+    <dl class="offer-results__row reveal">
+      <div><dd>99.5%+</dd><dt>crash-free users through a full replatform</dt></div>
+      <div><dd>21 GB → 2.3 GB</dd><dt>offline maps for nine ANZ regions, self-hosted</dt></div>
+      <div><dd>80%+</dd><dt>test coverage across 35+ app modules</dt></div>
+      <div><dd>3 projects</dd><dt>open-source and in production: nitro-unzip, durable-sync, thinkbot</dt></div>
+    </dl>
+  </div>
+</section>
 
 <!-- ============================== FIT ============================== -->
 <section class="section section-ink">
@@ -38,8 +55,54 @@ permalink: /react-native/
   </div>
 </section>
 
+<!-- ============================== CASES ============================== -->
+<section class="section">
+  <div class="container">
+    <div class="offer-cases reveal">
+      <div class="offer-cases__head">
+        <h2 class="section-title">Two systems built for no signal</h2>
+        <p>One is a React Native app used across Australia and New Zealand; the other is an installable web app for a gym with no reception. Both treat offline as the normal state.</p>
+      </div>
+
+      <article class="offer-case">
+        <div class="offer-case__media offer-case__media--wide">
+          <img src="/images/blog/offline-maps-two-stages.svg" alt="The offline maps build in two stages: an OpenStreetMap extract becomes a vector tile archive, which is then drawn into the raster tiles the app loads" loading="lazy" decoding="async" width="1200" height="340">
+        </div>
+        <div class="offer-case__body">
+          <h3>CamperMate</h3>
+          <p class="offer-case__role">React Native app · Head of Tech, TripTech / THL</p>
+          <p>A travel app whose users are, by definition, out of range. The app went through a full replatform without a break in iOS and Android releases, and its maps moved off a vendor SDK onto a self-hosted OpenStreetMap pipeline — vector tiles cut once per region, drawn to raster once per style, served hybrid online/offline on the device.</p>
+          <ul class="offer-case__facts">
+            <li>99.5%+ crash-free users</li>
+            <li>35+ modules, 80%+ test coverage</li>
+            <li>21 GB → 2.3 GB of map tiles across nine regions</li>
+          </ul>
+          <a href="/offline-maps-vector-raster-mbtiles/">How the maps pipeline works</a>
+        </div>
+      </article>
+
+      <article class="offer-case offer-case--reverse">
+        <div class="offer-case__media offer-case__media--phone">
+          <img src="/images/blog/rampset-app.png" alt="Rampset's home screen: the next two workouts with lifts, sets and weights, and a Start workout button" loading="lazy" decoding="async" width="1170" height="2532">
+        </div>
+        <div class="offer-case__body">
+          <h3>Rampset</h3>
+          <p class="offer-case__role">Installable offline-first web app · open source, MIT</p>
+          <p>A strength-training app for a room with no reception. The browser's own database is the source of truth; the network is an optimisation. Sync runs through a Durable Object per user with an append-only op log, and a production data-loss incident became durable-sync, the library that now stands in front of it.</p>
+          <ul class="offer-case__facts">
+            <li>Installs from the browser, no app store</li>
+            <li>Works fully offline; rest timer survives the phone locking</li>
+            <li>256 app tests, 87 in the sync library</li>
+          </ul>
+          <a href="/rampset/">The story</a>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
 <!-- ============================== PACKAGES ============================== -->
-<section class="section" id="packages">
+<section class="section section-ink" id="packages">
   <div class="container">
     <div class="offer-ledger reveal">
       <div class="offer-ledger__head">
@@ -109,18 +172,14 @@ permalink: /react-native/
 </section>
 
 <!-- ============================== PROOF ============================== -->
-<section class="section section-ink">
+<section class="section">
   <div class="container">
     <div class="offer-proof reveal">
       <div class="offer-proof__intro">
-        <h2 class="section-title">On the record</h2>
-        <p>Figures from CamperMate, where Isaac is Head of Tech (TripTech / THL), and from public open-source work. The full account is on <a href="https://isaacrowntree.com" target="_blank" rel="noopener">isaacrowntree.com</a>.</p>
+        <h2 class="section-title">Also on the record</h2>
+        <p>Open-source work and platform leadership from CamperMate, where Isaac is Head of Tech (TripTech / THL). The full account is on <a href="https://isaacrowntree.com" target="_blank" rel="noopener">isaacrowntree.com</a>.</p>
       </div>
       <dl class="offer-proof__list">
-        <div>
-          <dt>CamperMate React Native app</dt>
-          <dd>35+ modules, 80%+ test coverage, 99.5%+ crash-free users, and continuous iOS and Android releases through a full replatform.</dd>
-        </div>
         <div>
           <dt>Offline maps pipeline</dt>
           <dd>Self-hosted OpenStreetMap tiles (planetiler, tileserver-gl, MapLibre on device). 21 GB cut to 2.3 GB across nine ANZ regions, with hybrid online/offline tiles for no-signal use. <a href="/offline-maps-vector-raster-mbtiles/">How it was done</a>.</dd>
@@ -128,10 +187,6 @@ permalink: /react-native/
         <div>
           <dt>react-native-nitro-unzip</dt>
           <dd>Open-source ZIP extraction for React Native built on Nitro Modules — streaming, progress, cancellation, password support. <a href="/react-native-nitro-unzip/">Write-up</a>.</dd>
-        </div>
-        <div>
-          <dt>Rampset</dt>
-          <dd>An open-source strength-training app built as an installable, offline-first PWA: the browser's own database as the source of truth, a rest timer that survives the phone locking, sync through a per-user Durable Object. 256 tests, MIT. <a href="/rampset/">The story</a>.</dd>
         </div>
         <div>
           <dt>durable-sync</dt>
@@ -151,7 +206,7 @@ permalink: /react-native/
 </section>
 
 <!-- ============================== PROCESS ============================== -->
-<section class="section">
+<section class="section section-ink">
   <div class="container">
     <div class="offer-process reveal">
       <h2 class="section-title">How an engagement runs</h2>
@@ -167,7 +222,7 @@ permalink: /react-native/
 </section>
 
 <!-- ============================== FAQ ============================== -->
-<section class="section section-ink">
+<section class="section">
   <div class="container">
     <div class="offer-faq reveal">
       <h2 class="section-title">Questions</h2>
