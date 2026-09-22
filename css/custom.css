@@ -2421,6 +2421,8 @@ a:hover { color: var(--accent-hover); }
   font-variant-numeric: tabular-nums;
 }
 
+.offer-ledger__foot strong { color: var(--pearl); font-weight: 600; }
+
 .offer-ledger__foot {
   color: var(--pearl-muted);
   font-size: 0.95rem;
