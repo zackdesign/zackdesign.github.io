@@ -66,6 +66,12 @@
                     {{ content }}
                   </div>
 
+                  {% if page.consulting %}
+                  <aside class="post-consulting">
+                    <p>This is the kind of work Zack Design takes on: audits, rescue sprints and test harnesses for apps that have to hold up in production.</p>
+                    <a href="/app-consultancy/">See the app consultancy</a>
+                  </aside>
+                  {% endif %}
                   <footer class="post-footer">
                     <a href="/blog/" class="btn btn-outline-primary">
                       {% include icon.html name="arrow-left" %}&nbsp; All writing

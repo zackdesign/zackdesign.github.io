@@ -9,6 +9,7 @@ date: 2026-05-28
 last_modified_at: 2026-09-01
 categories: [engineering]
 tags: [offline-maps, mbtiles, openmaptiles, openstreetmap, planetiler, tileserver-gl, maplibre, cloudflare-r2, react-native, campermate]
+consulting: true
 ---
 
 CamperMate ships nine offline base-map archives for Australia and New Zealand, 3.7 GB in total, built from OpenStreetMap with planetiler (which turns raw map data into tiles) and tileserver-gl (which draws them), and served from Cloudflare R2, Cloudflare's file storage. The first tier, published in May 2026, was one zoom level coarser than every filename claimed, had 752 blank tiles in Tasmania alone, and drew an opaque blank rectangle over New South Wales wherever Victoria was installed on top of it. The build log for every one of those archives said `done`.

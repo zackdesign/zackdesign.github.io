@@ -9,6 +9,7 @@ date: 2026-02-27
 last_modified_at: 2026-02-27
 categories: [open-source]
 tags: [react-native, nitro, ios, android, typescript, performance, open-source]
+consulting: true
 ---
 
 Zack Design has published [`react-native-nitro-unzip`](https://github.com/isaacrowntree/react-native-nitro-unzip), a ZIP module for React Native built on [Nitro Modules](https://nitro.margelo.com/), a framework for writing the native half of a React Native library. On a 350 MB archive of 10,000 files it extracts about 500 files per second on iOS and 474 files per second on Android, with per-file progress and cancellation delivered through JSI, React Native's direct JavaScript-to-native interface, rather than the older message-passing bridge, which turns every event into a JSON string. Getting from the first commit to a version that built inside an app that used it took 28 commits and seven releases on the same day, and almost none of that was ZIP code.

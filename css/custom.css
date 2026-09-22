@@ -1664,6 +1664,24 @@ a:hover { color: var(--accent-hover); }
   margin: 3rem 0;
 }
 
+/* Opt-in consulting callout on evidence posts (front matter: consulting: true) */
+.post-consulting {
+  max-width: 68ch;
+  margin: 3rem auto 0;
+  padding: 1.25rem 1.5rem;
+  border-left: 2px solid var(--accent);
+  background: rgba(34, 211, 238, 0.05);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.post-consulting p {
+  color: var(--pearl-soft);
+  line-height: 1.55;
+  margin: 0 0 0.5rem;
+}
+
+.post-consulting a { font-weight: 600; }
+
 .post-footer {
   max-width: 68ch;
   margin: 3rem auto 0;

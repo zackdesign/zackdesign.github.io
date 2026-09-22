@@ -8,6 +8,7 @@ image_alt: Three map pins side by side — the silhouette the user sees, the rec
 date: 2026-09-18
 categories: [engineering]
 tags: [react-native, react-native-maps, mapkit, google-maps, mapbox, fabric, hit-testing, testing, xctest, robolectric, playwright, campermate]
+consulting: true
 ---
 
 [CamperMate](https://campermate.com) is a map. Its users are looking for a campsite in a pack of forty pins around Queenstown, and the whole product is the tap that opens the right one. From the first React Native build, that tap was wrong in a way we could describe but not explain: on iOS, in a dense pack, the pin you got was the one next to the one you touched. On Android it was the one underneath. On the website, on Mapbox, a finger in the empty corner beside one pin's pointer opened a different pin whose head was under that corner. We had followed the documentation for `react-native-maps`, for MapKit, for the Google Maps SDK and for Mapbox GL. None of it was wrong exactly. None of it described what the SDK hit-tests.
