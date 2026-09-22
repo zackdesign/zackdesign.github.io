@@ -2268,6 +2268,10 @@ a:hover { color: var(--accent-hover); }
 
 .offer-case__media--phone img { height: 100%; object-fit: cover; object-position: top; }
 
+/* Uncropped variant: the whole screen at its own aspect ratio */
+.offer-case__media--full { aspect-ratio: auto; }
+.offer-case__media--full img { height: auto; object-fit: unset; }
+
 .offer-case__body h3 {
   font-family: var(--font-display);
   font-weight: 400;
