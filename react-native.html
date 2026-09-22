@@ -167,7 +167,7 @@ permalink: /react-native/
           <p class="offer-row__when">When mobile matters to revenue and you want senior judgment on tap.</p>
         </div>
         <div class="offer-row__body">
-          <p>Architecture decisions, the PR bar, release risk, and hiring interviews when useful, while your core team ships. Deliberately limited capacity — this is a boutique, not a full-time hire in disguise.</p>
+          <p>Architecture decisions, the PR bar, release risk, experiments run to a decision (Statsig, GrowthBook or Datadog, with the metrics wired to your warehouse), and hiring interviews when useful, while your core team ships. Deliberately limited capacity — this is a boutique, not a full-time hire in disguise.</p>
         </div>
         <dl class="offer-row__terms">
           <div><dt>Duration</dt><dd>Monthly, about 15–20 hours a week</dd></div>
@@ -214,6 +214,10 @@ permalink: /react-native/
         <div>
           <dt>Nightly end-to-end suite with agent triage</dt>
           <dd>A Playwright suite runs nightly against production; a failed run posts a signed report to thinkbot, an open-source Cloudflare Worker agent that investigates against GitHub, Datadog and Sentry and writes the explanation — and reports a suite that failed to run as its own incident, not as zero failures. <a href="/thinkbot/">How it works</a>.</dd>
+        </div>
+        <div>
+          <dt>Experiments that end</dt>
+          <dd>The app's map peek was a three-arm Statsig experiment: the callout above the tapped marker won, shipped over the air, and the losing variants were deleted from the codebase rather than left behind a flag. On the web, flags go through OpenFeature with Datadog experiments and warehouse-native metrics in BigQuery, joined on the same visitor id the SDK assigns by — so the provider is one line and Statsig or GrowthBook is a swap, not a rewrite.</dd>
         </div>
         <div>
           <dt>Platform leadership</dt>
