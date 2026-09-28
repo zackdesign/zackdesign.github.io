@@ -27,6 +27,7 @@ permalink: /app-consultancy/
   </div>
 </header>
 
+{% comment %}
 <!-- ============================== RESULTS ============================== -->
 <section class="offer-results">
   <div class="container">
@@ -39,6 +40,7 @@ permalink: /app-consultancy/
   </div>
 </section>
 
+{% endcomment %}
 <!-- ============================== FIT ============================== -->
 <section class="section section-ink">
   <div class="container">
@@ -61,10 +63,13 @@ permalink: /app-consultancy/
   <div class="container">
     <div class="offer-cases reveal">
       <div class="offer-cases__head">
-        <h2 class="section-title">Offline-first: a tale of two apps</h2>
-        <p>One is a React Native app with seven native modules, used across Australia and New Zealand; the other is an installable web app for a gym with no reception. Both treat offline as the normal state.</p>
+        <h2 class="section-title">Offline-first, in the open</h2>
+        <p>An installable web app for a gym with no reception, free and open source, so you can see exactly how it's built. Offline is the normal state, not the fallback.</p>
+        {% comment %}<h2 class="section-title">Offline-first: a tale of two apps</h2>
+        <p>One is a React Native app with seven native modules, used across Australia and New Zealand; the other is an installable web app for a gym with no reception. Both treat offline as the normal state.</p>{% endcomment %}
       </div>
 
+{% comment %}
       <article class="offer-case">
         <div class="offer-case__media offer-case__media--phone offer-case__media--full">
           {% picture section images/sections/campermate-app.png --alt CamperMate's map of the South Island of New Zealand: campsite, food and activity pins across the whole island, with Free and Paid Campsites filters --img loading="lazy" decoding="async" %}
@@ -89,7 +94,8 @@ permalink: /app-consultancy/
         </figure>
       </article>
 
-      <article class="offer-case offer-case--reverse">
+{% endcomment %}
+      <article class="offer-case">{% comment %} was offer-case--reverse {% endcomment %}
         <div class="offer-case__media offer-case__media--phone">
           <img src="/images/blog/rampset-app.png" alt="Rampset's home screen: the next two workouts with lifts, sets and weights, and a Start workout button" loading="lazy" decoding="async" width="1170" height="2532">
         </div>
@@ -125,7 +131,7 @@ permalink: /app-consultancy/
           <p class="offer-row__when">Before you hire, migrate, or greenlight a rebuild.</p>
         </div>
         <div class="offer-row__body">
-          <p>A set of decisions, not a report: what to keep, what to replace, what to stop building, and in which order — with the reasoning, so your team can defend each call without me. Covers architecture, dependencies, crash and performance triage, the offline / sync / maps risks, and the build question itself — React Native, native, or web — the same calls made on CamperMate's app and its offline maps. I put my name to it.</p>
+          <p>A set of decisions, not a report: what to keep, what to replace, what to stop building, and in which order — with the reasoning, so your team can defend each call without me. Covers architecture, dependencies, crash and performance triage, the offline / sync / maps risks, and the build question itself — React Native, native, or web{% comment %} — the same calls made on CamperMate's app and its offline maps{% endcomment %}. I put my name to it.</p>
         </div>
         <dl class="offer-row__terms">
           <div><dt>Duration</dt><dd>1–2 weeks</dd></div>
@@ -153,7 +159,7 @@ permalink: /app-consultancy/
           <p class="offer-row__when">When releases are a leap of faith and QA is finding what CI should have.</p>
         </div>
         <div class="offer-row__body">
-          <p>A full integration harness and end-to-end suite for your app, written and wired into CI, then kept green. Tests are composable building blocks your QA team can assemble into new flows without an engineer, and AI-driven: failures are triaged and explained on every run, and coverage grows from the incidents that actually happen. Where the platform won't tell you what it did, the rig reads the screen — the approach that fixed CamperMate's markers.</p>
+          <p>A full integration harness and end-to-end suite for your app, written and wired into CI, then kept green. Tests are composable building blocks your QA team can assemble into new flows without an engineer, and AI-driven: failures are triaged and explained on every run, and coverage grows from the incidents that actually happen. Where the platform won't tell you what it did, the rig reads the screen{% comment %} — the approach that fixed CamperMate's markers{% endcomment %}.</p>
         </div>
         <dl class="offer-row__terms">
           <div><dt>Duration</dt><dd>6–10 weeks, then monthly</dd></div>
@@ -200,7 +206,7 @@ permalink: /app-consultancy/
     <div class="offer-proof reveal">
       <div class="offer-proof__intro">
         <h2 class="section-title">Also on the record</h2>
-        <p>Beyond Rampset: the libraries and tooling around it, and platform leadership from CamperMate, where Isaac is Head of Tech (TripTech / THL). The full account is on <a href="https://isaacrowntree.com" target="_blank" rel="noopener">isaacrowntree.com</a>.</p>
+        <p>Beyond Rampset: the libraries and tooling around it{% comment %}, and platform leadership from CamperMate, where Isaac is Head of Tech (TripTech / THL){% endcomment %}. The full account is on <a href="https://isaacrowntree.com" target="_blank" rel="noopener">isaacrowntree.com</a>.</p>
       </div>
       <dl class="offer-proof__list">
         <div>
@@ -215,6 +221,7 @@ permalink: /app-consultancy/
           <dt>Nightly end-to-end suite with agent triage</dt>
           <dd>A Playwright suite runs nightly against production; a failed run posts a signed report to thinkbot, an open-source Cloudflare Worker agent that investigates against GitHub, Datadog and Sentry and writes the explanation — and reports a suite that failed to run as its own incident, not as zero failures. <a href="/thinkbot/">How it works</a>.</dd>
         </div>
+{% comment %}
         <div>
           <dt>Experiments that end</dt>
           <dd>The app's map peek was a three-arm Statsig experiment: the callout above the tapped marker won, shipped over the air, and the losing variants were deleted from the codebase rather than left behind a flag. On the web, flags go through OpenFeature with Datadog experiments and warehouse-native metrics in BigQuery, joined on the same visitor id the SDK assigns by — so the provider is one line and Statsig or GrowthBook is a swap, not a rewrite.</dd>
@@ -223,6 +230,7 @@ permalink: /app-consultancy/
           <dt>Platform leadership</dt>
           <dd>Six production systems (the app, a Next.js platform, B2B, analytics, admin, a Cloudflare Workers edge fleet) with zero-downtime migrations between them.</dd>
         </div>
+{% endcomment %}
       </dl>
     </div>
   </div>
@@ -252,7 +260,7 @@ permalink: /app-consultancy/
 
       <details class="offer-faq__item">
         <summary>Couldn't we just point an AI model at the repo?</summary>
-        <p>You can, and I use the same tools — CamperMate's marker fix started with Claude reading three SDKs' source instead of their docs. What a model can't do is carry the decision. It didn't take CamperMate's React Native app through a full replatform while it stayed at 99.5%+ crash-free, or decide that the offline maps should be self-hosted OpenStreetMap tiles, and get them from 21 GB to 2.3 GB. It won't be in your repo in month three when the plan meets reality, and nobody's name is on its recommendation. You're paying for the architect: the judgment about what to build, what not to, and the accountability that comes with it.</p>
+        <p>You can, and I use the same tools — often to read an SDK's source instead of trusting its docs. What a model can't do is carry the decision: whether to replatform or repair, which hot path earns a native module, when self-hosting beats a vendor.{% comment %}CamperMate's marker fix started with Claude reading three SDKs' source instead of their docs. What a model can't do is carry the decision. It didn't take CamperMate's React Native app through a full replatform while it stayed at 99.5%+ crash-free, or decide that the offline maps should be self-hosted OpenStreetMap tiles, and get them from 21 GB to 2.3 GB.{% endcomment %} It won't be in your repo in month three when the plan meets reality, and nobody's name is on its recommendation. You're paying for the architect: the judgment about what to build, what not to, and the accountability that comes with it.</p>
       </details>
 
       <details class="offer-faq__item">
@@ -277,12 +285,12 @@ permalink: /app-consultancy/
 
       <details class="offer-faq__item">
         <summary>React Native, fully native, or a web app?</summary>
-        <p>Any of them, and the audit says which. Plain React Native or Expo (with or without a web target) when one codebase should ship everywhere; fully native in Swift and Kotlin when the hardware, the platform APIs or the performance ceiling demand it; an installable web app when you don't need deep hardware access or app-store distribution and want to ship without review queues. Native modules are a tool, not a religion — Nitro, Expo Modules, or none. The offline data layer, the sync, the maps and the test rigs on this page carry across all of them: CamperMate is React Native with seven native modules where JavaScript ran out; Rampset is the same thinking in a browser, free and open source, so you can see exactly how it's built.</p>
+        <p>Any of them, and the audit says which. Plain React Native or Expo (with or without a web target) when one codebase should ship everywhere; fully native in Swift and Kotlin when the hardware, the platform APIs or the performance ceiling demand it; an installable web app when you don't need deep hardware access or app-store distribution and want to ship without review queues. Native modules are a tool, not a religion — Nitro, Expo Modules, or none. The offline data layer, the sync, the maps and the test rigs on this page carry across all of them; Rampset shows the thinking in a browser, free and open source.{% comment %}: CamperMate is React Native with seven native modules where JavaScript ran out; Rampset is the same thinking in a browser, free and open source, so you can see exactly how it's built.{% endcomment %}</p>
       </details>
 
       <details class="offer-faq__item">
         <summary>Is native modules / performance / offline really the specialty?</summary>
-        <p>Yes. Native code in Swift and Kotlin — inside React Native as Nitro, Expo or plain modules, or on its own — crash and performance triage, and offline-first data and maps, on the phone and in the browser, are where the CamperMate and open-source work runs deepest. The packages above are built around them.</p>
+        <p>Yes. Native code in Swift and Kotlin — inside React Native as Nitro, Expo or plain modules, or on its own — crash and performance triage, and offline-first data and maps, on the phone and in the browser, are where the production and open-source{% comment %}CamperMate and open-source{% endcomment %} work runs deepest. The packages above are built around them.</p>
       </details>
     </div>
   </div>
