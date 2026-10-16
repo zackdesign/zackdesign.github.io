@@ -1,54 +1,81 @@
 ---
 layout: post
-title: "Rampset — I got fired as a customer, so I built the gym app myself and open-sourced it"
-description: "An open-source barbell training web app that works offline first — guided five-by-five and Madcow programs, freeform routines, a per-user Durable Object with its own SQLite for sync, R2 snapshots — built after the app holding my StrongLifts history cancelled my subscription during a support ticket. 256 tests, MIT, self-host on Cloudflare."
-excerpt: "A sign-in bug, a support ticket, and my grandfathered StrongLifts subscription was cancelled without me asking. The 1,270-workout export became the seed of Rampset: three training modes on one engine, the browser's on-device database as the source of truth, a per-user Durable Object for sync, and a rest timer that survives the phone locking. Then it lost a workout in production, and the interesting engineering started."
+title: "Rampset — a free, open-source barbell app that feels native on your iPhone"
+description: "Rampset is an open-source strength-training app you install from the browser: StrongLifts-style five-by-five, Madcow and freeform routines on one engine, plate math for your gym's plates, a rest timer that survives the phone locking, and it works with no signal at all. Sync through a Durable Object per user, 280 tests, MIT, self-host free on Cloudflare."
+excerpt: "A barbell app built for the gym floor: it works with zero reception, looks and moves like an iPhone app, colours every set by the plate on the bar, and runs three training programs on one engine. Free, open source, and yours to host."
 image: /images/blog/rampset.jpg
 image_alt: A loaded barbell resting on the floor of a dark gym
 date: 2026-07-06
-last_modified_at: 2026-07-06
+last_modified_at: 2026-10-17
 categories: [open-source, product]
 tags: [nextjs, react, pwa, cloudflare, durable-objects, typescript, tdd, fitness, open-source, claude-code]
 ---
 
-Zack Design has published **[Rampset](https://github.com/isaacrowntree/rampset)**, an open-source strength-training app that works offline first, built as a progressive web app (a website you install like an app), and it replaced the app I had logged my lifting in for years. A sign-in bug locked me out of that app; support's resolution, after a morning of screenshots, was to cancel my grandfathered subscription, and the only way back was a new plan at a much higher price. My history exported to CSV, 1,270 workouts, and that file became Rampset's first import. It runs three training styles on one engine, works in a gym with zero signal, syncs between devices through a Durable Object per user (Cloudflare's single-instance server object with its own SQLite database), and saves a snapshot of every workout to R2, Cloudflare's file storage. **MIT licensed**, built to self-host on your own Cloudflare account.
+Zack Design's **[Rampset](https://github.com/isaacrowntree/rampset)** is a free, open-source strength-training app for barbell lifters. You install it from the browser like an app, no app store involved, and it behaves like one: an iPhone-native look and feel, gestures that do what your thumb expects, and everything working in a gym with no signal at all. It runs three styles of training on one engine, does the plate math for the plates your gym actually has, and keeps every workout on your phone first. Your data syncs between devices through your own Cloudflare account. **MIT licensed**, free to self-host.
 
-This post covers the engine (linear progression; the stall protocol that steps a lift from five sets of five down to three sets of five and then one set of five; weight reductions scaled to how long you were away; Madcow's ramp fractions), the offline mechanics (a three-second network timeout in the service worker, a rest timer based on a saved start time rather than a countdown, a bell synthesised from two sine tones), and the production incident on 14 and 15 July in which a finished workout was erased, which produced four fixes that later became the [durable-sync](/durable-sync/) library.
+This post covers what it is like to train with, the engine behind the programs, how it stays useful with zero reception, and how to run your own.
 
 <!-- more -->
 
 **Site and guide:** [isaacrowntree.github.io/rampset](https://isaacrowntree.github.io/rampset) · **Source:** [github.com/isaacrowntree/rampset](https://github.com/isaacrowntree/rampset) (MIT)
 
+<div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin: 1.5rem auto;">
+  <img src="/images/blog/rampset-app.png" alt="Rampset's home screen: the next workout, Workout A, with two looping lifters benching and squatting, its five exercises with sets and weights, and a Start Workout A button" width="1170" height="2532" style="max-width: 280px; width: 100%; height: auto; border-radius: 24px;" />
+  <img src="/images/blog/rampset-workout.png" alt="A workout in progress: finished squat and bench sets filled red for the 25 kg plates on the bar, a short bench set shown as an outlined 4 of 5, finished rows filled blue for 20 kg plates, and the next set of each lift ringed" width="1170" height="2532" style="max-width: 280px; width: 100%; height: auto; border-radius: 24px;" />
+</div>
+
+## Built for the gym floor
+
+Rampset is designed around the moment between sets: chalky hands, the phone on a bench, a glance from arm's length.
+
+- **Every set wears the plate on the bar.** A finished set fills with the colour of the heaviest plate you're lifting, using the competition colours: red for 25 kg, blue for 20, yellow for 15, green for 10, white for 5, and plain steel when it's just the bar. A session reads the way a loaded bar does from across the room. How the set went is shown by shape, not colour: a full disc is a completed set, an outline with "4/5" is a set that fell short, and a dashed ring is a set with no reps. The next set to do has a ring around it, so you can find it at a glance.
+- **One tap logs a set.** Tap a plate to log the full target; tap again to count down a rep. Logging a set starts the rest timer straight away.
+- **A rest timer you can read from the bench.** It sits at the bottom where your thumb is, in big rounded digits, and glows green when the rest is over. It rings a bell, keeps counting if you lock the phone or switch apps, and suggests a longer rest after a missed set.
+- **Plate math for your gym.** Each lift shows exactly which plates go on each side, drawn to scale on the bar, from 25 kg down to 1.25 kg. If your gym tops out at 20 kg plates, one switch in Settings changes all the maths and pictures to match.
+- **Warm-ups in whole plates.** Warm-up sets climb to your working weight in loads you can make without a pile of change plates: steps of 10 kg, or 5 kg where a step would otherwise land on the one before it.
+- **It moves like an iPhone app.** Apple's own dark palette and type, large titles that collapse as you scroll, sheets that spring and drag down to close, swipe back from the edge, and a workout screen you pull down to minimise, like the Music app's Now Playing screen. Finishing a workout plays a short celebration: plates drop onto a bar and the total weight you moved counts up. It respects Reduce Motion and Reduce Transparency.
+- **Fix a past workout in place.** Tap any workout in History and it opens in the same workout screen, with the weights you actually lifted that day, so you can add a set you forgot or correct a rep count.
+
 ## Three ways to train, one engine
 
-The constraint that shaped the architecture was not me. My wife trains too, and her program looks nothing like mine. So the `Program` row carries a mode, and `finishWorkout` branches on it:
+Every program has a mode, and the engine branches on it:
 
 ```ts
 export type ProgramMode = "progression" | "routine" | "madcow";
 ```
 
-- **Program mode** is StrongLifts-style training: five sets of five, alternating two workouts (A and B), with the family of variants (Plus, Lite, Mini, Ultra, Ultra Max). The engine in `src/lib/progression.ts` is a pure function. A successful workout adds `incrementKg` to the lift: 2.5 kg on the main lifts, 5 kg on the deadlift, nothing on the assistance lifts. Three failures in a row subtract `deloadPct`, 10%, rounded to the nearest 2.5 kg. The stall protocol lives on the program slot as `deloadCount`: after the first deload the lift stays at five sets of five, after the second it drops to three sets of five, after the third to one set of five. Warm-up sets ramp up to the working weight like this:
+**Program mode** is StrongLifts-style training: five sets of five, alternating two workouts, A and B, with the familiar variants (Plus, Lite, Mini, Ultra, Ultra Max). The progression engine in `src/lib/progression.ts` is a pure function of your history:
 
-  | Warm-up set | Fraction of the working weight | Reps |
-  |---|---|---|
-  | 1 | one half | 5 |
-  | 2 | two thirds | 5 |
-  | 3 | five sixths | 3 |
-  | 4 | eleven twelfths | 2 |
+- A successful workout adds weight: 2.5 kg on the main lifts and 5 kg on the deadlift. Assistance lifts like dips and pull-ups are yours to progress by hand.
+- A workout only counts as a success if every set it started with is done at full reps. A skipped set is a failed set, and lowering the set count partway through doesn't change that, because each workout is judged against the sets it began with.
+- Three failed workouts in a row at the same weight bring the lift down 10%, rounded to a loadable weight.
+- Repeated stalls step a lift from five sets of five to three sets of five, then to one set of five.
+- Squat appears in both workouts, and it's one lift: progress on Monday carries to Wednesday.
 
-  Plate math works out the plates for one side of the bar, largest first, from the 20, 15, 10, 5, 2.5 and 1.25 kg plates, and returns `null` rather than lie when a weight cannot be loaded exactly.
-- **Madcow mode** is five sets of five ramped up over the week. `src/lib/madcow.ts` encodes the three days directly:
+Warm-ups follow the classic ramp:
 
-  | Day | What it does |
-  |---|---|
-  | Heavy | four sets climbing through 50%, 62.5%, 75% and 87.5% of the top weight, then a top set of five |
-  | Light | the same ramp, stopping at 75% |
-  | Intensity | climbs to a personal-record set of three reps at the top weight plus one increment, then a back-off set of eight at 75% |
+| Warm-up set | Fraction of the working weight | Reps |
+|---|---|---|
+| 1 | one half | 5 |
+| 2 | two thirds | 5 |
+| 3 | five sixths | 3 |
+| 4 | eleven twelfths | 2 |
 
-  If the personal-record set succeeds, next week's top weight moves up.
-- **Routine mode** uses the layout of the Strong app: exercise cards with a row per set, everything prefilled from the last session by `src/lib/prefill.ts`, a rest time per exercise, timed sets and bodyweight sets. You prescribe; the app remembers.
+Squat, bench and overhead press start with two sets on the empty bar, and every step is rounded to whole plates, so a 62.5 kg bench warms up at 20, 20, 30, 40, 50 and 60 kg.
 
-Coming back after time off is handled by `src/lib/deload.ts`, and it is the whole file:
+**Madcow mode** is five sets of five ramped up over the week. `src/lib/madcow.ts` encodes the three days directly:
+
+| Day | What it does |
+|---|---|
+| Heavy | four sets climbing through 50%, 62.5%, 75% and 87.5% of the top weight, then a top set of five |
+| Light | the same ramp, stopping at 75% |
+| Intensity | climbs to a personal-record set of three reps at the top weight plus one increment, then a back-off set of eight at 75% |
+
+Hit the personal-record set and next week's top weight goes up.
+
+**Routine mode** takes the layout of the Strong app: exercise cards with a row per set, everything prefilled from last time, a rest time per exercise, timed sets and bodyweight sets. You prescribe; the app remembers.
+
+Time away from the gym is handled too. Come back after a break and the app offers to take the weights down, scaled to how long you were gone. This is `src/lib/deload.ts`, and it's the whole file:
 
 ```ts
 export function deloadPctForLayoff(daysAway: number): number {
@@ -59,13 +86,11 @@ export function deloadPctForLayoff(daysAway: number): number {
 }
 ```
 
-Both of our histories came in through CSV importers for the two incumbent apps' export formats, detected from the header row (`"Set Order"` meant Strong; `"Workout,Workout Name"` or `"Date (yyyy/mm/dd)"` meant StrongLifts) and deduplicated by their order within each date and workout label, because two "Workout A"s on one day is common in real exports. Once the migration was done the importers, 633 lines including tests, were deleted; export gives everything back as CSV from Settings.
+Your history is always yours: **Export** in Settings hands you every set as a CSV.
 
-<img src="/images/blog/rampset-app.png" alt="Rampset home screen: dark OLED UI showing the next 5×5 workouts with working weights and a Start workout button" style="max-width: 320px; width: 100%; display: block; margin: 1.5rem auto; border-radius: 24px;" />
+## No signal, no problem
 
-## Offline is the default state, not an error state
-
-Gyms are Faraday cages. IndexedDB, the browser's on-device database (used through the Dexie library), is the source of truth on the device, and the network is an optimisation. The service worker in `public/sw.js` caches the app shell and five routes, and the one constant in it that matters is this:
+Gyms are Faraday cages, so Rampset treats being offline as the normal state. Your workouts live in IndexedDB, the browser's on-device database (used through the Dexie library), and the network is an optimisation on top. The service worker caches the app, and gives up on the network fast instead of hanging:
 
 ```js
 /** Gym dead zones don't fail fetches — they hang them. Anything
@@ -73,7 +98,7 @@ Gyms are Faraday cages. IndexedDB, the browser's on-device database (used throug
 const NETWORK_TIMEOUT_MS = 3000;
 ```
 
-The rest timer is the other place where "offline" really means "the phone locked in your pocket". `src/components/RestTimer.tsx` does not count down; it saves the moment the rest started under `liftlog.restTimer` and, on every tick, works out how many seconds have passed since then (`Math.floor((Date.now() - startTs) / 1000)`), so sending the app to the background, navigating away, and a full reload cannot lose it. Closing the timer clears the tick but deliberately not the saved start time. A saved rest older than 30 minutes is treated as stale and discarded. When it rings, it rings with a bell the app synthesises, because a bundled audio file is one more thing to fail offline:
+The rest timer is built for the phone in your pocket. `src/components/RestTimer.tsx` doesn't count down; it saves the moment the rest started and works out the elapsed time on every tick (`Math.floor((Date.now() - startTs) / 1000)`), so locking the phone, switching apps or even reloading can't lose it. When it rings, it rings with a bell the app synthesises from two sine tones, because an audio file is one more thing that could fail to load offline:
 
 ```ts
 for (const [freq, at, dur] of [
@@ -87,54 +112,29 @@ for (const [freq, at, dur] of [
   gain.gain.exponentialRampToValueAtTime(0.0001, t0 + at + dur);
 ```
 
-Two tones per strike, struck twice, half a second apart. The `AudioContext` is created inside the tap that logs the set, because browsers only allow sound to start from a user gesture, and resumed before striking, because long workouts suspend it. The screen is kept awake while a workout is open, and the phone gives a 10-millisecond vibration on every logged set.
+The screen stays awake while a workout is open.
 
 ## Sync without a database server
 
-Each lifter gets their own Durable Object, addressed by their lower-cased email, which comes from the `cf-access-authenticated-user-email` header that Cloudflare Access sets. The Durable Object handles one request at a time and has its own SQLite database, which makes it the place where that user's writes are put in order, with no Postgres anywhere. Finished workouts are pushed as operations keyed by workout id, so applying one twice changes nothing; fresh devices pull. Underneath, `src/server/backupStore.ts` writes a dated snapshot to R2 under `snapshots/<user>/<stamp>.json` and merges a `latest.json` pointer with a write that only succeeds if the file has not changed since it was read (an etag check), retried three times, because two devices can finish a backup at once.
+Each lifter gets their own Durable Object: a single-instance server object on Cloudflare with its own SQLite database, which puts that lifter's writes in order without a Postgres server anywhere. Finished workouts are pushed as operations keyed by workout id, so applying one twice changes nothing, and a new phone catches up by pulling. A dated snapshot of everything goes to R2, Cloudflare's file storage, and the latest-snapshot pointer is merged with a write that only succeeds if nobody else changed it first, so two devices backing up at once can't overwrite each other.
 
-Identity is handled entirely by Access, so the app contains no authentication code, and the list of lifters is an environment variable (`NEXT_PUBLIC_LIFTLOG_USERS` in `.env.example`, a `LIFTLOG_USERS` Worker secret in production) that never enters the repo.
+The sync layer is [durable-sync](/durable-sync/), an open-source library built around four rules:
 
-## The week it lost a workout
+- a response that looks successful isn't proof the write landed, so the app checks the body before clearing its queue of unsent workouts;
+- a device's read position in the log only counts against the version of the log it came from;
+- pulling in changes from another device isn't always safe, so sync is push-only while a workout is open;
+- every write goes through a single identity check, so a shared phone can never file one lifter's workout under the other.
 
-On 14 July a real workout was erased from the R2 bucket. `docs/sync-repair-plan.md` is the write-up; the commit trail is the short version, and every step of it is a bug that looked like success.
+Sign-in is handled entirely by Cloudflare Access, so the app contains no authentication code, and the list of lifters lives in an environment variable rather than the repo. Two people can share a phone: tap the avatar to switch lifter.
 
-The backup route overwrote `latest.json` instead of merging it, so a device with an older local copy wiped out a newer one (#17). The journal only holds workouts finished since it existed, so years of imported history lived in `latest.json` and the dated snapshots alone, and snapshots expire after 90 days. One overwrite plus three months is unrecoverable. That is why the merge is now a union, written with the etag check.
-
-Then the outbox, the queue of writes waiting to be sent. Behind Cloudflare Access an expired session returns the login page with a success status (200) from the app's own domain, and `flushOutbox` emptied the queue as soon as the response looked successful, deleting writes the journal never saw (#11). The fix checks the shape of the response body before emptying the queue, and sends an `X-Requested-With` header so Access answers with a 401 instead of a login page. The same trap is in the service worker, which now caches a response only if it succeeded, was not redirected, and came from the app's own origin, because caching a login page poisons the offline shell.
-
-The same commit fixed the reason pulls happen at all during a workout: `applyOp` writes `workingWeightKg` and `finishWorkout` reads it back to decide deloads, so a remote operation landing mid-session could step a lift from five sets of five to three sets of five. Sync is now push-only while a workout is active:
-
-```ts
-canPull: async () => !(await getActiveWorkout(user.id)),
-```
-
-Repairing the journal needed a reset (#12), and the reset shipped its own bug (#14). Each device remembers how far through the journal it has read as a cursor, the sequence number of the last entry it saw. Rebuilding the journal restarted its sequence numbers at 1 while every device still held a cursor from the old journal.
-
-![Two panels: after the journal is rebuilt its sequence numbers restart at 1, but the device still holds a cursor at 912 from the old journal, so asking for entries newer than 912 returns nothing and the device silently never syncs again; with an epoch stamped on the journal, a device that sees a new epoch resets its cursor to zero and replays every entry.](/images/blog/rampset-cursor-epoch.svg)
-
-The journal now carries an epoch number, and a device that sees a new one replays from zero.
-
-Last, identity (#20). The identity check was on `cloudBackup` and `syncNow`, but `finishFlow` called `flushOutbox` directly, so finishing a workout as the other lifter on a shared phone posted it to the signed-in lifter's journal, got a valid acknowledgement, and emptied the outbox. In an append-only log that is permanent. The fix moved the check to the one door every write passes through, and #21 stopped an unreliable `/api/me` call (a two-second timeout that a cold mobile network blows routinely) from being read as "no identity, allow everything": the app now remembers the last identity it actually resolved and falls back to that.
-
-Those four failure modes are what got extracted as [durable-sync](/durable-sync/):
-
-- a successful-looking response is not evidence that the write landed;
-- a cursor only means something against the epoch it came from;
-- pulling remote changes is not always safe;
-- the identity check must be the only door.
-
-Rampset now uses the package; its own 329-line copy of the journal was deleted (#22), and the class name and SQL schema were kept identical so the live Durable Object carried over without a migration.
-
-## Tests
+## Tested
 
 ```
  Test Files  34 passed (34)
-      Tests  256 passed (256)
-   Duration  5.22s
+      Tests  280 passed (280)
 ```
 
-The engines are pure functions in `src/lib/` and each has a test file beside it: progression, deloads, Madcow, plates, estimated one-rep max (one case pins five reps at 115 kg to an estimate of 133.3 kg, a value taken from the real export), the sync journal, backup round-trips, and the `Sheet` component whose browser-history handling was the root cause of a finish-flow bug in #11 (`router.replace` overwrote the history entry the sheet had pushed, so consuming it on close walked the user back into a fresh workout). The count was 240 at the initial release and has moved with the incident fixes and the importer deletion; 256 is what runs today.
+The engines are pure functions in `src/lib/`, each with its test file beside it: progression and the skipped-set rules, layoff deloads, Madcow, plate math for gyms with and without 25 kg plates, warm-up rounding, the estimated one-rep max, and the sync journal and backup round-trips. The UI components are tested too, including the bottom sheet's handling of the back gesture and browser history.
 
 ## Run your own
 
@@ -147,8 +147,6 @@ npm run dev                    # → http://localhost:3000
 npm test                       # vitest — the engines, store, sync, components
 ```
 
-`npm run deploy` builds with the OpenNext adapter (which packages a Next.js app for Cloudflare) and ships to Cloudflare Workers; `wrangler.jsonc` declares the `SYNC_JOURNAL` Durable Object (a `new_sqlite_classes` migration) and the `BACKUPS` R2 bucket. Put a Cloudflare Access application in front of the Worker and allow your lifters' emails. Workers and Access are free for a household. The one paid gate is **R2**: the data sits well inside the 10 GB free tier, but Cloudflare wants a card on file to enable it. Without it, drop the `BACKUPS` binding; the app works fully offline on the local IndexedDB store, and the **Export** button in Settings hands you a complete CSV whenever you want.
+`npm run deploy` builds with the OpenNext adapter (which packages a Next.js app for Cloudflare) and ships to Cloudflare Workers. `wrangler.jsonc` declares the `SYNC_JOURNAL` Durable Object and the `BACKUPS` R2 bucket. Put a Cloudflare Access application in front of the Worker and allow your lifters' emails. Workers and Access are free for a household. The one paid gate is **R2**: the data sits well inside the 10 GB free tier, but Cloudflare wants a card on file to enable it. Without it, drop the `BACKUPS` binding; the app works fully offline on the phone's own storage, and **Export** in Settings gives you a complete CSV whenever you want.
 
-## What I would tell the subscription app
-
-The migration cost me a Saturday and the incident cost me a week, and the week was the useful part. Every bug in it returned a 200. A loyal customer with an export file is no longer locked in by anything, and with a coding agent in the loop "I'll build it myself" is a weekend, not a threat. The two proven programs, the plate math and the sync are all in a public repo under a licence that says make it yours. Take it somewhere no subscription can reach you.
+Then open it on your phone, choose **Add to Home Screen**, and it's an app. Two proven programs, plate maths for your gym and sync you can trust, in a public repo under a licence that says make it yours.
