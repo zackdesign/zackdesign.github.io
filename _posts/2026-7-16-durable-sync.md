@@ -13,6 +13,11 @@ tags: [cloudflare, durable-objects, typescript, offline-first, local-first, sync
 
 Zack Design's **[durable-sync](https://github.com/isaacrowntree/durable-sync)** is offline-first sync for apps built entirely on Cloudflare. The server is an append-only op log inside a Durable Object's SQLite, which you call over typed RPC. The client is a durable outbox on the device that keeps every write until the server has demonstrably stored it. It's 983 lines of TypeScript and 26,969 bytes of JavaScript, with no runtime dependencies, and **no Postgres, no long-running container and no WebSocket**. It runs in production behind [Rampset](/rampset/), an offline-first barbell app used in gyms with no reception. **MIT licensed**, on npm.
 
+<div class="hero-cta-row" style="margin: 1.5rem 0;">
+  <a href="https://isaacrowntree.com/durable-sync/" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Docs and live demo</a>
+  <a href="https://liftlog.zackdesign.biz" target="_blank" rel="noopener" class="btn btn-outline-primary btn-lg">Try it in Rampset</a>
+</div>
+
 This post covers why a Durable Object is already the ordering point sync engines run Postgres to get, the four guarantees the library makes and the code behind each, how it's tested against a real Durable Object, and when you want something else.
 
 <!-- more -->
