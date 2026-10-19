@@ -13,6 +13,13 @@ tags: [nextjs, react, pwa, cloudflare, durable-objects, passkeys, webauthn, type
 
 Zack Design's **[Rampset](https://github.com/isaacrowntree/rampset)** is a free, open-source strength-training app for barbell lifters. You install it from the browser like an app, no app store involved, and it behaves like one: an iPhone-native look and feel, gestures that do what your thumb expects, and everything working in a gym with no signal at all. It runs three styles of training on one engine, does the plate math for the plates your gym actually has, and keeps every workout on your phone first. You sign in with a passkey (Face ID or a fingerprint, no password), and your workouts sync between your devices. Bring your history with you from StrongLifts or Strong. **MIT licensed**, free to self-host.
 
+<div class="hero-cta-row" style="margin: 1.5rem 0;">
+  <a href="https://liftlog.zackdesign.biz" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Start using Rampset</a>
+  <a href="https://github.com/isaacrowntree/rampset" target="_blank" rel="noopener" class="btn btn-outline-primary btn-lg">Source on GitHub</a>
+</div>
+
+Open it on your phone, create an account with Face ID or your fingerprint, and choose **Add to Home Screen**. It's free.
+
 This post covers what it is like to train with, the engine behind the programs, how it stays useful with zero reception, how accounts work without a login server, and how to run your own.
 
 <!-- more -->
