@@ -1,19 +1,19 @@
 ---
 layout: post
 title: "Rampset — a free, open-source barbell app that feels native on your iPhone"
-description: "Rampset is an open-source strength-training app you install from the browser: StrongLifts-style five-by-five, Madcow and freeform routines on one engine, plate math for your gym's plates, a rest timer that survives the phone locking, and it works with no signal at all. Sync through a Durable Object per user, 280 tests, MIT, self-host free on Cloudflare."
+description: "Rampset is an open-source strength-training app you install from the browser: StrongLifts-style five-by-five, Madcow and freeform routines on one engine, plate math for your gym's plates, a rest timer that survives the phone locking, and it works with no signal at all. Passkey sign-in, sync through a Durable Object per user, import from StrongLifts, end-to-end tested online, offline and on a flaky connection. MIT, self-host free on Cloudflare."
 excerpt: "A barbell app built for the gym floor: it works with zero reception, looks and moves like an iPhone app, colours every set by the plate on the bar, and runs three training programs on one engine. Free, open source, and yours to host."
 image: /images/blog/rampset.jpg
 image_alt: A loaded barbell resting on the floor of a dark gym
 date: 2026-07-06
-last_modified_at: 2026-10-17
+last_modified_at: 2026-10-19
 categories: [open-source, product]
-tags: [nextjs, react, pwa, cloudflare, durable-objects, typescript, tdd, fitness, open-source, claude-code]
+tags: [nextjs, react, pwa, cloudflare, durable-objects, passkeys, webauthn, typescript, tdd, playwright, fitness, open-source, claude-code]
 ---
 
-Zack Design's **[Rampset](https://github.com/isaacrowntree/rampset)** is a free, open-source strength-training app for barbell lifters. You install it from the browser like an app, no app store involved, and it behaves like one: an iPhone-native look and feel, gestures that do what your thumb expects, and everything working in a gym with no signal at all. It runs three styles of training on one engine, does the plate math for the plates your gym actually has, and keeps every workout on your phone first. Your data syncs between devices through your own Cloudflare account. **MIT licensed**, free to self-host.
+Zack Design's **[Rampset](https://github.com/isaacrowntree/rampset)** is a free, open-source strength-training app for barbell lifters. You install it from the browser like an app, no app store involved, and it behaves like one: an iPhone-native look and feel, gestures that do what your thumb expects, and everything working in a gym with no signal at all. It runs three styles of training on one engine, does the plate math for the plates your gym actually has, and keeps every workout on your phone first. You sign in with a passkey (Face ID or a fingerprint, no password), and your workouts sync between your devices. Bring your history with you from StrongLifts or Strong. **MIT licensed**, free to self-host.
 
-This post covers what it is like to train with, the engine behind the programs, how it stays useful with zero reception, and how to run your own.
+This post covers what it is like to train with, the engine behind the programs, how it stays useful with zero reception, how accounts work without a login server, and how to run your own.
 
 <!-- more -->
 
@@ -73,7 +73,9 @@ Squat, bench and overhead press start with two sets on the empty bar, and every 
 
 Hit the personal-record set and next week's top weight goes up.
 
-**Routine mode** takes the layout of the Strong app: exercise cards with a row per set, everything prefilled from last time, a rest time per exercise, timed sets and bodyweight sets. You prescribe; the app remembers.
+**Routine mode** takes the layout of the Strong app: exercise cards with a row per set, everything prefilled from last time, a rest time per exercise, timed sets and bodyweight sets. You build it in the app: add, rename, reorder and delete days, and move exercises between them. You prescribe; the app remembers.
+
+You pick one when you sign up, StrongLifts 5×5, Madcow or a custom routine, and can switch in Settings.
 
 Time away from the gym is handled too. Come back after a break and the app offers to take the weights down, scaled to how long you were gone. This is `src/lib/deload.ts`, and it's the whole file:
 
@@ -86,7 +88,13 @@ export function deloadPctForLayoff(daysAway: number): number {
 }
 ```
 
-Your history is always yours: **Export** in Settings hands you every set as a CSV.
+## Your history, in and out
+
+Your history is yours, at any time, from **Settings → Your data**:
+
+- **Import** a StrongLifts or Strong export. The app works out which one it is from the file, and importing the same file twice doesn't double anything.
+- **Download a backup** of everything, and **restore** it on any phone, into any account.
+- **Export** every set as a CSV for a spreadsheet.
 
 ## No signal, no problem
 
@@ -123,18 +131,27 @@ The sync layer is [durable-sync](/durable-sync/), an open-source library built a
 - a response that looks successful isn't proof the write landed, so the app checks the body before clearing its queue of unsent workouts;
 - a device's read position in the log only counts against the version of the log it came from;
 - pulling in changes from another device isn't always safe, so sync is push-only while a workout is open;
-- every write goes through a single identity check, so a shared phone can never file one lifter's workout under the other.
+- every write goes through a single identity check, so a phone never sends workouts under an account it isn't signed in as.
 
-Sign-in is handled entirely by Cloudflare Access, so the app contains no authentication code, and the list of lifters lives in an environment variable rather than the repo. Two people can share a phone: tap the avatar to switch lifter.
+Corrections sync too. Fix a rep count in History on one phone and the other phone gets the fix; if two phones correct the same workout while both are offline, they agree on the later edit, and a deleted workout stays deleted.
+
+## Accounts without a login server
+
+Anyone can open Rampset and start. There's no password: your account is a **passkey**, the Face ID or fingerprint login your phone already keeps in sync across your devices. Add a recovery email and a lost phone is a six-digit code away from getting back in, and signs the old phone out when you do.
+
+All of it lives in one more Durable Object: accounts, passkeys, sessions and codes in its SQLite, under 900 lines of TypeScript with no auth service or user database behind it. Codes and session tokens are stored only as hashes, every challenge works once for one purpose, and sign-in and email routes are rate limited per address. The emails go out through Cloudflare's own email sending, so there's no API key to manage either.
+
+A phone holds one account. Signing out wipes it, and signing back in brings the history back from sync.
 
 ## Tested
 
+The suite to trust is the end-to-end one: 23 journeys in Playwright, driving the real built Worker in Chromium with nothing mocked. Each simulated phone signs up with a passkey on Chrome's virtual authenticator, then trains 5×5, Madcow and a custom routine, corrects history, imports from StrongLifts, changes settings, recovers a lost phone by email and deletes its account. The core sync journey runs four times, **online, offline, on a flappy connection and on a slow one**, and checks that each workout reaches the second phone exactly once.
+
 ```
- Test Files  34 passed (34)
-      Tests  280 passed (280)
+  23 passed (2.2m)
 ```
 
-The engines are pure functions in `src/lib/`, each with its test file beside it: progression and the skipped-set rules, layoff deloads, Madcow, plate math for gyms with and without 25 kg plates, warm-up rounding, the estimated one-rep max, and the sync journal and backup round-trips. The UI components are tested too, including the bottom sheet's handling of the back gesture and browser history.
+Under that, the account Durable Object runs against real workerd SQLite, and 379 unit and component tests cover the engines in `src/lib/`: progression and the skipped-set rules, layoff deloads, Madcow, plate math for gyms with and without 25 kg plates, warm-up rounding, the estimated one-rep max, and the importers.
 
 ## Run your own
 
@@ -142,11 +159,11 @@ The engines are pure functions in `src/lib/`, each with its test file beside it:
 git clone https://github.com/isaacrowntree/rampset
 cd rampset
 npm install
-cp .env.example .env.local     # your lifters, units, starting weights
-npm run dev                    # → http://localhost:3000
-npm test                       # vitest — the engines, store, sync, components
+npm run dev                    # → localhost:3000, on-device only
+npm run preview                # → localhost:8787, the real Worker: accounts and sync
+npm run test:e2e               # the journeys above
 ```
 
-`npm run deploy` builds with the OpenNext adapter (which packages a Next.js app for Cloudflare) and ships to Cloudflare Workers. `wrangler.jsonc` declares the `SYNC_JOURNAL` Durable Object and the `BACKUPS` R2 bucket. Put a Cloudflare Access application in front of the Worker and allow your lifters' emails. Workers and Access are free for a household. The one paid gate is **R2**: the data sits well inside the 10 GB free tier, but Cloudflare wants a card on file to enable it. Without it, drop the `BACKUPS` binding; the app works fully offline on the phone's own storage, and **Export** in Settings gives you a complete CSV whenever you want.
+`npm run deploy` builds with the OpenNext adapter (which packages a Next.js app for Cloudflare) and ships to Cloudflare Workers. `wrangler.jsonc` declares the `AUTH` and `SYNC_JOURNAL` Durable Objects and the `BACKUPS` R2 bucket; there's nothing to set up in the dashboard for sign-in. For recovery emails, onboard your domain to Cloudflare Email Sending and set `EMAIL_FROM`; it only adds records on a `cf-bounce` subdomain, so a domain already on Gmail keeps working. Workers and Durable Objects are free for a household. The one paid gate is **R2**: the data sits well inside the 10 GB free tier, but Cloudflare wants a card on file to enable it. Without it, drop the `BACKUPS` binding; sync still works, and **Download backup** in Settings gives you a complete file whenever you want.
 
 Then open it on your phone, choose **Add to Home Screen**, and it's an app. Two proven programs, plate maths for your gym and sync you can trust, in a public repo under a licence that says make it yours.
