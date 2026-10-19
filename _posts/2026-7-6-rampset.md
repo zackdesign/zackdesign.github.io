@@ -11,7 +11,7 @@ categories: [open-source, product]
 tags: [nextjs, react, pwa, cloudflare, durable-objects, passkeys, webauthn, typescript, tdd, playwright, fitness, open-source, claude-code]
 ---
 
-Zack Design's **[Rampset](https://github.com/isaacrowntree/rampset)** is a free, open-source strength-training app for barbell lifters. You install it from the browser like an app, no app store involved, and it behaves like one: an iPhone-native look and feel, gestures that do what your thumb expects, and everything working in a gym with no signal at all. It runs three styles of training on one engine, does the plate math for the plates your gym actually has, and keeps every workout on your phone first. You sign in with a passkey (Face ID or a fingerprint, no password), and your workouts sync between your devices. Bring your history with you from StrongLifts or Strong. **MIT licensed**, free to self-host.
+Zack Design's **[Rampset](https://liftlog.zackdesign.biz)** is a free, open-source strength-training app for barbell lifters. You install it from the browser like an app, no app store involved, and it behaves like one: an iPhone-native look and feel, gestures that do what your thumb expects, and everything working in a gym with no signal at all. It runs three styles of training on one engine, does the plate math for the plates your gym actually has, and keeps every workout on your phone first. You sign in with a passkey (Face ID or a fingerprint, no password), and your workouts sync between your devices. Bring your history with you from StrongLifts or Strong. **MIT licensed**, free to self-host.
 
 <div class="hero-cta-row" style="margin: 1.5rem 0;">
   <a href="https://liftlog.zackdesign.biz" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Start using Rampset</a>
@@ -24,7 +24,7 @@ This post covers what it is like to train with, the engine behind the programs, 
 
 <!-- more -->
 
-**Site and guide:** [isaacrowntree.github.io/rampset](https://isaacrowntree.github.io/rampset) · **Source:** [github.com/isaacrowntree/rampset](https://github.com/isaacrowntree/rampset) (MIT)
+**Self-hosting guide:** [isaacrowntree.github.io/rampset](https://isaacrowntree.github.io/rampset)
 
 <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin: 1.5rem auto;">
   <img src="/images/blog/rampset-app.png" alt="Rampset's home screen: the next workout, Workout A, with two looping lifters benching and squatting, its five exercises with sets and weights, and a Start Workout A button" width="1170" height="2532" style="max-width: 280px; width: 100%; height: auto; border-radius: 24px;" />

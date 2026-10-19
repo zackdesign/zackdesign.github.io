@@ -22,7 +22,7 @@ This post covers why a Durable Object is already the ordering point sync engines
 
 <!-- more -->
 
-**Docs & live demo → [isaacrowntree.com/durable-sync](https://isaacrowntree.com/durable-sync/)** · **Source → [github.com/isaacrowntree/durable-sync](https://github.com/isaacrowntree/durable-sync)** (MIT) · **npm → [`durable-sync`](https://www.npmjs.com/package/durable-sync)**
+**Source → [github.com/isaacrowntree/durable-sync](https://github.com/isaacrowntree/durable-sync)** (MIT) · **npm → [`durable-sync`](https://www.npmjs.com/package/durable-sync)**
 
 ## The ordering point is already there
 
