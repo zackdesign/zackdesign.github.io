@@ -152,13 +152,9 @@ A phone holds one account. Signing out wipes it, and signing back in brings the 
 
 ## Tested
 
-The suite to trust is the end-to-end one: 23 journeys in Playwright, driving the real built Worker in Chromium with nothing mocked. Each simulated phone signs up with a passkey on Chrome's virtual authenticator, then trains 5×5, Madcow and a custom routine, corrects history, imports from StrongLifts, changes settings, recovers a lost phone by email and deletes its account. The core sync journey runs four times, **online, offline, on a flappy connection and on a slow one**, and checks that each workout reaches the second phone exactly once.
+The suite to trust is the end-to-end one: journeys in Playwright, driving the real built Worker in Chromium with nothing mocked. Each simulated phone signs up with a passkey on Chrome's virtual authenticator, then trains 5×5, Madcow and a custom routine, corrects history, imports from StrongLifts, changes settings, recovers a lost phone by email and deletes its account. The core sync journey runs four times, **online, offline, on a flappy connection and on a slow one**, and checks that each workout reaches the second phone exactly once.
 
-```
-  23 passed (2.2m)
-```
-
-Under that, the account Durable Object runs against real workerd SQLite, and 379 unit and component tests cover the engines in `src/lib/`: progression and the skipped-set rules, layoff deloads, Madcow, plate math for gyms with and without 25 kg plates, warm-up rounding, the estimated one-rep max, and the importers.
+Under that, the account Durable Object runs against real workerd SQLite, and unit tests cover the engines in `src/lib/`: progression and the skipped-set rules, layoff deloads, Madcow, plate math for gyms with and without 25 kg plates, warm-up rounding, the estimated one-rep max, and the importers.
 
 ## Run your own
 

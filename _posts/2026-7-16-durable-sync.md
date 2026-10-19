@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "durable-sync — offline-first sync for Cloudflare Durable Objects, no Postgres and no container"
-description: "A zero-dependency TypeScript library that gives Cloudflare Durable Objects an offline-first sync loop: an append-only op log in the Durable Object's SQLite, called over typed RPC, and a durable outbox on the client that never drops a write it can't prove landed. 27 KB of JavaScript, 71 unit tests and 16 more against workerd, MIT, on npm."
+description: "A zero-dependency TypeScript library that gives Cloudflare Durable Objects an offline-first sync loop: an append-only op log in the Durable Object's SQLite, called over typed RPC, and a durable outbox on the client that never drops a write it can't prove landed. 27 KB of JavaScript, tested against a real Durable Object on workerd, MIT, on npm."
 excerpt: "A Durable Object is already the single-threaded ordering point that every other sync engine runs Postgres to get. durable-sync adds the rest: an op log in its SQLite, an outbox on the device, a cursor that knows which log it belongs to, and a strict idea of what 'success' means — so a phone with no signal never loses a write."
 image: /images/blog/durable-sync.jpg
 image_alt: A dimly lit underground mine tunnel receding into darkness, a single lamp glowing in the distance
@@ -144,16 +144,6 @@ A pull replays every op after the cursor. That's instant for a year of data and 
 ## Tested where it ships
 
 The unit suite runs the logic against an in-memory store and the real `SqlOpStore` against SQLite through `node:sqlite`. An opt-in integration suite then boots workerd through `@cloudflare/vitest-plugin` and drives a real `SyncJournal` the way a consumer does, HTTP into a Worker and RPC into the Durable Object: push and the `stored` reply, pull, the snapshot upsert, reset, and the stale-epoch refusal.
-
-```
-npx vitest run
- Test Files  4 passed (4)
-      Tests  71 passed (71)
-
-npm run test:integration
- Test Files  1 passed (1)
-      Tests  16 passed (16)
-```
 
 The integration suite tests `src/`, not `dist/`, so a regression is caught before a publish. It's built with TypeScript 7 and tested on Vitest 5.
 

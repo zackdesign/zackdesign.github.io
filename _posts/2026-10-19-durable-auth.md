@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "durable-auth — passkey sign-in for Cloudflare Workers, kept in one Durable Object"
-description: "An open-source TypeScript library that puts accounts, passkeys, sessions and email recovery inside a single Cloudflare Durable Object: no auth service, no user database, no dashboard. Step-up before sensitive actions, codes that can't be brute-forced, no account enumeration. Unit, workerd and real-WebAuthn end-to-end tests, MIT, on npm."
+description: "An open-source TypeScript library that puts accounts, passkeys, sessions and email recovery inside a single Cloudflare Durable Object: no auth service, no user database, no dashboard. Step-up before sensitive actions, codes that can't be brute-forced, no account enumeration. Tested end to end with real passkeys, MIT, on npm."
 excerpt: "A Durable Object does one thing at a time with its own SQLite, which is exactly what sign-in needs: 'check the code, then burn it' without a transaction, and 'one account per email' as a plain UNIQUE constraint. durable-auth is passkeys, sessions and recovery built on that."
 image: /images/blog/durable-auth.jpg
 image_alt: Glowing fingerprint-like ridges in violet and cyan on a dark background
@@ -112,18 +112,7 @@ Two are trade-offs rather than bugs, and the README says so: a stranger can spen
 
 ## Tested with real passkeys
 
-Three suites, each catching what the one before can't:
-
-```
-npm test                    # the store on node:sqlite, every route
- Tests  72 passed (72)
-
-npm run test:integration    # the Durable Object on workerd's own SQLite
- Tests  5 passed (5)
-
-npm run test:e2e            # the example app in Chromium, real WebAuthn
-  6 passed (23.7s)
-```
+Three suites, each catching what the one before can't. The unit suite runs the store on `node:sqlite` and every route with the passkey cryptography stubbed, so it tests everything around the signature check. The integration suite drives the real Durable Object on workerd's own SQLite, where BLOBs, NULL bindings and the schema upgrade's `ALTER`s behave as they do in production. The end-to-end suite is the one that matters most.
 
 The end-to-end suite runs the example app under `wrangler dev`. Each test "device" is a browser context with Chrome's virtual authenticator, so registration and sign-in are real WebAuthn, checked by the real verification code. The journeys:
 
@@ -134,7 +123,7 @@ The end-to-end suite runs the example app under `wrangler dev`. Each test "devic
 - try to remove the only passkey, and get refused;
 - sign out other devices, with a passkey synced to a second device the way iCloud Keychain does.
 
-Rampset's own 23 end-to-end journeys run against it too.
+Rampset's own end-to-end journeys run against it too.
 
 ## What you write
 
