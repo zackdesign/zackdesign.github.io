@@ -146,7 +146,7 @@ Corrections sync too. Fix a rep count in History on one phone and the other phon
 
 Anyone can open Rampset and start. There's no password: your account is a **passkey**, the Face ID or fingerprint login your phone already keeps in sync across your devices. Add a recovery email and a lost phone is a six-digit code away from getting back in, and signs the old phone out when you do.
 
-All of it lives in one more Durable Object: accounts, passkeys, sessions and codes in its SQLite, under 900 lines of TypeScript with no auth service or user database behind it. Codes and session tokens are stored only as hashes, every challenge works once for one purpose, and sign-in and email routes are rate limited per address. The emails go out through Cloudflare's own email sending, so there's no API key to manage either.
+All of it lives in one more Durable Object: accounts, passkeys, sessions and codes in its SQLite, with no auth service or user database behind it. That's [durable-auth](/durable-auth/), the open-source library this part of Rampset became. Codes and session tokens are stored only as hashes, every challenge works once for one purpose, sign-in and email routes are rate limited per address, and deleting your account or changing its recovery email asks for Face ID if you haven't used it in the last few minutes. The emails go out through Cloudflare's own email sending, so there's no API key to manage either.
 
 A phone holds one account. Signing out wipes it, and signing back in brings the history back from sync.
 
@@ -174,3 +174,5 @@ npm run test:e2e               # the journeys above
 `npm run deploy` builds with the OpenNext adapter (which packages a Next.js app for Cloudflare) and ships to Cloudflare Workers. `wrangler.jsonc` declares the `AUTH` and `SYNC_JOURNAL` Durable Objects and the `BACKUPS` R2 bucket; there's nothing to set up in the dashboard for sign-in. For recovery emails, onboard your domain to Cloudflare Email Sending and set `EMAIL_FROM`; it only adds records on a `cf-bounce` subdomain, so a domain already on Gmail keeps working. Workers and Durable Objects are free for a household. The one paid gate is **R2**: the data sits well inside the 10 GB free tier, but Cloudflare wants a card on file to enable it. Without it, drop the `BACKUPS` binding; sync still works, and **Download backup** in Settings gives you a complete file whenever you want.
 
 Then open it on your phone, choose **Add to Home Screen**, and it's an app. Two proven programs, plate maths for your gym and sync you can trust, in a public repo under a licence that says make it yours.
+
+Rampset is one of three open-source pieces that fit together: the app, its offline-first sync ([durable-sync](/durable-sync/)) and its passkey sign-in ([durable-auth](/durable-auth/)). Together they're a Cloudflare app with no database server, no auth vendor and no container.

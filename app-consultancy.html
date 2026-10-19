@@ -219,6 +219,10 @@ permalink: /app-consultancy/
           <dd>The sync layer from Rampset, extracted into a zero-dependency library after a production data-loss incident: an append-only op log in a Durable Object's SQLite and a durable outbox on the client. No Postgres, no container. 87 tests, on npm. <a href="/durable-sync/">Write-up</a>.</dd>
         </div>
         <div>
+          <dt>durable-auth</dt>
+          <dd>Rampset's sign-in, extracted: passkeys, sessions and email recovery in one Durable Object, with step-up before sensitive actions and no account enumeration. No auth service, no user database. Tested end to end with real WebAuthn. <a href="/durable-auth/">Write-up</a>.</dd>
+        </div>
+        <div>
           <dt>Nightly end-to-end suite with agent triage</dt>
           <dd>A Playwright suite runs nightly against production; a failed run posts a signed report to thinkbot, an open-source Cloudflare Worker agent that investigates against GitHub, Datadog and Sentry and writes the explanation — and reports a suite that failed to run as its own incident, not as zero failures. <a href="/thinkbot/">How it works</a>.</dd>
         </div>

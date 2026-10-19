@@ -6,7 +6,7 @@ excerpt: "A Durable Object is already the single-threaded ordering point that ev
 image: /images/blog/durable-sync.jpg
 image_alt: A dimly lit underground mine tunnel receding into darkness, a single lamp glowing in the distance
 date: 2026-07-16
-last_modified_at: 2026-10-17
+last_modified_at: 2026-10-19
 categories: [open-source]
 tags: [cloudflare, durable-objects, typescript, offline-first, local-first, sync, pwa, event-sourcing, open-source, claude-code]
 ---
@@ -175,6 +175,8 @@ The outbox must be IndexedDB, not memory: until a push is acknowledged it may be
 
 ## When to use something else
 
-A pull returns everything after the cursor in one response, which is fine for thousands of ops and not for millions. There's no live push; another device converges the next time it comes to the foreground. There's no auth built in: the Durable Object key is your isolation boundary, so put Cloudflare Access or your own sign-in in front of the route. Use one `createSync` per identity, memoised, because the throttle lives in its closure. Nothing runs while the app is closed, because Safari has no Background Sync. If two people need to edit the same record and have it merge, you want a CRDT such as Yjs or Automerge. If you already run Postgres, Zero, Electric and PowerSync are better engineered for the general case.
+A pull returns everything after the cursor in one response, which is fine for thousands of ops and not for millions. There's no live push; another device converges the next time it comes to the foreground. There's no auth built in: the Durable Object key is your isolation boundary, so put sign-in in front of the route. Its sister library [durable-auth](/durable-auth/) does that in one more Durable Object, with passkeys, and its session's account id is the natural key. Use one `createSync` per identity, memoised, because the throttle lives in its closure. Nothing runs while the app is closed, because Safari has no Background Sync. If two people need to edit the same record and have it merge, you want a CRDT such as Yjs or Automerge. If you already run Postgres, Zero, Electric and PowerSync are better engineered for the general case.
 
 The slice where durable-sync is the right answer is specific: all-Cloudflare, writes that are events, and an app that has to keep working on a train, in a gym or anywhere else the signal drops.
+
+It's one of three open-source pieces that fit together: [Rampset](/rampset/), the app it came from; durable-sync, its sync; and [durable-auth](/durable-auth/), its passkey sign-in. Together they're a Cloudflare app with no database server, no auth vendor and no container.
