@@ -2640,3 +2640,6 @@ a:hover { color: var(--accent-hover); }
   .offer-row { grid-template-columns: 1fr; gap: 1rem; padding: 1.5rem 0; }
   .offer-row__terms { grid-template-columns: 1fr 1fr; }
 }
+
+/* Legal pages: no drop cap on the opening paragraph */
+.post-body--legal p:first-of-type::first-letter { all: unset; }

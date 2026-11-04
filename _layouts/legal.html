@@ -1,0 +1,28 @@
+---
+layout: default
+---
+{%- comment -%}
+  Legal pages (privacy, terms). Linked from the Google OAuth consent screen,
+  so the URLs /privacy/ and /terms/ must stay stable.
+{%- endcomment -%}
+<header class="blog-index-hero">
+  <div class="container">
+    <span class="blog-index-hero__eyebrow">Legal</span>
+    <h1 class="blog-index-hero__title">{{ page.title }}</h1>
+    <p class="blog-index-hero__lead">Last updated {{ page.updated | date: "%-d %B %Y" }}</p>
+  </div>
+</header>
+
+<main class="post-article">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-9 col-xl-8">
+        <article class="post-card-article">
+          <div class="post-body post-body--legal">
+            {{ content }}
+          </div>
+        </article>
+      </div>
+    </div>
+  </div>
+</main>
