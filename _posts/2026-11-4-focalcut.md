@@ -117,9 +117,9 @@ focalcut fx apply clip.mp4 -e neon --peak 3.0
 focalcut fx gallery clip.mp4          # every effect side by side
 ```
 
-![Four frames of the same moment of the 1895 Serpentine Dance: untouched, with a neon outline traced around the dancer, the wing on its wand included, with a blue aura flickering off her edge, and with a soft blue glow around the whole figure.](/images/blog/focalcut-effects.jpg)
+![Four frames of the same moment of the 1895 Serpentine Dance: untouched, with a neon outline traced around the dancer, the wing on its wand included, with a blue aura flickering off the edge, and with a soft blue glow around the whole figure.](/images/blog/focalcut-effects.jpg)
 
-This film found a bug. SAM 3's "person" mask stops at the arm, and the effect edge was clipped to it, so the white wing she holds out on a wand fell outside the outline and glow. The edge now comes from BiRefNet's matte wherever it stays joined to the dancer, which also keeps a flung-out skirt or a fan inside the effect.
+This film found a bug. SAM 3's "person" mask stops at the arm, and the effect edge was clipped to it, so the white wing held out on a wand fell outside the outline and glow. The edge now comes from BiRefNet's matte wherever it stays joined to the dancer, which also keeps a flung-out skirt or a fan inside the effect.
 
 A reel uses one subject effect, on the drop. The style libraries (glitch, carnival and EDM looks) carry each film's transitions, accents and light show as one choice in reel.json.
 
