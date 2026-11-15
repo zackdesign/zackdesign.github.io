@@ -18,7 +18,7 @@
     {%- assign img_rel = img | remove_first: "/" -%}
     {%- assign load = "lazy" -%}
     {%- if include.featured -%}{%- assign load = "eager" -%}{%- endif -%}
-    <div class="post-card__media" data-parallax>
+    <div class="post-card__media">
       {% picture card "{{ img_rel }}" --alt {{ alt | escape }} --img loading="{{ load }}" decoding="async" %}
     </div>
     <div class="post-card__body">

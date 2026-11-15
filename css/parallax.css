@@ -87,7 +87,6 @@
   transform: translate3d(0, 28px, 0);
   transition: opacity 0.9s var(--ease), transform 0.9s var(--ease);
   transition-delay: var(--reveal-delay, 0ms);
-  will-change: opacity, transform;
 }
 
 .reveal.is-revealed {

@@ -1,0 +1,19 @@
+---
+layout: null
+permalink: /search.json
+sitemap: false
+---
+{%- comment -%}
+  Site search index, fetched by js/search.js the first time search opens.
+  t title · u url · d date · c category · k tags · e summary · b body text.
+  Pages opt in with `search: true` in their front matter.
+{%- endcomment -%}
+[
+{%- assign searchable = site.pages | where: "search", true -%}
+{%- for page in searchable -%}
+{"t":{{ page.title | jsonify }},"u":{{ page.url | relative_url | jsonify }},"d":"","c":"Page","k":"","e":{{ page.description | strip_html | normalize_whitespace | jsonify }},"b":{{ page.content | strip_html | normalize_whitespace | jsonify }}},
+{%- endfor -%}
+{%- for post in site.posts -%}
+{"t":{{ post.title | jsonify }},"u":{{ post.url | relative_url | jsonify }},"d":{{ post.date | date: "%b %-d, %Y" | jsonify }},"c":{{ post.categories | first | default: "Writing" | capitalize | jsonify }},"k":{{ post.tags | join: " " | jsonify }},"e":{{ post.excerpt | default: post.description | strip_html | normalize_whitespace | jsonify }},"b":{{ post.content | strip_html | normalize_whitespace | jsonify }}}{% unless forloop.last %},{% endunless %}
+{%- endfor -%}
+]

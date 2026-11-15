@@ -15,6 +15,12 @@
 
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const isFinePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  // Scroll-linked parallax runs on the main thread, so on phones and low-end
+  // machines it costs more than it adds. Those get the static layout.
+  const isLowEnd =
+    !isFinePointer ||
+    (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
+    (navigator.deviceMemory && navigator.deviceMemory <= 4);
 
   // ---------------------------------------------------------------- Navbar
   const nav = document.getElementById('mainNav');
@@ -163,11 +169,18 @@
     const updateProgress = () => {
       const scrollable = document.documentElement.scrollHeight - window.innerHeight;
       const p = scrollable > 0 ? (window.scrollY / scrollable) * 100 : 0;
-      progressBars.forEach((bar) => (bar.style.width = p + '%'));
+      // scaleX, not width: a transform composites without re-laying out the bar.
+      progressBars.forEach((bar) => (bar.style.transform = 'scaleX(' + (p / 100).toFixed(4) + ')'));
     };
     updateProgress();
-    window.addEventListener('scroll', updateProgress, { passive: true });
-    window.addEventListener('resize', updateProgress, { passive: true });
+    let progressQueued = false;
+    const scheduleProgress = () => {
+      if (progressQueued) return;
+      progressQueued = true;
+      requestAnimationFrame(() => { progressQueued = false; updateProgress(); });
+    };
+    window.addEventListener('scroll', scheduleProgress, { passive: true });
+    window.addEventListener('resize', scheduleProgress, { passive: true });
   }
 
   // ---------------------------------------------------------------- Smooth anchor scroll
@@ -222,9 +235,17 @@
   }
 
   // ---------------------------------------------------------------- Scroll progress per-element
-  if (!prefersReducedMotion) {
+  if (!prefersReducedMotion && !isLowEnd) {
     const parallaxEls = Array.from(document.querySelectorAll('[data-parallax]'));
-    if (parallaxEls.length) {
+    // --scroll-progress is written onto the few elements that read it, not the
+    // section: a custom property set on a section invalidates style for every
+    // descendant, which made each scroll frame restyle most of the page.
+    const consumersOf = new Map();
+    parallaxEls.forEach((el) => {
+      const consumers = Array.from(el.querySelectorAll('[class*="parallax-"], .contact-photo'));
+      if (consumers.length) consumersOf.set(el, consumers);
+    });
+    if (consumersOf.size) {
       const visibleSet = new Set();
 
       const visibilityIO = new IntersectionObserver(
@@ -237,7 +258,7 @@
         },
         { threshold: 0, rootMargin: '20% 0px 20% 0px' }
       );
-      parallaxEls.forEach((el) => visibilityIO.observe(el));
+      consumersOf.forEach((_, el) => visibilityIO.observe(el));
 
       const update = () => {
         const vh = window.innerHeight;
@@ -246,7 +267,8 @@
           // progress 0 = element just entered from bottom; 1 = element just left out the top
           const raw = (vh - rect.top) / (vh + rect.height);
           const progress = Math.max(0, Math.min(1, raw));
-          el.style.setProperty('--scroll-progress', progress.toFixed(4));
+          const value = progress.toFixed(4);
+          consumersOf.get(el).forEach((c) => c.style.setProperty('--scroll-progress', value));
         });
       };
 
@@ -266,18 +288,16 @@
     }
 
     // -------------------------------------------------------------- Hero orb mouse drift
+    // The loop only runs while the hero is on screen and the orbs are still
+    // catching up with the cursor; it used to spin every frame forever.
     if (isFinePointer) {
       const orbs = document.querySelectorAll('.hero-orb');
-      if (orbs.length) {
+      const hero = document.getElementById('hero');
+      if (orbs.length && hero) {
         let targetX = 0, targetY = 0, curX = 0, curY = 0;
-        document.addEventListener(
-          'mousemove',
-          (e) => {
-            targetX = (e.clientX / window.innerWidth - 0.5) * 2;
-            targetY = (e.clientY / window.innerHeight - 0.5) * 2;
-          },
-          { passive: true }
-        );
+        let heroVisible = true;
+        let running = false;
+
         const tick = () => {
           curX += (targetX - curX) * 0.05;
           curY += (targetY - curY) * 0.05;
@@ -285,9 +305,30 @@
             const mult = i % 2 === 0 ? 28 : -20;
             orb.style.transform = `translate3d(${(curX * mult).toFixed(2)}px, ${(curY * mult).toFixed(2)}px, 0)`;
           });
+          const settled = Math.abs(targetX - curX) < 0.001 && Math.abs(targetY - curY) < 0.001;
+          if (heroVisible && !settled) requestAnimationFrame(tick);
+          else running = false;
+        };
+        const start = () => {
+          if (running || !heroVisible) return;
+          running = true;
           requestAnimationFrame(tick);
         };
-        requestAnimationFrame(tick);
+
+        new IntersectionObserver((entries) => {
+          heroVisible = entries[0].isIntersecting;
+          start();
+        }).observe(hero);
+
+        document.addEventListener(
+          'mousemove',
+          (e) => {
+            targetX = (e.clientX / window.innerWidth - 0.5) * 2;
+            targetY = (e.clientY / window.innerHeight - 0.5) * 2;
+            start();
+          },
+          { passive: true }
+        );
       }
     }
   }

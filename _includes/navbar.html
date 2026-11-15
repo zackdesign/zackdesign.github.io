@@ -12,6 +12,9 @@
             <div class="logo-tagline">software engineering</div>
           </div>
         </a>
+        <button class="nav-search-btn" type="button" data-search-open aria-haspopup="dialog" aria-controls="site-search" aria-label="Search the site" title="Search (/ or ⌘K)">
+          {% include icon.html name="search" %}
+        </button>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
           {% include icon.html name="menu" %}
@@ -31,3 +34,19 @@
         </div>
       </div>
     </nav>
+
+    <dialog id="site-search" class="site-search" aria-label="Search the site">
+      <div class="site-search__panel">
+        <div class="site-search__bar">
+          {% include icon.html name="search" %}
+          <input class="site-search__input" type="search" placeholder="Search posts and pages" autocomplete="off" spellcheck="false"
+                 role="combobox" aria-expanded="true" aria-controls="site-search-results" aria-autocomplete="list" aria-label="Search">
+          <button class="site-search__close" type="button" aria-label="Close search">{% include icon.html name="close" %}</button>
+        </div>
+        <ul id="site-search-results" class="site-search__results" role="listbox" aria-label="Results"></ul>
+        <div class="site-search__foot">
+          <span class="site-search__status" role="status" aria-live="polite"></span>
+          <span class="site-search__keys"><kbd>↑</kbd><kbd>↓</kbd> move <kbd>↵</kbd> open <kbd>esc</kbd> close</span>
+        </div>
+      </div>
+    </dialog>
