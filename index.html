@@ -137,7 +137,7 @@ layout: default
       <div class="col-md-6 col-lg-4"><div class="service-card reveal">
         <div class="service-icon">{% include icon.html name="compass" %}</div>
         <h3>Technical leadership</h3>
-        <p>Architecture, hiring, engineering culture, hands-on mentorship. Twenty years of shipping across startup and enterprise.</p>
+        <p>{% assign years_shipping = site.time | date: '%Y' | minus: 2002 %}Architecture, hiring, engineering culture, hands-on mentorship. {{ years_shipping }} years of shipping across startup and enterprise.</p>
       </div></div>
     </div>
   </div>
@@ -215,13 +215,13 @@ layout: default
     <div class="row align-items-center g-5">
       <div class="col-lg-7 order-lg-1 order-2 parallax-col-a reveal-left">
         <span class="section-eyebrow section-eyebrow--rule">About</span>
-        <h2 class="section-title mt-2">Twenty years of shipping.</h2>
+        {% assign years_shipping = site.time | date: '%Y' | minus: 2002 %}<h2 class="section-title mt-2">{{ years_shipping }} years of shipping.</h2>
         <p>
           Zack Design is <a href="https://isaacrowntree.com" target="_blank" rel="noopener">Isaac Rowntree</a>'s consultancy, delivering high-performance software solutions built with engineering excellence. Isaac is <strong>Head of Tech · TripTech / CamperMate · THL</strong>, previously Software Engineer at Redbubble and Senior Developer at Ray White Group.
         </p>
 
         <h4>Engineering leadership</h4>
-        <p>Two decades across product, platform and team, with deep experience in:</p>
+        <p>More than two decades across product, platform and team, with deep experience in:</p>
         <ul>
           <li>Software architecture for scalable, long-lived systems</li>
           <li>Full-stack development with modern frameworks</li>
@@ -233,7 +233,7 @@ layout: default
       </div>
       <div class="col-lg-5 order-lg-2 order-1 parallax-col-b reveal-right">
         <figure class="about-image">
-          {% picture section images/sections/about.jpg --alt A cargo ship at sea under dramatic skies — a nod to twenty years of shipping software --img loading="lazy" decoding="async" %}
+          {% picture section images/sections/about.jpg --alt A cargo ship at sea under dramatic skies — a nod to more than two decades of shipping software --img loading="lazy" decoding="async" %}
         </figure>
       </div>
     </div>
