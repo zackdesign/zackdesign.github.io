@@ -26,7 +26,7 @@ This post covers:
 - duplicate detection that keeps the better copy rather than the first one, and white balance that samples the stamp's own border;
 - one SQLite file with two writers;
 - what the vision model is and is not good for: the Ollama settings that return nothing, and the orientation model abandoned in favour of two buttons;
-- the Colnect catalogue lookup, and a local image search added since;
+- matching stamps to Stanley Gibbons catalogue numbers;
 - how to run it, and the tests.
 
 <!-- more -->
@@ -54,14 +54,12 @@ iPhone (ios-app/)                    Mac (mac-app/)                 Python (tool
                                      │ SwiftUI library UI │◀──GRDB──│ library.sqlite      │
                                      │ grid · detail      │         │ (~/Library/App Sup) │
                                      │ rotate · identify  │         └──────────▲──────────┘
-                                     │ colnect lookup     │                    │ writes
-                                     └────────────────────┘                    │
+                                     └────────────────────┘                    │ writes
                                                 │ spawns                       │
                                                 ▼                              │
                                      ┌────────────────────┐                    │
-                                     │ orientation_worker │───── Ollama ───────┤
-                                     │   (Qwen3-VL)       │                    │
-                                     │ colnect_lookup.py  │───── HTTP ─────────┘
+                                     │ orientation_worker │───── Ollama ───────┘
+                                     │   (Qwen3-VL)       │
                                      └────────────────────┘
 ```
 
@@ -165,18 +163,23 @@ Two Ollama behaviours cost time and are noted in the code. Qwen3-VL returns noth
 
 **Orientation didn't work.** The prompt asked which rotation makes the stamp upright: 0, 90, 180 or 270. The function's own docstring calls it "too slow/unreliable on local hardware", and marks it DEPRECATED. Only 3 of the 1,731 rows in the live library have `oriented=1`. Orientation is now two rotate buttons on each grid cell. A rotation sends a notification for just that record, so it doesn't re-fetch the whole grid.
 
-## Matching against the Colnect catalogue
+## Matching against the Stanley Gibbons catalogue
 
-Colnect is an online stamp catalogue. `colnect_lookup.py` searches it for any identified stamp that has no catalogue reference yet, and writes `Colnect <id>` into `catalogueRef`. It makes no more than one request per second.
+An identified stamp still needs a catalogue number. Stanley Gibbons (SG) numbers are the standard reference for British Commonwealth stamps, and SG's 1840–1970 Commonwealth volume is on the Internet Archive as OCR text. `tools/sg_fetch.py 1840-1970` downloads it to `~/.stamp-scanner/sg/`, outside the repo. Later volumes are borrow-only there, so stamps issued after 1970 come back as "no match", with the reason logged.
 
-Its first version was wrong. The rewrite followed the official API spec. Requests are signed with HMAC-SHA256 over the path and timestamp, joined by the literal characters `>|<`, and the signature was checked against the spec's worked example. The spec also requires a User-Agent longer than 15 characters, so it sends one.
+`sg_catalogue.py` turns the OCR into one record per stamp: SG number, year, denomination and colour. Scanned catalogue text is messy, so the parser expects type numbers missing from continuation lines, commas in place of full stops, "½" written as a glyph or as "1/2", and garbled page headers. It finds each country's section by its headings. Ten countries are set up, including Australia, New Zealand, Canada and the United Kingdom.
 
-Three days after this post, two tools landed that match stamps by picture instead of by description:
+`sg_lookup.py` walks the library and scores every candidate:
 
-- `colnect_mirror.py` downloads catalogue data and thumbnails for one country (`--country Australia`) or all of them (`--all`). It keeps them in `~/.stamp-scanner/colnect/`, outside the repo, because Colnect's terms forbid redistributing its content.
-- `colnect_embed.py` turns each thumbnail into a CLIP embedding, a list of numbers that places similar-looking images close together. `--query <crop.png>` then finds the nearest catalogue stamps to a scanned crop.
+- **0.7** when year and denomination both match, rising to 1.0 when colour and subject match too;
+- **0.3** when only the year matches, rising to 0.6 the same way.
 
-The commit puts Australia, about 20,000 stamps, at roughly 30 minutes of setup, then under 10 ms per lookup. For now these run from the command line; the Mac app doesn't call them yet.
+The best match goes into `catalogueRef` if it scores at least 0.7. `--min-score` changes that bar, and `--dry-run` reports without writing.
+
+Two checks run before matching, because the vision model makes predictable mistakes:
+
+- `vlm_correct.py` spots a denomination that couldn't exist in that year, such as cents on an Australian stamp before decimal currency in 1966, and adds the era-correct alternatives to try. It never overwrites what the model said.
+- `sanity.py` flags implausible identifications for review. It only rejects impossible ones, such as a year before the country issued stamps.
 
 ## Trying it
 
@@ -187,10 +190,13 @@ git clone https://github.com/isaacrowntree/stamp-scanner && cd stamp-scanner
 python3 -m venv .venv
 .venv/bin/pip install ultralytics pillow numpy torch scipy opencv-python \
                      huggingface_hub pillow-heif imagehash requests
-cp .env.example .env.local      # add HF_TOKEN, and COLNECT_API_KEY if you have one
+cp .env.example .env.local      # add your HF_TOKEN
 ollama pull qwen3-vl
 ./run.sh download               # fetches sam3.pt (3.4 GB)
 ./run.sh                        # launches the Mac app; the SAM worker starts with it
+
+.venv/bin/python tools/sg_fetch.py 1840-1970   # optional: the SG catalogue text
+.venv/bin/python tools/sg_lookup.py --dry-run  # match identified stamps to SG numbers
 ```
 
 For the iPhone app, run `xcodegen` in `ios-app/` and open the generated project. `./run.sh stop` kills leftover workers.
@@ -198,13 +204,14 @@ For the iPhone app, run `xcodegen` in `ios-app/` and open the generated project.
 ## Tests and status
 
 ```bash
-cd mac-app && swift test                    # 12 XCTest cases
+cd mac-app && swift test                    # Mac app unit tests
+python -m unittest discover tools/tests     # SG parser, matcher and checks
 ./tools/run_fixture_pipeline.sh             # SAM on the bundled fixtures
 ./tools/run_fixture_pipeline.sh --identify  # plus Qwen3-VL identification (slow)
 ```
 
-The XCTest cases cover the pairing code, the issue detector and the schema round-trip. The fixture script runs the 12 bundled JPEG and PNG images through the real worker against a scratch database, including a selfie as a negative control.
+The Swift tests cover the pairing code, the issue detector and the schema round-trip. The Python tests run the SG parser against short catalogue excerpts, and cover the matcher, the denomination corrections, the sanity checks and the database migration. The fixture script runs the bundled JPEG and PNG images through the real worker against a scratch database, including a selfie as a negative control.
 
-Two launcher fixes came from real failures. The worker writes a heartbeat between files, because the launcher used to kill it during back-to-back jobs. And `run.sh` kills stale workers on start, because a survivor from an earlier session runs old code and races the new worker for the inbox.
+The worker writes a heartbeat between files, so the launcher doesn't mistake a long run of back-to-back jobs for a hang. `run.sh` kills stale workers on start, so a survivor from an earlier session can't race the new worker for the inbox.
 
 Full architecture and build notes are in the [README](https://github.com/isaacrowntree/stamp-scanner). If you have a collection that deserves better than a spreadsheet, this is a working start.

@@ -14,7 +14,7 @@ Jekyll 4 site, built and deployed by `.github/workflows` on push to `master` (Gi
 
 Style: plain, concrete, short sentences; Australian spelling; explain jargon the first time; no marketing words.
 
-No vanity code statistics: no test counts, lines of code, file or commit counts, or test run times. Say what the tests check and how, not how many there are. Facts must come from the project's published code, not just its README; work that only exists in a local checkout isn't described as shipped.
+No vanity code statistics: no test counts, lines of code, file or commit counts, or test run times. Say what the tests check and how, not how many there are. Describe what the software does now, not its history: no "the first version did X" or "v1 → v2" narratives. Give the reason for a design choice in the present tense instead. Facts must come from the project's published code, not just its README; work that only exists in a local checkout isn't described as shipped.
 
 ## Search
 

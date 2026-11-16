@@ -1,8 +1,8 @@
 ---
 layout: post
 title: "audio-analysis-and-recut — reconstructing a live set from the studio master"
-description: "A 258-line Python and FFmpeg tool that cross-correlates a phone recording of a live set against the studio track, finds the five sections the band actually played, and rebuilds the arrangement from clean audio."
-excerpt: "A 258-line Python and FFmpeg tool that cross-correlates a phone recording of a live set against the studio track, finds the five sections the band actually played, and rebuilds the arrangement from clean audio."
+description: "A Python and FFmpeg tool that cross-correlates a phone recording of a live set against the studio track, finds the five sections the band actually played, and rebuilds the arrangement from clean audio."
+excerpt: "A Python and FFmpeg tool that cross-correlates a phone recording of a live set against the studio track, finds the five sections the band actually played, and rebuilds the arrangement from clean audio."
 image: /images/blog/audio-analysis-and-recut.jpg
 image_alt: Close-up of a mixing console in a professional recording studio
 date: 2026-03-13
@@ -11,7 +11,7 @@ categories: [open-source]
 tags: [audio, dsp, python, ffmpeg, cross-correlation, open-source]
 ---
 
-Zack Design's **[audio-analysis-and-recut](https://github.com/isaacrowntree/audio-analysis-and-recut)** is a single **258-line Python script**, plus FFmpeg, that rebuilds a band's live arrangement from the song's studio recording. Given a 1 minute 56 second phone recording of a band playing "Ya Te Olvide" live, it works out which five sections of the 4 minute 40 second studio original they played, and in what order. Then it cuts those sections out of the studio track, so you get **the live arrangement at studio quality**. The matching uses the fast Fourier transform and **no learned components**.
+Zack Design's **[audio-analysis-and-recut](https://github.com/isaacrowntree/audio-analysis-and-recut)** is a **single Python script**, plus FFmpeg, that rebuilds a band's live arrangement from the song's studio recording. Given a 1 minute 56 second phone recording of a band playing "Ya Te Olvide" live, it works out which five sections of the 4 minute 40 second studio original they played, and in what order. Then it cuts those sections out of the studio track, so you get **the live arrangement at studio quality**. The matching uses the fast Fourier transform and **no learned components**.
 
 <div class="hero-cta-row" style="margin: 1.5rem 0;">
   <a href="https://github.com/isaacrowntree/audio-analysis-and-recut" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
@@ -107,13 +107,11 @@ OVERRIDES = {
 }
 ```
 
-They live in my working copy and aren't in the published script yet, so a fresh clone cuts at the analysed times. I didn't solve the problem generally. A second pass with a shorter window around each boundary would, or beat tracking.
+They're in `analyze.py`, applied after the analysis and printed as they're used. I didn't solve the problem generally. A second pass with a shorter window around each boundary would, or beat tracking.
 
 ## Cutting all five pieces from one decoded file
 
-The first `build_recut` passed the original to FFmpeg once per segment. It used `-ss` to seek to the start and `-t` for the length, then joined the pieces. But each seek decodes the MP3 independently and lands on the nearest compressed frame. The commit that replaced it records the joins landing on those frame boundaries, not at the analysed times.
-
-The second version decodes the file once and trims each piece out of that one stream:
+`build_recut` decodes the original once and trims every piece out of that one stream:
 
 ```python
 f"[0:a]atrim=start={seg['orig_start']:.3f}:end={seg['orig_end']:.3f},asetpts=PTS-STARTPTS[s{idx}]"
@@ -121,7 +119,9 @@ f"[0:a]atrim=start={seg['orig_start']:.3f}:end={seg['orig_end']:.3f},asetpts=PTS
 filter_complex = ";".join(trim_parts) + f";{concat_inputs}concat=n={idx}:v=0:a=1[out]"
 ```
 
-That is one decode, with trims accurate to the sample. `asetpts=PTS-STARTPTS` restarts each piece's clock at zero, so `concat` sees pieces that follow on from each other. The published script writes `output/ya_te_olvide_recut.mp3` at LAME's highest variable-bit-rate quality (`-q:a 0`). My working copy writes a 16-bit WAV instead, to skip the second lossy encode.
+Seeking into the MP3 separately for each piece, with `-ss` and `-t`, would land each cut on the nearest compressed frame instead of the analysed time. One decode gives trims accurate to the sample. `asetpts=PTS-STARTPTS` restarts each piece's clock at zero, so `concat` sees pieces that follow on from each other.
+
+The result is a 16-bit WAV, `output/ya_te_olvide_recut.wav`, so it can go straight into an editor without another lossy encode.
 
 ## Trying it
 
