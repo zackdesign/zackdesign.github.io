@@ -1,8 +1,8 @@
 ---
 layout: post
 title: "bike-part-planner — test-driven MTB part fitment modelling"
-description: "A zero-dependency TypeScript engine that answers 'will this part fit my bike?' with a list of reasons instead of a yes or no. It started as one rear-shock question on a 2013 Trek Fuel EX 5, whose honest answer turned out to be 'nobody has done this', and grew to 27 fitment checkers and a spring-rate model that explains why the textbook formula overshoots."
-excerpt: "The question was 'can I fit a coil shock to a 2013 Trek Fuel EX 5 ebike conversion?'. The answer the model produces is that a 184 mm by 50 mm imperial pin-mount shock is not a size any brand still makes, zero completed coil builds are documented on the frame, and the one buildable option is made to order. Modelling that in code, with tests, is why the project exists."
+description: "A zero-dependency TypeScript engine that answers 'will this part fit my bike?' with a list of reasons instead of a yes or no: 27 fitment checkers from shocks and forks to brake rotors, drivetrains and ebike motors, and a spring-rate model that explains why the textbook formula overshoots. Its worked example, a coil shock for a 2013 Trek Fuel EX 5, comes back as 'nobody has done this'."
+excerpt: "27 tested fitment checkers, from shocks and forks to brake rotors and ebike motors, that answer 'will this part fit my bike?' with a list of reasons. Asked about a coil shock for a 2013 Trek Fuel EX 5 ebike conversion, it reports that the 184 mm by 50 mm imperial size isn't made by any mainstream brand, the one option is made to order, and zero coil builds are documented on the frame."
 image: /images/blog/bike-part-planner.jpg
 image_alt: Mountain biker riding a trail through a lush green forest
 date: 2026-04-12
@@ -13,7 +13,7 @@ redirect_from:
   - /bike-shock-planner/
 ---
 
-Zack Design's **[bike-part-planner](https://github.com/isaacrowntree/bike-part-planner)** is a **test-driven** engine for the question every mountain biker searches before spending money: will this part actually fit my bike? Every compatibility fact is code rather than a chart, and the answer is a **list of reasons** rather than a yes or no. The framework has 27 `check*` functions and **no runtime dependencies**. **MIT licensed.**
+Zack Design's **[bike-part-planner](https://github.com/isaacrowntree/bike-part-planner)** is a **test-driven** engine for the question every mountain biker searches before spending money: will this part actually fit my bike? Every compatibility fact is code rather than a chart, and the answer is a **list of reasons** rather than a yes or no. Its **27 `check*` functions** cover shocks, forks, drivetrains, brakes, wheels, contact points and ebike motors and batteries, with **no runtime dependencies**. A spring-rate model accounts for where an ebike's extra weight sits. **MIT licensed.**
 
 <div class="hero-cta-row" style="margin: 1.5rem 0;">
   <a href="https://github.com/isaacrowntree/bike-part-planner" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
@@ -22,26 +22,21 @@ Zack Design's **[bike-part-planner](https://github.com/isaacrowntree/bike-part-p
 This post covers:
 
 - the fit checker that returns eleven separate mismatch reasons rather than a yes or no;
-- the conversion kit modelled as a function that rewrites a shock's mounting hardware;
+- the 27 checkers, and the guards that keep their standards consistent;
+- a worked example, a coil shock for a 2013 Trek Fuel EX 5: the conversion kit modelled as a function that rewrites a shock's mounting hardware;
 - why the spring-rate calculator carries a term for how much of the rider's weight sits on the rear wheel, and the assumption that 45% of an ebike's added mass rides there;
-- why the frame does not want a coil, and the two tests that pin what forum research found;
-- the pivots, how one shock question grew into 27 checkers, how to run it, and why the data is code.
+- why the frame does not want a coil, the tests that pin what forum research found, and the pivots;
+- how to run it, and why the data is code.
 
 <!-- more -->
 
 ## Why it exists
 
-It began as one question: "can I fit a coil shock to a 2013 Trek Fuel EX 5 that I've converted to an ebike with a Bafang BBS02 motor?" Hence the original `bike-shock-planner` name. The model's answer was not one I wanted.
-
-- The frame takes a shock 184 mm long with 50 mm of stroke, in the older imperial pin-mount fitting. No mainstream brand still makes that size.
-- Exactly one new coil shock exists in it: the Push ElevenSix, built to order.
-- There are zero documented coil builds online on the 2013 to 2016 frame with Trek's DRCV Full Floater suspension.
-
-The rear-shock core was written in one day, 12 April 2026. That day included two corrections to its own facts.
+Shock compatibility charts are PDFs. A PDF can't be run against a test suite, and it can't tell you why a part doesn't fit. Here every compatibility fact is TypeScript with a test beside it, so a claim about a standard is an assertion someone can check.
 
 ## Verdicts, not yes or no
 
-Every existing shock compatibility chart is a PDF, and a PDF can't be run against a test suite. `checkShockFit` in `src/shock.ts` takes a frame's shock mount and a candidate shock. It returns every dimensional mismatch separately:
+`checkShockFit` in `src/shock.ts` takes a frame's shock mount and a candidate shock. It returns every dimensional mismatch separately:
 
 ```ts
 export interface FitReason {
@@ -66,9 +61,37 @@ The tolerances are explicit constants:
 
 `fits` allows those tolerances. `dropIn` is stricter: it demands exact equality on all six mounting dimensions.
 
-The stroke tolerance was 0.5 mm on the first commit. It widened to plus or minus 1 mm the same afternoon, when I re-measured the stock shock's stroke from the label on its body as 50.8 mm. The stock shock itself was corrected from a Monarch RL to a Monarch RT3 in the fifth commit. Both fixes are in the log, because the data is code and the code is versioned. A chart would just have been wrong.
+The stroke tolerance is plus or minus 1 mm, not 0.5, because a nominal 50 mm stock shock measures 50.8 mm from the label on its body. A tighter tolerance rejects the shock the frame shipped with.
 
-Every module added since uses a simpler shared shape from `src/fit.ts`. Each `Reason` has a severity of `"block"`, `"warn"` or `"ok"`, and `resolve()` sets `fits` to true when no block remains. The README example says `"pass"`, because the helper is named `pass`, but it emits `"ok"`. The code is right; the README is not.
+The other checkers use a simpler shared shape from `src/fit.ts`. Each `Reason` has a severity of `"block"`, `"warn"` or `"ok"`, and `resolve()` sets `fits` to true when no block remains. The README example says `"pass"`, because the helper is named `pass`, but it emits `"ok"`. The code is right; the README is not.
+
+## What it checks
+
+Beyond the rear shock and its spring, it checks forks, and:
+
+- **Drivetrain:** bottom bracket and chainline, cassette, chain, chainring, rear and front derailleurs, shifter.
+- **Brakes:** rotor, pads, hose. The rotor check knows that SRAM rotors come in 200 and 220 mm while Shimano's come in 203 and 223 mm.
+- **Wheels:** wheel, tyre, tubeless setup, and mixed wheel sizes ("mullet" geometry).
+- **Contact points:** dropper post, headset, handlebar and stem, saddle, pedals.
+- **Ebike:** mid-drive and hub motors, batteries with a range estimate, legality by region, and how suitable a frame is for conversion.
+
+There is also a spoke-length calculator, which computes a length rather than a verdict. Each checker is `src/<part>.ts` exporting `check<Part>Fit(frame, part): Fitment`, with a test beside it. That is the documented contract for contributing a new one.
+
+Each standard is defined once, in `src/standards.ts`, because copies drift between modules: the 92 mm press-fit bottom bracket shell can become `"bb92"` in one file and `"pf92"` in another. `src/measure.ts` lists what to measure on your frame and how. Its `feeds` field, which says which checkers a measurement feeds, is an exact-match list, because a substring match lets "chain" feed "chainring".
+
+`test/accuracy-audit.test.ts` pins the real-world standards and the exact points where a result flips from pass to warn to block, so an edit can't quietly move a threshold.
+
+One gap: `src/fork.test.ts` sits in the wrong directory. `vitest.config.ts` only includes `test/**`, so its assertions never run; only `test/fork.test.ts` does.
+
+## A worked example: a coil shock for a 2013 Fuel EX
+
+The rear-shock modules answer one question in depth: "can I fit a coil shock to a 2013 Trek Fuel EX 5 that I've converted to an ebike with a Bafang BBS02 motor?" The model's answer is not the one I wanted.
+
+- The frame takes a shock 184 mm long with 50 mm of stroke, in the older imperial pin-mount fitting. No mainstream brand still makes that size.
+- Exactly one new coil shock exists in it: the Push ElevenSix, built to order.
+- There are zero documented coil builds online on the 2013 to 2016 frame with Trek's DRCV Full Floater suspension.
+
+The next five sections show how the model gets there.
 
 ## A conversion kit is a function
 
@@ -127,7 +150,7 @@ A motor rated at 100 newton-metres or more adds 3 kg on top. That accounts for t
 
 `FUEL_EX_5_2013` in `src/bike.ts` carries `progression: 1.13`. That means the suspension gets only 13% firmer as it moves through its travel. Trek tuned the Full Floater linkage around a DRCV air shock. A coil spring is linear, and on a linkage this flat it bottoms out harshly. Any bike with a progression below 1.2 gets a note recommending a progressive spring.
 
-Then the spring catalog has its own trap, verified live in April 2026. The Cane Creek VALT Progressive is made in 45, 55 and 65 mm strokes, not 50. The figure shows what that means for a shock with 50 mm of stroke.
+The spring catalog has its own trap, verified against the makers' ranges in April 2026. The Cane Creek VALT Progressive is made in 45, 55 and 65 mm strokes, not 50. The figure shows what that means for a shock with 50 mm of stroke.
 
 ![Two panels of a shock with 50 millimetres of stroke drawn as a bar between two retainers: a 45 millimetre spring fits with 5 millimetres to spare at full extension, where the shock carries no load; a 55 millimetre spring is longer than the space between the retainers and would overrun them.](/images/blog/bike-part-planner-spring-stroke.svg)
 
@@ -170,27 +193,9 @@ export const shouldRebuildPivots = (failedSteps: number, ebike: boolean): boolea
 
 On a thirteen-year-old frame about to carry a mid-drive, one failed step is enough.
 
-## From one shock to 27 checkers
-
-Commit `329b17e` renamed the project and added fork, motor and battery fitment in the same change. Since then it has gained checks for:
-
-- **Drivetrain:** bottom bracket and chainline, cassette, chain, chainring, rear and front derailleurs, shifter.
-- **Brakes:** rotor, pads, hose. The rotor check knows that SRAM rotors come in 200 and 220 mm while Shimano's come in 203 and 223 mm.
-- **Wheels:** wheel, tyre, tubeless setup, and mixed wheel sizes ("mullet" geometry).
-- **Contact points:** dropper post, headset, handlebar and stem, saddle, pedals.
-- **Ebike:** mid-drive and hub motors, batteries with a range estimate, legality by region, and how suitable a frame is for conversion.
-
-There is also a spoke-length calculator, which computes a length rather than a verdict. Each checker is `src/<part>.ts` exporting `check<Part>Fit(frame, part): Fitment`, with a test beside it. That is the documented contract for contributing a new one.
-
-Two refactors came from real bugs. The copies of each standard drifted between modules: the 92 mm press-fit bottom bracket shell was `"bb92"` in one file and `"pf92"` in another. Now they live once, in `src/standards.ts`. And `src/measure.ts` lists what to measure on your frame and how. Its `feeds` field says which checkers a measurement feeds. It became an exact-match list after a substring match let "chain" feed "chainring".
-
-`test/accuracy-audit.test.ts` came later too. It pins the real-world standards and the exact points where a result flips from pass to warn to block, so an edit can't quietly move a threshold.
-
-One honest gap: `src/fork.test.ts` was added alongside a fix, in the wrong directory. `vitest.config.ts` only includes `test/**`, so its assertions never run; only `test/fork.test.ts` does.
-
 ## Trying it
 
-The project now uses Bun as its package manager. Node still runs vitest, `tsc` and `tsx`.
+The project uses Bun as its package manager. Node still runs vitest, `tsc` and `tsx`.
 
 ```bash
 git clone https://github.com/isaacrowntree/bike-part-planner && cd bike-part-planner
@@ -203,6 +208,6 @@ bunx tsx src/cli.ts 80 0.3   # the same report for an 80 kg rider at 30% sag
 
 ## Why the data is code
 
-Once the compatibility data is TypeScript, claims become assertions. "No shock reservoir hits the frame on any bike in the catalog", "every coil has a rate range" and "this kit doesn't exist" are tests a contributor can send a pull request against. The two corrections I made to my own facts on day one are in the history, not silently overwritten.
+Once the compatibility data is TypeScript, claims become assertions. "No shock reservoir hits the frame on any bike in the catalog", "every coil has a rate range" and "this kit doesn't exist" are tests a contributor can send a pull request against. A corrected fact shows up in the history as a diff, not silently overwritten.
 
 The original recipe, `recipes/fuel-ex-5-2013-ebike/recipe.ts`, is one bike, one rider and a set of candidate parts. Fork it for your frame. Source on [GitHub](https://github.com/isaacrowntree/bike-part-planner), MIT.

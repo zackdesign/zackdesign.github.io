@@ -1,8 +1,8 @@
 ---
 layout: post
 title: "Nexxara — event galleries watermarked at request time, in front of R2"
-description: "Nexxara is Zack Design's event media SaaS: galleries watermarked at request time by a Worker in front of R2 storage, QR-code access, photo captions from Workers AI, and a Durable Object that streams upload progress — with the Image Resizing limits we hit on the way."
-excerpt: "Galleries watermarked at request time by a Worker in front of R2 storage, QR-code access, photo captions with Workers AI, a Durable Object streaming upload progress — and the Image Resizing limits we hit building it."
+description: "Nexxara is Zack Design's event media SaaS: galleries watermarked at request time by a Worker in front of R2 storage, QR-code access, photo captions from Workers AI, and a Durable Object that streams upload progress, plus the Image Resizing limits it has to work around."
+excerpt: "Galleries watermarked at request time by a Worker in front of R2 storage, QR-code access, photo captions with Workers AI, a Durable Object streaming upload progress, and the Image Resizing limits it works around."
 image: /images/blog/nexxara-launch.jpg
 image_alt: Concert crowd illuminated by stage lights, phones held high
 date: 2025-11-15
@@ -21,9 +21,9 @@ This post covers:
 
 - why it exists, what it does, and how Postgres decides which rows each user can see;
 - how the image Worker sizes and places watermarks as each photo is requested;
+- captioning photos with a vision model, grouping them by capture time, a Durable Object that streams upload progress to the admin screen, and reading video keyframes before playback;
 - two Image Resizing behaviours that are not in the documentation: it fetches from the Worker that called it, and it refuses images over 100 megapixels;
-- captioning photos with a vision model, grouping them by capture time, and a Durable Object that streams upload progress to the admin screen;
-- the Stripe library default that hangs a Worker, and reading video keyframes before playback.
+- the Stripe library default that hangs a Worker.
 
 <!-- more -->
 
@@ -40,7 +40,7 @@ Production companies run events. Events have editions: the same festival in Nove
 - **Attendees open the gallery** from a QR code or a link (the `qrcode` library renders it in the edition's share dialog). They sign in with an emailed one-time link via `supabase.auth.signInWithOtp`, so there is no password.
 - **Galleries** use `react-photo-album` to lay photos out in rows of equal height, with video alongside photos.
 
-Roles are a Postgres enumerated type, `user_role`: `basic`, `media`, `event_manager`, `admin`, with `super_admin` added later. Every table has row-level security enabled. That means Postgres itself filters which rows a user can see, rather than the application code. The 55 migrations in `supabase/migrations/` write those policies against `auth.uid()` and the caller's row in `user_profiles`, and database tests check them. The background queue consumer runs with the service-role key, which bypasses the policies, and is kept as a separate code path for that reason.
+Roles are a Postgres enumerated type, `user_role`: `basic`, `media`, `event_manager`, `admin` and `super_admin`. Every table has row-level security enabled. That means Postgres itself filters which rows a user can see, rather than the application code. The migrations in `supabase/migrations/` write those policies against `auth.uid()` and the caller's row in `user_profiles`, and database tests check them. The background queue consumer runs with the service-role key, which bypasses the policies, and is kept as a separate code path for that reason.
 
 ## Watermarks are drawn when the photo is requested
 
@@ -54,7 +54,7 @@ The Worker (`workers-nexxara/image/index.ts`) reads the width, height, quality, 
 
 Each overlay is itself a URL back to the same Worker. It is requested at twice its target width, as a PNG at full quality with sharpening on (`format=png`, `quality=100`, `sharpen=3`, `fit=scale-down`). So Image Resizing shrinks a sharp source instead of enlarging a soft one.
 
-Sizing is the part that took iteration. Overlays are specified in output pixels, so `calculateWatermarkWidth()` in `watermark-positioning.ts` picks a share of the output width based on the photo's shape:
+Sizing is the hard part. Overlays are specified in output pixels, so `calculateWatermarkWidth()` in `watermark-positioning.ts` picks a share of the output width based on the photo's shape:
 
 | Photo shape (width to height) | Overlay width as a share of photo width |
 |---|---|
@@ -64,35 +64,21 @@ Sizing is the part that took iteration. Overlays are specified in output pixels,
 | Other landscape, and square | 8% |
 | Portrait | 10% |
 
-The result is clamped to at least 80 pixels, at most a quarter of the photo's width, and never more than twice the overlay's own source width. When two marks share a corner, the second sits beside the first: 15 pixels past the first mark's rendered width, with 20 pixels of padding from the photo's edge. An earlier version stepped by a fixed estimate of 70 pixels whether or not the real width was known, and wide marks overlapped. The estimate is now only the fallback when no width is available.
+The result is clamped to at least 80 pixels, at most a quarter of the photo's width, and never more than twice the overlay's own source width. When two marks share a corner, the second sits beside the first: 15 pixels past the first mark's rendered width, with 20 pixels of padding from the photo's edge. Stepping by a fixed estimate of 70 pixels is not enough: wide marks overlap. The estimate is only the fallback when no width is available.
 
-One bug from this layer is worth recording. Image Resizing centres an overlay when none of `top`, `bottom`, `left` or `right` is set. Our `center` case set `bottom` and `right`, so a "centred" watermark rendered in the bottom-right corner. The fix is an empty `case "center": break;` with a comment explaining why.
+One trap in this layer: Image Resizing centres an overlay when none of `top`, `bottom`, `left` or `right` is set. A `center` case that sets `bottom` and `right`, as a general default would, renders a "centred" watermark in the bottom-right corner. So the `center` case is empty, `case "center": break;`, with a comment explaining why.
 
 Unit tests cover the Worker's configuration and positioning modules.
-
-## Two things Image Resizing does that the docs do not say
-
-**It calls you back.** Transforming an image from a Worker means calling `fetch(imageUrl, { cf: { image } })`. Image Resizing then fetches the source image from that URL, which is the same Worker. Without a guard, that is an endless loop of transform requests. Image Resizing adds `image-resizing` to the `via` header of its own fetch. The Worker checks for it, and when it is present serves the untouched bytes from R2 with no transform.
-
-![Two panels. Without the guard, the browser asks the Worker for a photo, the Worker asks Image Resizing to transform it, and Image Resizing fetches the source from the same Worker, which asks Image Resizing again, forever. With the guard, the Worker notices the via header on Image Resizing's fetch and answers that one request with the untouched bytes from R2, so the transform runs once.](/images/blog/nexxara-image-resizing-loop.svg)
-
-**It has a size ceiling, and every version of the photo fails.** Image Resizing rejects inputs over 100 megapixels with `ERROR 9413: Could not resize the image: The image is too large`. A stitched panorama of 23,957 by 4,416 pixels is 105.8 megapixels. Every request goes through a transform, so every version of that photo came back as a 403 Forbidden, even the plain URL with no parameters. The gallery drew a broken-image placeholder.
-
-The Worker now recognises that specific error message and serves the original file untransformed. It adds an `X-Nexxara-Transform: bypassed-oversized` response header, so the fallback is visible in the browser's developer tools. One request is deliberately excluded: `format=json`, which asks Image Resizing for the image's dimensions rather than its pixels. The queue worker recovers an oversized photo's dimensions from that very error message. Returning image bytes there would leave oversized panoramas with no dimensions at all.
-
-Full-resolution downloads had a related problem. Overlays are sized in output pixels, and with no `width` in the request the Worker did not know the output size, so watermarks came out tiny on big files. The app now passes the stored dimensions as `iw` and `ih`. Failing that, the Worker asks Image Resizing for them with `format=json`. The gallery always sends a width, so it never has to ask.
-
-On the Next.js side, `imageLoader.ts` rounds the width that `next/image` computes up to the next multiple of 500 pixels: a 750-pixel request becomes 1,000, and 1,200 becomes 1,500. So the edge cache sees a handful of sizes per photo instead of one per screen size. An earlier loader overwrote the width the gallery had already chosen, and served a thumbnail about 280 pixels wide as an image about 1,000 pixels wide.
 
 ## Captions from a vision model, moments from the clock
 
 Each upload puts one message per file on the `photo-processing-queue`. The consumer takes up to ten messages at a time and waits at most 30 seconds to fill a batch. It retries a failed message three times, then parks it on a separate dead-letter queue (`photo-processing-dlq`) for inspection.
 
-It extracts EXIF, the metadata a camera writes into each file, with `exifr`. Then it runs a vision pass on Workers AI, Cloudflare's hosted models. The first version ran ResNet-50, an image-classification model; it was removed within three days of the first commit in favour of a single vision model. Today `@cf/llava-hf/llava-1.5-7b-hf` captions a downsized copy of each photo. Sending the original returns Workers AI error 3006, "Request too large". `@cf/meta/llama-4-scout-17b-16e-instruct` handles the text tasks.
+It extracts EXIF, the metadata a camera writes into each file, with `exifr`. Then it runs a vision pass on Workers AI, Cloudflare's hosted models. One vision model does the work, with no image-classification model such as ResNet-50 alongside it. `@cf/llava-hf/llava-1.5-7b-hf` captions a downsized copy of each photo. Sending the original returns Workers AI error 3006, "Request too large". `@cf/meta/llama-4-scout-17b-16e-instruct` handles the text tasks.
 
 Writes are guarded by `ai_analyzed_at`, so a message delivered twice cannot overwrite a photo that has already been analysed. `force: true` on the message bypasses the guard for a deliberate re-run. Password-protected galleries skip the vision pass entirely.
 
-Grouping photos into **moments**, the sections a gallery is organised by, uses no model at all. There used to be three groupers: a per-day language-model call, a fixed 30-minute splitter and an image classifier. They disagreed with each other and dropped photos they couldn't place. Since October, `src/lib/bracketing/moments.ts` does it in one deterministic pass over capture times:
+Grouping photos into **moments**, the sections a gallery is organised by, uses no model at all. A per-day language-model call, a fixed 30-minute splitter and an image classifier all look plausible, but they disagree with each other and drop photos they can't place. `src/lib/bracketing/moments.ts` does it in one deterministic pass over capture times:
 
 1. Always split at a gap of three hours or more (overnight) and at a break of an hour or more.
 2. Then split at the largest remaining gaps until moments average about 20 items. Only gaps that stand out from the shoot's own rhythm count: at least five times the median gap and at least ten minutes. A burst-heavy wedding and a slow hike both split at their real pauses.
@@ -101,9 +87,9 @@ Grouping photos into **moments**, the sections a gallery is organised by, uses n
 
 Every photo and video ends up in exactly one moment. Moments are named by the part of the day in the gallery's time zone. One optional model call can name them from what the photos show, never for protected galleries.
 
-The mistake in this pipeline was time zones. The EXIF `DateTimeOriginal` field is a wall-clock time with no zone attached. `OffsetTimeOriginal`, when present, says which zone that wall clock belongs to, and turning the pair into a universal instant means subtracting the offset. The first implementation added it instead. That put every photo from a shoot ten hours ahead of UTC ten hours into the future, and fed nonsense into the grouping.
+The trap in this pipeline is time zones. The EXIF `DateTimeOriginal` field is a wall-clock time with no zone attached. `OffsetTimeOriginal`, when present, says which zone that wall clock belongs to, and turning the pair into a universal instant means subtracting the offset. Adding it instead is an easy slip: it puts every photo from a shoot ten hours ahead of UTC ten hours into the future, and feeds nonsense into the grouping.
 
-Capture times are now stored as true UTC instants. The zone comes from the photo's own offset tag, then the edition's time zone, then the photographer's default, then UTC. `recompute_exif_date_taken(edition_id)` re-derives them from the stored EXIF data when either setting changes.
+Capture times are stored as true UTC instants. The zone comes from the photo's own offset tag, then the edition's time zone, then the photographer's default, then UTC. `recompute_exif_date_taken(edition_id)` re-derives them from the stored EXIF data when either setting changes.
 
 ## A live progress bar for uploads
 
@@ -111,23 +97,37 @@ An admin watching a large upload wants a progress bar, not a refresh button. `Pr
 
 The queue consumer and the upload routes POST typed events to it: `upload:progress`, `ai:complete`, `bracket:started` and nine others. A small function in `state-manager.ts` folds each event into the current state. The state is saved to the object's storage and broadcast over WebSocket to every admin browser tab connected to it.
 
-The first version used the `@cloudflare/actors` beta and kept the open connections in an in-memory `Set`. That set does not survive the object being put to sleep between messages, so a broadcast after waking went to nobody. It was rewritten on the WebSocket hibernation API, calling `this.ctx.acceptWebSocket(server)` so the runtime owns the connections.
+It uses the WebSocket hibernation API, calling `this.ctx.acceptWebSocket(server)` so the runtime owns the connections. Keeping them in an in-memory `Set`, the obvious approach with the `@cloudflare/actors` beta, doesn't work: the set does not survive the object being put to sleep between messages, so a broadcast after waking goes to nobody.
 
-A second bug in the same object: the upload state was a JavaScript `Map`. Both `storage.put()` and the `JSON.stringify` used for broadcasting turn a `Map` into an empty `{}`, so every saved state and every message carried zero uploads. It is a plain object now, and a test round-trips an upload through JSON to prove it.
+A second trap in the same object: a JavaScript `Map` for the upload state. Both `storage.put()` and the `JSON.stringify` used for broadcasting turn a `Map` into an empty `{}`, so every saved state and every message would carry zero uploads. The state is a plain object, and a test round-trips an upload through JSON to prove it.
 
 The WebSocket path is intercepted in `worker/index.ts` before OpenNext (the adapter that runs Next.js on Workers) sees the request, because a WebSocket connection cannot pass through the Next.js router. Only WebSocket upgrades and `GET` requests are accepted there. The code that produces events talks to the Durable Object directly, so nobody outside the Worker can forge progress for an edition.
-
-## The Stripe default that hangs a Worker
-
-Downloads are free and watermarked, with an optional tip, and tips are charged in the photographer's own currency. Tips and subscriptions go through Stripe, the payments provider.
-
-`new Stripe(key)` uses the library's Node.js HTTP client, and in the Workers runtime that client never returns. `checkout.sessions.create` hung, and the POST that starts a tip checkout stayed pending forever. Every Stripe construction now passes `httpClient: Stripe.createFetchHttpClient()`. Webhook signature checks use `constructEventAsync` with `Stripe.createSubtleCryptoProvider()`, because the synchronous Node.js crypto path is not available on Workers either. The library documents both helpers; it does not fail loudly when you leave them out.
 
 ## Video: reading the keyframes before playback
 
 Videos are inspected with `mp4box`, a library that reads the structure of MP4 files, before they are shown. The keyframes route parses the file's index (the `moov` atom) and collects the timestamps of the frames that can be decoded on their own. Those drive the scrubbing slider in the video editor, and Cloudflare Media Transformations (`/cdn-cgi/media/`) produce the preview frames.
 
 Video bytes are served by the Worker entrypoint rather than a Next.js route. Next.js and OpenNext strip the `Content-Length` header from streamed responses, and a download cut off halfway then looks identical to a complete one.
+
+## Two things Image Resizing does that the docs do not say
+
+**It calls you back.** Transforming an image from a Worker means calling `fetch(imageUrl, { cf: { image } })`. Image Resizing then fetches the source image from that URL, which is the same Worker. Without a guard, that is an endless loop of transform requests. Image Resizing adds `image-resizing` to the `via` header of its own fetch. The Worker checks for it, and when it is present serves the untouched bytes from R2 with no transform.
+
+![Two panels. Without the guard, the browser asks the Worker for a photo, the Worker asks Image Resizing to transform it, and Image Resizing fetches the source from the same Worker, which asks Image Resizing again, forever. With the guard, the Worker notices the via header on Image Resizing's fetch and answers that one request with the untouched bytes from R2, so the transform runs once.](/images/blog/nexxara-image-resizing-loop.svg)
+
+**It has a size ceiling, and every version of the photo fails.** Image Resizing rejects inputs over 100 megapixels with `ERROR 9413: Could not resize the image: The image is too large`. A stitched panorama of 23,957 by 4,416 pixels is 105.8 megapixels. Every request goes through a transform, so without a fallback every version of that photo comes back as a 403 Forbidden, even the plain URL with no parameters, and the gallery draws a broken-image placeholder.
+
+The Worker recognises that specific error message and serves the original file untransformed. It adds an `X-Nexxara-Transform: bypassed-oversized` response header, so the fallback is visible in the browser's developer tools. One request is deliberately excluded: `format=json`, which asks Image Resizing for the image's dimensions rather than its pixels. The queue worker recovers an oversized photo's dimensions from that very error message. Returning image bytes there would leave oversized panoramas with no dimensions at all.
+
+Full-resolution downloads have a related problem. Overlays are sized in output pixels, and with no `width` in the request the Worker does not know the output size, so watermarks come out tiny on big files. The app passes the stored dimensions as `iw` and `ih`. Failing that, the Worker asks Image Resizing for them with `format=json`. The gallery always sends a width, so it never has to ask.
+
+On the Next.js side, `imageLoader.ts` rounds the width that `next/image` computes up to the next multiple of 500 pixels: a 750-pixel request becomes 1,000, and 1,200 becomes 1,500. So the edge cache sees a handful of sizes per photo instead of one per screen size. The loader must not overwrite a width the gallery has already chosen: doing so serves a thumbnail about 280 pixels wide as an image about 1,000 pixels wide.
+
+## The Stripe default that hangs a Worker
+
+Downloads are free and watermarked, with an optional tip, and tips are charged in the photographer's own currency. Tips and subscriptions go through Stripe, the payments provider.
+
+`new Stripe(key)` uses the library's Node.js HTTP client, and in the Workers runtime that client never returns. `checkout.sessions.create` hangs, and the POST that starts a tip checkout stays pending forever. Every Stripe construction passes `httpClient: Stripe.createFetchHttpClient()`. Webhook signature checks use `constructEventAsync` with `Stripe.createSubtleCryptoProvider()`, because the synchronous Node.js crypto path is not available on Workers either. The library documents both helpers; it does not fail loudly when you leave them out.
 
 ## The stack, in one place
 

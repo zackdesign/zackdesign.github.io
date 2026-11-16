@@ -19,19 +19,34 @@ Zack Design's **[Shutterdrop](https://github.com/isaacrowntree/shutterdrop)** is
 
 This post covers:
 
-- how a 6-digit pairing code survives a shared wifi network (5 attempts, a half-second delay per guess, a 5-minute window), and how the receiver finds its own network address without sending a packet;
+- the two phone apps, and the places where the Android app is honestly behind the iOS one;
+- the three HTTP routes, how the receiver finds its own network address without sending a packet, and how a 6-digit pairing code survives a shared wifi network (5 attempts, a half-second delay per guess, a 5-minute window);
 - why the parser for the upload body is hand-written, and splits on a line break followed by the boundary rather than on the boundary alone;
 - why the file is opened with flags that refuse to overwrite or follow a symbolic link, and is renamed into place;
-- the places where the Android app is honestly behind the iOS one;
 - test coverage, how the pieces connect, and how to try it.
 
 <!-- more -->
 
 ## Why this exists
 
-I take a lot of product photos for eBay listings: bike parts, electronics, resale. The iPhone has a far better camera than anything attached to the Mac. But "shoot on phone, AirDrop, import" was the slow step in every listing. Existing wireless tether tools want a subscription, route photos through someone else's cloud, or are tied to a desktop app I don't use.
+I take a lot of product photos for eBay listings, and "shoot on phone, AirDrop, import" is the slow step in every one. Existing wireless tether tools want a subscription, route photos through someone else's cloud, or are tied to a desktop app I don't use. Shutterdrop's receiver writes straight to a folder, so whatever already watches folders sees new files appear: a Finder smart folder, the Hazel automation app, Lightroom auto-import. I haven't measured the delay from tap to file, and nothing in the repo does.
 
-Shutterdrop is the smallest thing that removes the step. The receiver writes straight to a folder, so whatever already watches folders sees new files appear: a Finder smart folder, the Hazel automation app, Lightroom auto-import. I haven't measured the delay from tap to file, and nothing in the repo does.
+## The two phone apps
+
+The iOS app needs iOS 17 or later, and is written in SwiftUI. It looks for `_shutterdrop._tcp` with `NWBrowser`. It finds the Mac's address by opening a throwaway connection and reading where it connected. A hard 8-second timeout means an unreachable Bonjour entry can't hang the Pair button. An IPv6 address gets its interface suffix percent-encoded, as in `[fe80::1%25en0]`.
+
+Capture asks for HEVC when the camera offers it, and JPEG otherwise, with quality ahead of speed. The lens picker sets the zoom on the triple-camera device to 1.0, 2.0 or 6.0, which are the 0.5x, 1x and 3x lenses. The torch switches on at full brightness.
+
+Every capture is written first to an outbox folder in the app's cache. It's uploaded with `URLSession.upload(for:fromFile:)`, so the HEIC is never held in memory twice. The outbox flushes when `NWPathMonitor` says the network is back. After a failure it waits 2 seconds, so a Mac answering 401 isn't hammered by the network monitor and the pairing code at once.
+
+The Android app needs Android 8 or later, and uses Compose and CameraX 1.4.1. It captures with `CAPTURE_MODE_MAXIMIZE_QUALITY`. It finds the Mac with `NsdManager`, using `registerServiceInfoCallback` on Android 14 and later and the older resolver below it. The whole-screen tap target is exposed to the TalkBack screen reader as a button.
+
+It's behind iOS in four ways worth saying plainly:
+
+- no lens picker;
+- no torch;
+- no network-change trigger or back-off on the outbox (it flushes on pairing and on each new capture);
+- the upload reads the whole file into memory with `file.readBytes()`, where iOS streams it from disk.
 
 ## The whole protocol is three HTTP routes
 
@@ -119,23 +134,6 @@ os.replace(tmp_path, final_path)
 The `job_id` is the time in milliseconds plus four random hex characters, so files sort in the order they were taken. The write goes to a `.tmp` file, is flushed to disk, and is then renamed into place. A folder watcher never sees a partial JPEG.
 
 `O_EXCL` refuses to overwrite an existing file. `O_NOFOLLOW` refuses to follow a symbolic link someone left in the staging folder, which stops a local user redirecting the write somewhere else on disk.
-
-## The two phone apps
-
-The iOS app needs iOS 17 or later, and is written in SwiftUI. It looks for `_shutterdrop._tcp` with `NWBrowser`. It finds the Mac's address by opening a throwaway connection and reading where it connected. A hard 8-second timeout means an unreachable Bonjour entry can't hang the Pair button. An IPv6 address gets its interface suffix percent-encoded, as in `[fe80::1%25en0]`.
-
-Capture asks for HEVC when the camera offers it, and JPEG otherwise, with quality ahead of speed. The lens picker sets the zoom on the triple-camera device to 1.0, 2.0 or 6.0, which are the 0.5x, 1x and 3x lenses. The torch switches on at full brightness.
-
-Every capture is written first to an outbox folder in the app's cache. It's uploaded with `URLSession.upload(for:fromFile:)`, so the HEIC is never held in memory twice. The outbox flushes when `NWPathMonitor` says the network is back. After a failure it waits 2 seconds, so a Mac answering 401 isn't hammered by the network monitor and the pairing code at once.
-
-The Android app needs Android 8 or later, and uses Compose and CameraX 1.4.1. It captures with `CAPTURE_MODE_MAXIMIZE_QUALITY`. It finds the Mac with `NsdManager`, using `registerServiceInfoCallback` on Android 14 and later and the older resolver below it. The whole-screen tap target is exposed to the TalkBack screen reader as a button.
-
-It's behind iOS in four ways worth saying plainly:
-
-- no lens picker;
-- no torch;
-- no network-change trigger or back-off on the outbox (it flushes on pairing and on each new capture);
-- the upload reads the whole file into memory with `file.readBytes()`, where iOS streams it from disk.
 
 ## Status
 

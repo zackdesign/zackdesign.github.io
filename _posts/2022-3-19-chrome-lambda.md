@@ -38,7 +38,7 @@ Each of those needs a real Chrome, which means a real display, inside the 10 GB 
 
 ## The recipe
 
-The repo is a fork of Guillaume Ruch's chrome-lambda. My changes added the flags Chrome needed to start, moved the display to `:99` and pointed `HOME` at `/tmp`, the only writable folder on Lambda. The image is a handful of familiar pieces:
+The repo is a fork of Guillaume Ruch's chrome-lambda. It adds the flags Chrome needs to start, puts the display on `:99` and points `HOME` at `/tmp`, the only writable folder on Lambda. The image is a handful of familiar pieces:
 
 1. Ubuntu 20.04, plus AWS's Lambda runtime interface client, which lets any container image act as a Lambda function.
 2. [Xvfb](https://www.x.org/releases/X11R7.6/doc/man/man1/Xvfb.1.xhtml), the "X virtual framebuffer": a display server that draws into memory instead of a monitor. It gives Chrome a display to open, numbered `:99`, with no graphics card behind it. A small window manager, Fluxbox, runs on top.

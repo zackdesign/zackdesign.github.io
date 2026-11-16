@@ -1,8 +1,8 @@
 ---
 layout: post
 title: "vesc-workbench — scripting a sealed motor controller, and the dashboard that came out of it"
-description: "vesc-workbench scripts VESC Tool, the desktop program for configuring a VESC motor controller, over the phone app's Bluetooth bridge, so a controller sealed inside a skateboard can be read, written and verified with no USB cable. It started because a FOCBOX Unity on firmware 7.00 stopped talking to its DAVEGA X display over two version bytes, and ended with ten dashboards for that display, tested in the interpreter that runs them."
-excerpt: "VESC Tool's command line only talks over a cable. Its scripting runtime does not: a script loaded with --loadQml runs inside the application, with the connection object in scope, and can open a network connection to the phone app's bridge. That is the whole trick, and the repo is what fell out of using it: controller settings in git, a small script on the controller that rewrites two bytes, and a dashboard for a screen where every draw call costs 2.9 ms."
+description: "vesc-workbench reads, writes and verifies a VESC motor controller's settings over the phone app's Bluetooth bridge, so a controller sealed inside a skateboard needs no USB cable and its settings live in git. It also carries ten dashboards for the DAVEGA X display that read firmware 7 directly, tested in the MicroPython that runs them, and a LispBM script that gets the stock display past its version check."
+excerpt: "VESC Tool's command line only talks over a cable. Its scripting runtime does not: a script loaded with --loadQml runs inside the application, with the connection object in scope, and can open a network connection to the phone app's bridge. That is the whole trick, and the repo builds on it: controller settings in git, a small script on the controller that rewrites two bytes, and a dashboard for a screen where every draw call costs 2.9 ms."
 image: /images/blog/vesc-workbench.jpg
 image_alt: A LaCroix electric skateboard shot head-on against black — Hypertrucks splayed wide on pneumatic tyres, a blue anodised hanger, twin LED pods and a carbon deck.
 date: 2026-09-06
@@ -11,7 +11,7 @@ categories: [open-source]
 tags: [lispbm, lisp, python, micropython, qml, makefile, vesc, embedded, firmware, reverse-engineering, ui-design, electric-skateboard]
 ---
 
-Zack Design's **[vesc-workbench](https://github.com/isaacrowntree/vesc-workbench)** is a set of `make` targets that script VESC Tool, the desktop program for configuring a **VESC** motor controller (an open-source electronic speed controller, ESC, used in electric skateboards and bikes). It works over the phone app's **Bluetooth bridge**, so a controller sealed inside a skateboard deck can be read, written and verified from a laptop with **no USB cable**, and its settings kept in git. It began when a FOCBOX Unity on firmware 7.00 stopped talking to its DAVEGA X display **over two bytes**, and it ended with ten dashboards for that display. **MIT licensed.**
+Zack Design's **[vesc-workbench](https://github.com/isaacrowntree/vesc-workbench)** reads, writes and verifies the settings of a **VESC** motor controller (an open-source electronic speed controller, ESC, used in electric skateboards and bikes) sealed inside a skateboard deck, from a laptop, with **no USB cable**. It scripts VESC Tool, the desktop configuration program, through the phone app's **Bluetooth bridge**, so the settings live in git. It also carries **ten dashboards for the DAVEGA X display** that read firmware 7 directly, tested in the MicroPython the display runs, and a script that gets the stock display past its version check **by rewriting two bytes**. **MIT licensed.**
 
 <div class="hero-cta-row" style="margin: 1.5rem 0;">
   <a href="https://github.com/isaacrowntree/vesc-workbench" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
@@ -20,19 +20,18 @@ Zack Design's **[vesc-workbench](https://github.com/isaacrowntree/vesc-workbench
 This post covers:
 
 - why VESC Tool's command line cannot connect over the network, and why a script loaded into it can;
-- diagnostics that tell two failures apart, and what the controller gets wrong, such as a serial-port call that silently switches the throttle input off and saves that to permanent storage;
-- a script in LispBM, the small Lisp interpreter that runs on the controller, that rewrites those two bytes and recomputes the checksum, and how it's tested;
-- the display's own interactive prompt, and the settings file that had it under-reading speed by 18%;
-- ten dashboards for a screen where a draw call costs 2.9 ms whether it covers 4 pixels or 9,600, and the test that caught every curve about to reach the screen with its colours reversed;
+- diagnostics that tell two failures apart;
+- a script in LispBM, the small Lisp interpreter that runs on the controller, that rewrites two version bytes and recomputes the checksum, and how it's tested;
+- the display's own interactive prompt, and a settings file that under-reads speed by 18% when it's wrong;
+- ten dashboards for a screen where a draw call costs 2.9 ms whether it covers 4 pixels or 9,600, and the test that catches every curve reaching the screen with its colours reversed;
+- what the controller gets wrong, such as a serial-port call that silently switches the throttle input off and saves that to permanent storage;
 - what you need to try it, and the commands to start with.
 
 <!-- more -->
 
 ## Why it exists
 
-Everyone who runs a VESC ends up in the same loop. Change a current limit. Ride. Change the throttle curve. Ride. Was that better, or was it a headwind? What was it set to three weeks ago?
-
-VESC Tool is a graphical program. You click through tabs, and when you're done there's no record of what changed. Exporting an XML backup is a manual step, so nobody does it every time. And on a sealed skateboard enclosure the USB port is behind screws, so all of this happens on a phone in a driveway.
+Tuning a VESC is a loop: change a current limit, ride, change the throttle curve, ride. VESC Tool is a graphical program that keeps no record of what changed, and exporting a backup is a manual step nobody does every time. On a sealed skateboard enclosure the USB port is behind screws, so all of this happens on a phone in a driveway.
 
 The repo is that loop, scripted:
 
@@ -41,13 +40,13 @@ make pull      # read both motor sides' configs to XML
 make apply     # write them back, then verify by reading them again
 ```
 
-Settings are text files. You can `git diff` a tuning session, review it before it goes near the motors, and revert it in one command. `apply` reads the settings back after writing them. That's because the write call with its verify flag off (`setMcconf(false)`) accepts a write and quietly discards it. Only the flagged version asks the controller to check and confirm. That one took an afternoon.
+Settings are text files. You can `git diff` a tuning session, review it before it goes near the motors, and revert it in one command. `apply` reads the settings back after writing them. That's because the write call with its verify flag off (`setMcconf(false)`) accepts a write and quietly discards it. Only the flagged version asks the controller to check and confirm.
 
 ## The command line only talks over a cable; a script inside the app doesn't
 
-VESC Tool has a command-line mode, and I expected it to solve this. Its port option (`--vescPort`) goes straight to the serial-connection code and takes a serial device, full stop. An address and port (`--vescPort 192.168.1.100:65102`) is rejected. I tried a fake serial port bridged to the network (a `socat` pseudo-terminal). It opens, but the handshake never completes, because VESC Tool drives the port directly and the fake doesn't behave like a real one. I wrote that down as impossible.
+VESC Tool's command-line mode looks like the answer and isn't. Its port option (`--vescPort`) goes straight to the serial-connection code and takes a serial device, full stop. An address and port (`--vescPort 192.168.1.100:65102`) is rejected. A fake serial port bridged to the network (a `socat` pseudo-terminal) opens, but the handshake never completes, because VESC Tool drives the port directly and the fake doesn't behave like a real one.
 
-It isn't. VESC Tool also accepts `--loadQml`, which loads a script written in QML, Qt's user-interface language. A script loaded that way runs *inside the application*, with `VescIf` in scope. `VescIf` is the one object that holds the whole connection and configuration interface, and a script can call its `connectTcp()` method.
+What works is a script. VESC Tool also accepts `--loadQml`, which loads a script written in QML, Qt's user-interface language. A script loaded that way runs *inside the application*, with `VescIf` in scope. `VescIf` is the one object that holds the whole connection and configuration interface, and a script can call its `connectTcp()` method.
 
 The phone app has a **Wireless Bridge to Computer (TCP)** mode on its Start page. It listens on port 65102, one client at a time. The laptop talks to the phone over Wi-Fi, and the phone talks to the controller over Bluetooth, the link it always uses.
 
@@ -112,40 +111,9 @@ make motors-on
 
 `motors-off` tells the controller to stop driving the motors (`app-disable-output`). That isn't a configuration change, so nothing needs undoing, and nothing is left in a strange state if you walk away. `make faults` prints the stored fault history and live values from both sides.
 
-## The controller reports accurately and points at the wrong thing
+## Getting the stock display past firmware 7
 
-[docs/findings.md](https://github.com/isaacrowntree/vesc-workbench/blob/master/docs/findings.md) is the document I wanted and couldn't find. Every entry has the same shape: the firmware does something reasonable, reports it correctly, and the report sends you somewhere else.
-
-| What you see | What is happening |
-|---|---|
-| Throttle dead after a script ran; a reboot does not fix it | Starting the serial port from a script (`uart-start`) permanently saves "no throttle input" to the controller's settings |
-| Remote-control settings go in and come back wrong, so you suspect the remote | The remote-control settings refuse to be written while the control type is set to "off" |
-| "did you forget to upload the code" | The obvious upload call (`lispWriteCode()`) does not actually store a script; the code-loader path (`CodeLoader.lispUploadFromPath`) does |
-| A config that looks corrupted | A read taken before the controller finished booting |
-
-The first one is the one to know before running any script. From `bldc/lispBM/lispif_vesc_extensions.c`, `ext_uart_start`:
-
-```c
-if (appconf->app_to_use == APP_UART ||
-        appconf->app_to_use == APP_PPM_UART ||
-        appconf->app_to_use == APP_ADC_UART) {
-    appconf->app_to_use = APP_NONE;
-    conf_general_store_app_configuration(appconf);   // written to FLASH
-    app_set_configuration(appconf);
-}
-```
-
-The setting `app_to_use` says which input drives the motor. Three of its modes include the serial port: "serial only" (3), "remote and serial" (4) and "analogue and serial" (5). In any of them, `uart-start` writes "none" to permanent storage, and the throttle is gone. It also explains config writes that "do not persist". They persisted fine, and the next `uart-start` overwrote them.
-
-`make upload-lisp` now searches the script for `uart-start` and reads the setting before uploading. It changes "remote and serial" to "remote only" (4 to 1), and "analogue and serial" to "analogue only" (5 to 2). The firmware is going to clear the serial half either way. Verified on the board: set to "remote only", the decoder reads a live pulse of 1.4990 to 1.5020 ms. Set to "remote and serial", it reads nothing at all.
-
-There's a correction in there too. The esk8 forums say VESC traction control interferes with braking. I enabled it and then read `applications/app_ppm.c`. Traction control lives entirely in the non-brake branch, `mc_interface_set_brake_current` is called before that branch is reached, and it disengages on any fault.
-
-What it does do is taper drive current smoothly to zero as the two wheels' speeds drift apart. It reaches zero at a configured difference (`tc_max_diff`), measured in electrical revolutions per minute, the motor speed as the controller counts it. This board has seven magnet pole pairs, a 4.2-to-1 gear ratio and 200 mm wheels. There, the default of 3,000 is about 3.8 km/h of difference between the wheels. That's tight enough that normal grass slip keeps triggering the taper. It's the "power surging" people describe, and probably where the folklore comes from. Doubling it to 6,000 (about 7.7 km/h) is what runs here, confirmed in motion.
-
-## Two bytes stood between the display and firmware 7
-
-All of this exists because of a smaller problem. I have a LaCroix Nazaré electric skateboard with a FOCBOX Unity sealed in the enclosure, ridden on grass at a golf course. I wanted it on firmware 7, for its newer motor-control code and for LispBM scripting. The DAVEGA X display refused:
+I have a LaCroix Nazaré electric skateboard with a FOCBOX Unity sealed in the enclosure, ridden on grass at a golf course. I wanted it on firmware 7, for its newer motor-control code and for LispBM scripting. The DAVEGA X display refused:
 
 > Unsupported VESC FW: 7.01
 >
@@ -153,11 +121,11 @@ All of this exists because of a smaller problem. I have a LaCroix Nazaré electr
 
 The DAVEGA X is the small display bolted to the deck. The telemetry packet it draws (`COMM_GET_VALUES`, 25 fields) is byte-identical between VESC firmware 6.00 and 7.x. The only difference on the wire is the major version number.
 
-DAVEGA closed in May 2024. Everyone downgrades. I checked that first. The vendor's update index at `davega.eu/fw/index_v5.json` still lists a **v5.07rc3, dated 2025-03-11**. It's newer than the v5.06 the changelog stops at, released after the shop closed and never announced. It carries the same gate strings as every version before it, so no firmware DAVEGA shipped accepts VESC 7. [docs/firmware-archive.md](https://github.com/isaacrowntree/vesc-workbench/blob/master/docs/firmware-archive.md) records all eight images and their SHA-256 hashes, since the endpoints won't answer forever.
+DAVEGA closed in May 2024, and the usual advice is to downgrade the controller. No DAVEGA firmware avoids that. The vendor's update index at `davega.eu/fw/index_v5.json` still lists a **v5.07rc3, dated 2025-03-11**. It's newer than the v5.06 the changelog stops at, released after the shop closed and never announced. It carries the same gate strings as every version before it, so no firmware DAVEGA shipped accepts VESC 7. [docs/firmware-archive.md](https://github.com/isaacrowntree/vesc-workbench/blob/master/docs/firmware-archive.md) records all eight images and their SHA-256 hashes, since the endpoints won't answer forever.
 
 What didn't change is the protocol. `lisp/tests/protocol-diff.sh` fetches the two firmware source files that define the telemetry reply (`comm/commands.c` and `datatypes.h`). It takes them from the upstream `bldc` repository at tag `6.00` and at `master`, extracts the lines that append each field to the reply, and compares them: 25 fields, same types, same order. The display isn't failing to parse anything. It reads two version bytes, sees a 7, and declines to have the conversation.
 
-One thing I got wrong on the way. I claimed the firmware-version reply was structurally identical too. It isn't: 7.x appends a four-byte hardware checksum (`buffer_append_uint32(send_buffer, main_calc_hw_crc(), &ind)`) that 6.00 lacks. That doesn't break anything. The display reads the major and minor version at fixed positions, bytes 1 and 2, and the length byte accounts for the extra word. But my first comparison script only matched three of the four ways the firmware writes into a reply, and missed it. The script now compares that reply too, and the test fails the build only on the packet that matters.
+The firmware-version reply is not structurally identical: 7.x appends a four-byte hardware checksum (`buffer_append_uint32(send_buffer, main_calc_hw_crc(), &ind)`) that 6.00 lacks. That doesn't break anything. The display reads the major and minor version at fixed positions, bytes 1 and 2, and the length byte accounts for the extra word. A comparison that matches only three of the four ways the firmware writes into a reply misses it. The script compares that reply too, and the test fails the build only on the packet that matters.
 
 VESC firmware 6.06 lets a LispBM script hand a packet to the firmware's own command decoder (`cmds-proc`) and receive the reply as an event (`event-cmds-data-tx`). So a script on the controller can take over the serial line the display is wired to. It hands every packet to the real handler, and rewrites one reply on the way out. From `lisp/src/proxy.lisp`:
 
@@ -181,17 +149,17 @@ The rest of the shim is a serial reader and some debug counters. The checksum fu
 Three things made it harder than the listing suggests:
 
 - **Thirteen commands never reply through the event.** Numbers 62, 66 to 72, 80, 83, 90, 116, 125 and 158 run on a separate blocking thread and reply through a different path. Forward one and no reply ever comes, and the firmware is left marked as busy. So the shim answers those itself. It also answers the ping over the CAN bus (the wire between the Unity's two halves) with a precomputed reply.
-- **Short reads lost whole round trips.** The first read loop asked for both header bytes in one call, and dropped any payload that arrived short. Reading the header and then the payload separately took the reply rate from about 6% to about 70%.
-- **The safe reader wasn't free until it was made so.** Measured on the Unity over three windows of 40 to 45 s each:
+- **Short reads lose whole round trips.** A read loop that asks for both header bytes in one call drops any payload that arrives short. Reading the header and then the payload separately takes the reply rate from about 6% to about 70%.
+- **A safe reader has to be made cheap.** Measured on the Unity over three windows of 40 to 45 s each:
 
 | Reader | Frames read per second | Telemetry replies per second | Interpreter CPU |
 |---|---|---|---|
-| Original (one 2-byte header read, short reads ignored) | 12.3/s | 5.1/s | 5.5% |
+| One 2-byte header read, short reads ignored (unsafe) | 12.3/s | 5.1/s | 5.5% |
 | Byte-at-a-time start hunt | 11.3/s | 4.5/s | 7.9% |
 | 2-byte fast path, explicit recovery | 11.8/s | 4.8/s | 7.3% |
-| **Current** (as above, plus one read for the frame body) | **12.0/s** | **5.0/s** | **5.6%** |
+| **Shipped** (as above, plus one read for the frame body) | **12.0/s** | **5.0/s** | **5.6%** |
 
-`lisp/tests/bench_reader.lisp` counts serial-port calls, which is what the interpreter pays for. The shipped reader was spending three reads per frame when the length byte already said how much was coming. Fetching the body in one call took it to two, and the CPU cost of the framing guarantees fell back to noise.
+`lisp/tests/bench_reader.lisp` counts serial-port calls, which is what the interpreter pays for. A reader that spends three reads per frame wastes one, because the length byte already says how much is coming. Fetching the body in one call makes it two, and the CPU cost of the framing guarantees falls back to noise.
 
 If you have a DAVEGA and want to keep its own firmware, that shim is the whole answer, and you can stop reading here.
 
@@ -214,15 +182,15 @@ make test-lisp                              # run it in the real interpreter
 
 The real interpreter catches all of these; a re-implementation catches none. Upload happens in 384-byte chunks with a one-second timeout per chunk. That's why `lisp/minify.py` exists, and why the shim is written as tightly as it is.
 
-The shim is retired now. The script slot on the controller runs a flight recorder instead (`make logger` uploads it, `make log-pull` prints the ride). It keeps the session's peak values and the first fault, with the voltage, motor speed, duty cycle and current that explain it. It also counts traction-control engagements, which nothing on the controller reports today.
+On this board the dashboard reads firmware 7 directly (below), so the script slot runs a flight recorder instead of the shim (`make logger` uploads it, `make log-pull` prints the ride). It keeps the session's peak values and the first fault, with the voltage, motor speed, duty cycle and current that explain it. It also counts traction-control engagements, which nothing else on the controller reports.
 
-It runs for hours on a board someone rides, so "probably fine" wasn't an answer. The whole ride plays through the real interpreter at three lengths, and the heap is compared. It was identical after 500 ticks and after 25,000 (about eighty minutes), with every high-water branch taken. The soak also found `uptime` adding 0.2 per tick into a float, and reading 5000.18 s after exactly 5000. It's derived from the sample count now.
+It runs for hours on a board someone rides, so "probably fine" isn't an answer. The whole ride plays through the real interpreter at three lengths, and the heap is compared: it is identical after 500 ticks and after 25,000 (about eighty minutes), with every high-water branch taken. Adding 0.2 per tick into a float drifts, reading 5000.18 s after exactly 5000, so `uptime` is derived from the sample count.
 
 ## The display is a small computer you can log into
 
 Its firmware is closed, but the X is an ESP32, the Wi-Fi microcontroller found in a lot of hobby electronics. It runs MicroPython, a small Python for microcontrollers, with a USB-to-serial chip behind the micro USB port. Hold UP and DOWN at boot and the startup script enters WebREPL, an interactive Python prompt over Wi-Fi, before any user code runs.
 
-From there the filesystem is in front of you. Settings are a plain `/config.json`. That's how I found the display set up for 175 mm wheels on a 72-tooth to 16-tooth gear pair. The board runs 200 mm wheels on 84 to 20. It had been under-reading speed by 18% for as long as I'd owned it. `make davega-settings` fixed it.
+From there the filesystem is in front of you. Settings are a plain `/config.json`. A wrong one is easy to live with unnoticed. This display was set up for 175 mm wheels on a 72-tooth to 16-tooth gear pair; the board runs 200 mm wheels on 84 to 20, so speed read 18% low. `make davega-settings` writes the right values.
 
 It also means the screen is programmable. The startup script names its boot steps in order, and one of them runs a user-supplied `/start.py` *before* the stock app starts. A replacement dashboard is one file you can delete, and holding UP at boot stands it down. The version check lives in the stock app, not in the class that talks to the controller. So a dashboard I wrote reads firmware 7 directly, and the shim isn't needed at all.
 
@@ -242,7 +210,7 @@ There are ten themes, each with its own layout rather than its own palette:
 
 The default takes one idea from each. Every picture in this post is the real screen code run through a stand-in for the panel on my laptop, saved as the pixels it produced.
 
-The panel can't draw a curve. The driver for its controller chip (an ILI9341) offers three operations: fill a rectangle, set a pixel, and write a block of pixels. There's no line, circle or polygon. I expected cost to scale with pixels. Measured on the device:
+The panel can't draw a curve. The driver for its controller chip (an ILI9341) offers three operations: fill a rectangle, set a pixel, and write a block of pixels. There's no line, circle or polygon. And cost doesn't scale with pixels. Measured on the device:
 
 | Primitive | Measured |
 |---|---|
@@ -260,9 +228,9 @@ The way through is the third operation. `davega/gui/bands.py` draws the curve in
 
 The dial face, bezel and tick marks are drawn once, as furniture. The moving sweep is drawn the same way, into a band that covers only the dial.
 
-I tried the cleverer version first: repaint only the wedge between the old angle and the new. It's cheaper, and it's wrong. An arc drawn in three pieces lands on different pixels from the same arc drawn in one, because each piece rounds its own start angle to a pixel. A partial repaint that disagrees with a full repaint is worse than one that costs a few more milliseconds. So arcs repaint whole, and everything straight still repaints only its tip. Every transition between test frames, across the ten themes, now agrees exactly.
+The cleverer version, repainting only the wedge between the old angle and the new, is cheaper and wrong. An arc drawn in three pieces lands on different pixels from the same arc drawn in one, because each piece rounds its own start angle to a pixel. A partial repaint that disagrees with a full repaint is worse than one that costs a few more milliseconds. So arcs repaint whole, and everything straight still repaints only its tip. Every transition between test frames, across the ten themes, agrees exactly.
 
-Measured on the panel with five screens live, before the curved layouts landed, with telemetry arriving five times a second:
+Measured on the panel with five straight-line screens live, with telemetry arriving five times a second:
 
 | What is painted | Time |
 |---|---|
@@ -270,11 +238,11 @@ Measured on the panel with five screens live, before the curved layouts landed, 
 | One settled frame, digits through the character path | 82 ms |
 | One settled frame, digits through the panel's own 3-by-5 number routine | 23 to 29 ms |
 
-The panel's own number-drawing routine is native, and about three times cheaper than drawing digits as text. That change alone took a settled frame from 82 ms to 25 ms.
+The panel's own number-drawing routine is native, and about three times cheaper than drawing digits as text. Using it takes a settled frame from 82 ms to 25 ms.
 
-## The harness lied first
+## A stand-in panel that models the real one
 
-A 2.8-inch screen bolted to a deck is a bad place to iterate on a design. So before the first dashboard there was `davega/harness/display.py`. It's a stand-in for the panel that records every draw call, writes the result as a PNG using only Python's standard library, and models the panel's measured cost per call.
+A 2.8-inch screen bolted to a deck is a bad place to iterate on a design. So the dashboards are developed against `davega/harness/display.py`. It's a stand-in for the panel that records every draw call, writes the result as a PNG using only Python's standard library, and models the panel's measured cost per call.
 
 A screen is a function of three inputs: the display, the current telemetry frame and the board's configuration. There's no hidden state, so the same code runs on the device and in continuous integration. `make gui-test` runs every check with no hardware.
 
@@ -282,10 +250,10 @@ Four things it catches that looking at the screen can't:
 
 - **Anything drawn outside the 240-by-320 screen** fails the build, rather than being clipped where you might not notice.
 - **Reference images** for every frame in the test set: standstill, full throttle, hard regenerative braking, a thermal power cut, battery empty, battery full, a fault at speed. The frames are generated from the board's verified configuration, so extremes a ride rarely produces are covered on purpose. That's a battery of twelve cells in series and four in parallel (17 Ah), 80 A per motor, 30 A out of and 8 A back into the battery per side, 4.2-to-1 gearing and 200 mm wheels.
-- **Partial redraw against a full repaint**, across every transition between test frames. Partial redraw fails by leaving stale pixels, so the two paths must agree byte for byte. This caught the fault banner staying on screen after the controller recovered.
+- **Partial redraw against a full repaint**, across every transition between test frames. Partial redraw fails by leaving stale pixels, so the two paths must agree byte for byte. It catches a fault banner that stays on screen after the controller recovers.
 - **Fixed labels against live regions.** A label is drawn once, and a region repaints when its value changes. The panel's font paints its own background, so a label inside a region's box is erased the first time that value moves, and never comes back.
 
-That last test exists because the harness was flattering the design. Its `print` drew characters without their backgrounds, while the real font fills the whole character cell. So labels that punched holes through their own gauges looked perfect in every render. Modelling the panel honestly made four themes fail at once. A parity test also checks that every colour declared in `themes.py` appears in the rendered mockups. It immediately found five fault colours that existed only in code.
+That last test only works if the stand-in is honest. A `print` that draws characters without their backgrounds flatters the design, because the real font fills the whole character cell: labels that punch holes through their own gauges look perfect in every render. Modelling the font honestly fails four themes at once. A parity test also checks that every colour declared in `themes.py` appears in the rendered mockups, which catches colours, like five of the fault colours, that exist only in code.
 
 ## Running the same code in the display's own Python
 
@@ -296,27 +264,27 @@ All of that runs under desktop Python, which doesn't tell you whether the code w
 - the buttons, through their real 50 ms press-settling delay;
 - a controller that stops answering, and the recovery.
 
-It earned its keep on the first run. A colour on this panel is two bytes. MicroPython writes them in the processor's native order, low byte first. The panel expects the high byte first, and the block write streams the buffer to it unchanged. **Every curve would have reached the panel with its colours reversed.** Red drawing blue.
+The test matters most for byte order. A colour on this panel is two bytes. MicroPython writes them in the processor's native order, low byte first. The panel expects the high byte first, and the block write streams the buffer to it unchanged. **Without a swap, every curve reaches the panel with its colours reversed.** Red draws blue.
 
-It couldn't show up off the device, because the pure-Python stand-in writes the high byte first. The harness and the hardware disagreed, and only the hardware was right. The two bytes are now swapped on the way into the native drawing path, and the byte order is probed rather than assumed. The two paths render side by side and are compared byte for byte.
+That can't show up off the device, because the pure-Python stand-in writes the high byte first. The harness and the hardware disagree, and only the hardware is right. So the two bytes are swapped on the way into the native drawing path, and the byte order is probed rather than assumed. The two paths render side by side and are compared byte for byte.
 
 It also watches memory, because 98 kB free and a two-hour ride is a bad combination. It measures two windows of 400 frames back to back, since one window can't tell a leak from a warm-up. Only the drift between the two counts: this MicroPython is built for a 64-bit laptop, where every reference is twice as wide as on the board.
 
-That limit bit me twice on the board anyway:
+On the board, a band buffer claimed late fails in two ways:
 
-- **Switching theme killed the dashboard** and handed the screen to the stock app's "initializing". The error file on the display named the allocation: 19,200 bytes in the band painter, claimed fresh on every call, just when memory was at its worst.
-- **Then a cold boot failed the same way**, asking for 9,600 bytes at the first curve. The menu now remembers the rider's choice, and it had been left on a layout with a semicircular gauge.
+- **Switching theme kills the dashboard** and hands the screen to the stock app's "initializing". The error file on the display names the allocation: 19,200 bytes in the band painter, claimed fresh on every call, just when memory is at its worst.
+- **A cold boot fails the same way**, asking for 9,600 bytes at the first curve, when the menu's remembered choice is a layout with a semicircular gauge.
 
-The buffer is now claimed at boot, before any screen exists. The reserve routine takes the largest band it can get, falling back through 20, 12, 8 and 4 rows. A layout too heavy for what's left drops back to the default arrangement and writes that choice down, so the next boot doesn't fail the same way. Verified on the board from a clean start, every layout boots with about 31 kB to spare. A dead screen on a deck is worse than the wrong colours.
+So the buffer is claimed at boot, before any screen exists. The reserve routine takes the largest band it can get, falling back through 20, 12, 8 and 4 rows. A layout too heavy for what's left drops back to the default arrangement and writes that choice down, so the next boot doesn't fail the same way. Verified on the board from a clean start, every layout boots with about 31 kB to spare. A dead screen on a deck is worse than the wrong colours.
 
-## What the board does now
+## Reading firmware 7 directly
 
 Telemetry is live. A DAVEGA X running a dashboard I wrote reads a FOCBOX Unity on firmware 7.00 directly, with no version spoofing in the path. Two things the reference firmware couldn't have told me:
 
 - The serial port transmits on pin 17 and receives on pin 16, the reverse of what the reference code's names suggest.
 - A firmware-7 reply is 79 bytes, not the 70 the reference buffer allows.
 
-And MicroPython's serial read waits out the port's whole timeout when nothing has arrived. So asking whether anything is waiting before reading made a real difference:
+And MicroPython's serial read waits out the port's whole timeout when nothing has arrived. So asking whether anything is waiting before reading makes a real difference:
 
 | Serial polling | Per read | Full pass over both controllers |
 |---|---|---|
@@ -329,9 +297,40 @@ Charge and range use an internal-resistance model. The pack's resistance is the 
 
 Range is worked out by draining the modelled pack step by step, not by dividing remaining energy by today's consumption. At a measured 18.7 Wh per km from 45.8 V, that gives 15.2 km rather than 18.0. It's shorter, which is the uncomfortable direction and the right one.
 
-The dashboard ships pre-compiled. MicroPython compiles a `.py` file every time it imports it, and on this ESP32 that was most of the wait between switching on and seeing a number. It's 154 kB of source against 62 kB of compiled `.mpy` files. `start.py` stays plain source, because an escape hatch that depends on the build tools having run isn't one.
+The dashboard ships pre-compiled. MicroPython compiles a `.py` file every time it imports it, and on this ESP32 that is most of the wait between switching on and seeing a number. It's 154 kB of source against 62 kB of compiled `.mpy` files. `start.py` stays plain source, because an escape hatch that depends on the build tools having run isn't one.
 
 The board is tuned for grass at 80 A a side, with traction control on, and it has been ridden: speed, current, charge and range on the screen, both controllers read, at 40 km/h on grass. Hardware coverage is one FOCBOX Unity, one board and one display. The connection layer and the config workflow aren't Unity-specific, but nobody has proved that on other hardware yet. `vesc/profiles/` holds connection details only, deliberately not current limits or gearing. Copying a stranger's motor tuning is how packs and motors get damaged.
+
+## The controller reports accurately and points at the wrong thing
+
+[docs/findings.md](https://github.com/isaacrowntree/vesc-workbench/blob/master/docs/findings.md) is the document I wanted and couldn't find. Every entry has the same shape: the firmware does something reasonable, reports it correctly, and the report sends you somewhere else.
+
+| What you see | What is happening |
+|---|---|
+| Throttle dead after a script ran; a reboot does not fix it | Starting the serial port from a script (`uart-start`) permanently saves "no throttle input" to the controller's settings |
+| Remote-control settings go in and come back wrong, so you suspect the remote | The remote-control settings refuse to be written while the control type is set to "off" |
+| "did you forget to upload the code" | The obvious upload call (`lispWriteCode()`) does not actually store a script; the code-loader path (`CodeLoader.lispUploadFromPath`) does |
+| A config that looks corrupted | A read taken before the controller finished booting |
+
+The first one is the one to know before running any script. From `bldc/lispBM/lispif_vesc_extensions.c`, `ext_uart_start`:
+
+```c
+if (appconf->app_to_use == APP_UART ||
+        appconf->app_to_use == APP_PPM_UART ||
+        appconf->app_to_use == APP_ADC_UART) {
+    appconf->app_to_use = APP_NONE;
+    conf_general_store_app_configuration(appconf);   // written to FLASH
+    app_set_configuration(appconf);
+}
+```
+
+The setting `app_to_use` says which input drives the motor. Three of its modes include the serial port: "serial only" (3), "remote and serial" (4) and "analogue and serial" (5). In any of them, `uart-start` writes "none" to permanent storage, and the throttle is gone. It also explains config writes that "do not persist". They persist; the next `uart-start` overwrites them.
+
+`make upload-lisp` searches the script for `uart-start` and reads the setting before uploading. It changes "remote and serial" to "remote only" (4 to 1), and "analogue and serial" to "analogue only" (5 to 2). The firmware is going to clear the serial half either way. Verified on the board: set to "remote only", the decoder reads a live pulse of 1.4990 to 1.5020 ms. Set to "remote and serial", it reads nothing at all.
+
+There's a correction in there too. The esk8 forums say VESC traction control interferes with braking. `applications/app_ppm.c` says otherwise. Traction control lives entirely in the non-brake branch, `mc_interface_set_brake_current` is called before that branch is reached, and it disengages on any fault.
+
+What it does do is taper drive current smoothly to zero as the two wheels' speeds drift apart. It reaches zero at a configured difference (`tc_max_diff`), measured in electrical revolutions per minute, the motor speed as the controller counts it. This board has seven magnet pole pairs, a 4.2-to-1 gear ratio and 200 mm wheels. There, the default of 3,000 is about 3.8 km/h of difference between the wheels. That's tight enough that normal grass slip keeps triggering the taper. It's the "power surging" people describe, and probably where the folklore comes from. Doubling it to 6,000 (about 7.7 km/h) is what runs here, confirmed in motion.
 
 ## Trying it
 
@@ -357,7 +356,7 @@ make help                                    # everything else
 
 This writes motor controller settings and can switch motor output on and off. Keep the wheels off the ground for anything involving motor detection, app settings or `motors-off`, and check the throttle before riding.
 
-## What I'd tell myself at the start
+## What I'd tell someone starting this
 
 - **Read the dependency before probing it.** The VESC serial protocol is written down in the reference DAVEGA code (janpom/davega). An evening guessing at its function signatures was worth ten minutes of reading.
 - **Test in the interpreter that will run the code.** The two bugs that would have reached the deck, reversed colours and a 9,600-byte out-of-memory error, were invisible under desktop Python by design.

@@ -1,8 +1,8 @@
 ---
 layout: post
 title: "SessionHQ — a multi-tenant studio check-in platform, live at its first front desk"
-description: "SessionHQ, our multi-tenant check-in platform for dance studios, gyms and martial arts schools, is live at founding partner Havana on the Hastings: the studio's identity carried inside the sign-in token, and the browser bugs we hit on a kiosk tablet."
-excerpt: "Our multi-tenant check-in platform is live at Havana on the Hastings — the studio's identity enforced from the sign-in token, and the Android and Workers bugs that shaped it."
+description: "SessionHQ, our multi-tenant check-in platform for dance studios, gyms and martial arts schools, is live at founding partner Havana on the Hastings: the studio's identity carried inside the sign-in token, and the browser traps a kiosk tablet exposes."
+excerpt: "Our multi-tenant check-in platform is live at Havana on the Hastings — the studio's identity enforced from the sign-in token, and the Android and Workers traps it guards against."
 image: /images/blog/sessionhq-launch.jpg
 image_alt: Studio operator checking members in with the SessionHQ platform
 date: 2026-04-17
@@ -11,7 +11,7 @@ categories: [product]
 tags: [sessionhq, saas, nextjs, supabase, cloudflare, square, product-launch]
 ---
 
-Zack Design's **[SessionHQ](https://sessionhq.org)** is a check-in and payments platform for dance studios, gyms and martial arts schools, built for **many studios on one database** from the first migration. A member walks in, types a PIN, taps a wristband on the tablet or scans a QR code with their phone; one class is deducted from their pass, and the admin's live feed updates. Nine weeks after the first scaffold on 12 February, it is running the front desk at [Havana on the Hastings](https://www.havanahastingsdance.com.au/) in Port Macquarie.
+Zack Design's **[SessionHQ](https://sessionhq.org)** is a check-in and payments platform for dance studios, gyms and martial arts schools, built for **many studios on one database** from the first migration. A member walks in, types a PIN, taps a wristband on the tablet or scans a QR code with their phone; one class is deducted from their pass, and the admin's live feed updates. It runs the front desk at [Havana on the Hastings](https://www.havanahastingsdance.com.au/) in Port Macquarie.
 
 <div class="hero-cta-row" style="margin: 1.5rem 0;">
   <a href="https://sessionhq.org" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Visit SessionHQ</a>
@@ -23,8 +23,9 @@ This post covers:
 - how each studio's identity is carried inside the sign-in token, so that Postgres keeps studios apart without trusting application code;
 - the nightly job that renews passes and charges cards on file;
 - tap-to-check-in and card payments from a plain web page;
-- four bugs that only showed up on a real tablet at a real front desk;
-- what else is in from day one, why we built it, our founding partner, and what's next.
+- what else is in: rate limits, idempotency, GDPR tools;
+- four traps that only show up on a real tablet at a real front desk;
+- why we built it, our founding partner, and what's next.
 
 <!-- more -->
 
@@ -37,7 +38,7 @@ Small studios run on spreadsheets, paper sign-in sheets and a payments app that 
 - **Payments where the student is.** Square's Web Payments SDK turns the card details into a one-time token inside the browser; our API only ever sees that token (`source_id`) or a stored card reference (`square_card_id`), never the card number.
 - **Admins see the truth.** Tonight's attendance, revenue, unpaid check-ins and pass status reports.
 
-At launch it has unit tests and browser tests, the latter written with Playwright, which drives a real browser.
+It has unit tests and browser tests, the latter written with Playwright, which drives a real browser.
 
 ## Each studio's identity travels inside the sign-in token
 
@@ -65,26 +66,15 @@ The app deploys to Cloudflare Workers through OpenNext (the adapter that runs Ne
 
 Backups go to R2 (Cloudflare's file storage) and are pruned to 30 daily copies plus 12 monthly. The retention sweep calls `sweep_inactive_members`, which anonymises members with no check-ins in three years.
 
-Each job runs inside `runJob()`, which logs a one-line result and reports any failure to Sentry, the error-tracking service, tagged with `cron_job`. At launch that reporter was a hand-written POST to Sentry's old `/api/{id}/store/` endpoint. It was later found to send a placeholder stack frame (`filename: "cron"`) instead of the real stack trace, so a failure in the nightly money pipeline could not be traced to a line of code; it has since been replaced with `withSentry` from `@sentry/cloudflare`, wrapping only the `scheduled` entry point, because `@sentry/nextjs` already handles the request path.
+Each job runs inside `runJob()`, which logs a one-line result and reports any failure to Sentry, the error-tracking service, tagged with `cron_job`. The reporter is `withSentry` from `@sentry/cloudflare`, wrapping only the `scheduled` entry point, because `@sentry/nextjs` already handles the request path. A hand-written POST to Sentry's old `/api/{id}/store/` endpoint looks simpler, but it sends a placeholder stack frame (`filename: "cron"`) instead of the real stack trace, so a failure in the nightly money pipeline can't be traced to a line of code.
 
 ## Tap-to-check-in and card payments from a web page
 
 The kiosk is a web page, so reading a wristband uses Web NFC, the browser API for near-field communication tags. `src/lib/nfc.ts` is short: check that `"NDEFReader" in window`, call `ndef.scan({ signal })`, and hand the `serialNumber` from the `reading` event to the check-in flow. The tag's serial number is all the check-in flow matches on; nothing is ever written to the tag. Where `NDEFReader` does not exist, the reader is never started and PIN entry is the path.
 
-Square's per-studio access tokens are stored in Supabase Vault, the encrypted secrets store, by `store_square_tokens()`. The first version inserted straight into the `vault.secrets` table; the correct call is `vault.create_secret()`, and because Vault has no update function, rotating a token is a delete followed by a create.
+Square's per-studio access tokens are stored in Supabase Vault, the encrypted secrets store, by `store_square_tokens()`. Inserting straight into the `vault.secrets` table is the easy mistake; the correct call is `vault.create_secret()`, and because Vault has no update function, rotating a token is a delete followed by a create.
 
-## Four bugs from the front desk
-
-| What the user saw | What was actually happening | What fixed it |
-|---|---|---|
-| The check-in feed showed "NaN" for every member's age on the tablet, and correct ages on every laptop (13 February). | Supabase returns timestamps like `2026-02-13 05:52:06.136236+00`: a space instead of a `T`, six decimal places, and a short `+00` zone. Android Chrome's `Date` parser rejected the zone and then the six decimals. `postgres-date` was tried and broke the browser bundle because it is CommonJS-only. | `src/lib/time.ts` parses the string with one regular expression, trims the fraction to three digits, and builds the instant with `Date.UTC()`. `src/lib/time.test.ts` covers each variant. |
-| Signing in from the emailed link failed with `missing_code`. | The callback route expected a `code` parameter (the PKCE flow); the browser client was on the default implicit flow and put the tokens in the URL fragment instead. On Android, a second problem: the sign-in cookie was unreadable after a reload. | One line in `src/lib/supabase-browser.ts`, `{ auth: { flowType: 'pkce' } }`, then `httpOnly: false` set explicitly on the cookie. |
-| Saved cards were invisible on the profile page, and replacing a card failed after Square had already created the new one. | Square SDK v44 returns `expMonth` and `expYear` as `BigInt`, a number type `JSON.stringify` refuses to encode, so both the GET and the PUT handlers crashed while encoding a successful result. | The route converts those two fields to ordinary numbers before responding, and a regression test pins it. |
-| A new member was created and the welcome email never arrived; `email_log` had zero rows (launch day). | On Workers, a promise nobody waits for is cancelled the moment the response is sent. The call to Resend (the email service) and its log writes were started and left, so they never completed. | Every such send goes through a `queueEmail()` helper that wraps it in `ctx.waitUntil()`, which keeps the Worker alive until the promise settles. |
-
-The last one is the same primitive the Rollbar client on this blog leans on, and it is easy to forget from inside a Next.js route.
-
-## What else is in from day one
+## What else is in
 
 - **Rate limits** on the write endpoints, counted in memory per Worker instance:
 
@@ -98,6 +88,17 @@ The last one is the same primitive the Rollbar client on this blog leans on, and
 - **Personal data scrubbing** in Sentry's `beforeSend` hook: medical notes, PINs and payment tokens never leave the Worker.
 - **A design system of base components** in `src/components/ui/`, on Tailwind 4 with Next.js 16 and React 19. Not shadcn; we wanted to own it.
 - **Migrations**, applied in filename order, as the only schema definition.
+
+## Four traps a kiosk tablet exposes
+
+| What the user sees | What is actually happening | The fix |
+|---|---|---|
+| The check-in feed showed "NaN" for every member's age on the tablet, and correct ages on every laptop. | Supabase returns timestamps like `2026-02-13 05:52:06.136236+00`: a space instead of a `T`, six decimal places, and a short `+00` zone. Android Chrome's `Date` parser rejects the zone and then the six decimals. `postgres-date` doesn't help: it is CommonJS-only and breaks the browser bundle. | `src/lib/time.ts` parses the string with one regular expression, trims the fraction to three digits, and builds the instant with `Date.UTC()`. `src/lib/time.test.ts` covers each variant. |
+| Signing in from the emailed link fails with `missing_code`. | The callback route expects a `code` parameter (the PKCE flow); the browser client's default is the implicit flow, which puts the tokens in the URL fragment instead. On Android, a second problem: the sign-in cookie is unreadable after a reload. | One line in `src/lib/supabase-browser.ts`, `{ auth: { flowType: 'pkce' } }`, then `httpOnly: false` set explicitly on the cookie. |
+| Saved cards are invisible on the profile page, and replacing a card fails after Square has already created the new one. | Square SDK v44 returns `expMonth` and `expYear` as `BigInt`, a number type `JSON.stringify` refuses to encode, so both the GET and the PUT handlers crash while encoding a successful result. | The route converts those two fields to ordinary numbers before responding, and a regression test pins it. |
+| A new member is created and the welcome email never arrives; `email_log` has zero rows. | On Workers, a promise nobody waits for is cancelled the moment the response is sent. A call to Resend (the email service) and its log writes, started and left, never complete. | Every such send goes through a `queueEmail()` helper that wraps it in `ctx.waitUntil()`, which keeps the Worker alive until the promise settles. |
+
+The last one is the same primitive the Rollbar client on this blog leans on, and it is easy to forget from inside a Next.js route.
 
 ## Why we built it
 

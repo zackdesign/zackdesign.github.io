@@ -1,8 +1,8 @@
 ---
 layout: post
 title: "Sovereign — an autonomous IBKR fund that trades through bezant, with guardrails because it's real money"
-description: "One holding had grown to 41.6% of my Interactive Brokers account. Sovereign is the open-source portfolio manager I built to fix that on rules instead of instinct: nine single-purpose TypeScript agents on top of bezant, an executor that proves one fill before it sends a batch, hard caps in dollars, and the currency bug the risk register caught before the first live order. Apache/MIT."
-excerpt: "One holding had run to 41.6% of my Interactive Brokers account. Sovereign is what I built to trim it on rules: nine single-purpose TypeScript agents on top of bezant, an executor that proves one fill before it sends a batch, hard caps in dollars, and a risk register that found the account's value was being read in the wrong currency. Apache/MIT, self-host it against your own bezant."
+description: "Sovereign is an open-source portfolio manager for Interactive Brokers that holds a target mix and places the smallest trades that restore it, on written rules: nine single-purpose TypeScript agents on top of bezant, no language model in the loop, an executor that proves one fill before it sends a batch, hard caps in dollars, and order sizes worked out on the account's US-dollar value, not its Australian-dollar total. Apache/MIT."
+excerpt: "Sovereign keeps an Interactive Brokers account on a written target mix, and the same inputs always produce the same trades. Nine single-purpose TypeScript agents on top of bezant, no language model in the loop, an executor that proves one fill before it sends a batch, hard caps in dollars, and order sizes worked out on the account's US-dollar value, not its Australian-dollar total. Apache/MIT, self-host it against your own bezant."
 image: /images/blog/sovereign.jpg
 image_alt: A compass resting on a map — steering a portfolio by a set heading rather than by hand
 date: 2026-07-08
@@ -11,7 +11,7 @@ categories: [open-source]
 tags: [ibkr, trading, typescript, portfolio, quant, risk, backtesting, interactive-brokers, open-source, claude-code, bezant]
 ---
 
-Zack Design's **[Sovereign](https://github.com/isaacrowntree/sovereign-ibkr-fund)** is an open-source portfolio manager for Interactive Brokers (IBKR) accounts, built on [bezant](https://github.com/isaacrowntree/bezant). It exists because one holding had grown to **41.6% of my whole account**. Sovereign is nine TypeScript programs, each with one job. Together they hold a target mix of holdings, notice when the real mix has drifted, work out the smallest trades that bring it back, and place them through bezant. **The same inputs always produce the same trades**, and tests pin down the ways that can go wrong. **Dual-licensed Apache-2.0 or MIT.**
+Zack Design's **[Sovereign](https://github.com/isaacrowntree/sovereign-ibkr-fund)** is an open-source portfolio manager for Interactive Brokers (IBKR) accounts, built on [bezant](https://github.com/isaacrowntree/bezant). It is nine TypeScript programs, each with one job. Together they hold a target mix of holdings, notice when the real mix has drifted, work out the smallest trades that bring it back, and place them through bezant. **The same inputs always produce the same trades**, and tests pin down the ways that can go wrong. **Dual-licensed Apache-2.0 or MIT.**
 
 <div class="hero-cta-row" style="margin: 1.5rem 0;">
   <a href="https://github.com/isaacrowntree/sovereign-ibkr-fund" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
@@ -23,8 +23,9 @@ This post covers:
 - why it exists, and the nine agents, none of which calls a language model;
 - the executor's rule that one small probe order must fill before it trusts the connection with a batch, and why that probe is removed from the queue by object reference rather than by position;
 - the three caps in absolute dollars that sit outside the order-sizing maths;
-- the three bugs found by the pre-launch **risk register**, a written review of every way the executor could lose money: the account's value read in the wrong currency, a timeout that could place the same trade twice, and a tax-lot matcher that ignored share counts;
-- reconciling fills against IBKR's records, the features I tested and switched off, keeping your real portfolio out of git, and how to run it.
+- reconciling fills against IBKR's records, and keeping your real portfolio out of git;
+- three traps from the **risk register**, a written review of every way the executor could lose money: which currency the account's value is in, a timeout that could place the same trade twice, and matching sales by share rather than by record;
+- the features that fail their own tests and stay off, and how to run it.
 
 <!-- more -->
 
@@ -73,7 +74,7 @@ if (!validated && pending.length > 0) {
 }
 ```
 
-That comment is there because the first version used `slice(1)`, which drops whatever is first in the queue. The figure shows why that is the wrong thing to drop.
+`slice(1)` is the obvious way to defer the rest, and it is wrong: it drops whatever is first in the queue. The figure shows why.
 
 ![Two panels showing a queue of three sell orders where the cheapest, chosen as the probe, sits at position 2 not position 0: dropping the first element by position throws away the real first order and re-queues the probe for a second execution, while filtering the probe out by object identity leaves exactly the two other orders deferred.](/images/blog/sovereign-probe-by-identity.svg)
 
@@ -93,52 +94,9 @@ In front of that, `navSanityViolation` and `priceSanityViolations` refuse to siz
 
 Loss thresholds first reduce exposure and then stop trading altogether. `EXECUTION_ENABLED` is a kill switch, checked before every order. And all state lives in a SQLite file under `STATE_DIR`, outside the checkout, so a deploy cannot overwrite the ledger.
 
-## The NAV was in the wrong currency
-
-The pre-launch risk register found three bugs, described in this and the next two sections. All three were fixed in v0.1.0, and the register ships in `docs/execution-risk-register.md`. It is a review of the executor against the live account, done before unpausing it.
-
-Its first finding was a units error. The account is with Interactive Brokers Australia, in Australian dollars. The API's `/summary` endpoint reports `totalcashvalue` and `netliquidation` in that base currency. So the cash check compared US-dollar purchase costs with Australian-dollar cash. And the strategist sized US shares as a fraction of a NAV stated in Australian dollars.
-
-I expected `/summary` to be the account's cash. The live `/ledger` endpoint showed a separate balance for each currency, which IBKR does not convert. US-dollar cash was $0, US-dollar settled cash was $0, and most of the NAV was in US stock. A cash account cannot borrow US dollars, so US purchases have to be funded by the US sales that run first. The sells-before-buys ordering already guarantees that.
-
-The fix is `gateway.getUsdBalances()`. It reads `/ledger` and returns US-dollar cash and US-dollar NAV, skipping the `BASE` row (IBKR's total in the base currency, not a real currency). That last part matters: with `BASE` included, the NAV came out roughly doubled.
-
-I re-ran the strategist on the corrected numbers, checked against the live account (US-dollar cash $0.00, US-dollar NAV $29,155.64). The old quantities were oversized by the exchange rate:
-
-| Order | Sized on the mixed-currency NAV | Sized on the US-dollar NAV |
-|---|---|---|
-| AVGO | 9 shares | 6 shares |
-| TLT | 39 shares | 27 shares |
-
-The weights now sum to about 100%. The concentrated holding's true weight was 41.6%, not the 29% the mixed-currency maths had reported.
-
-## A timeout is not a cancel
-
-Second finding. When the wait for a fill confirmation timed out, the executor dropped the order rather than requeue it. The stated assumption was that the strategist would rebuild the queue from live positions. But the strategist reads positions only; it knows nothing about orders still open at the broker. If the order was still working at IBKR, the drift persisted, the strategist generated the same order again, and the executor submitted it a second time.
-
-The fix was one route away. bezant exposes `DELETE /accounts/{id}/orders/{orderId}`, and it just was not wired up. `gateway.cancelOrder()` now runs after a confirmation timeout, a stream error or a timed-out partial fill, before the run halts.
-
-A review in September went further, because a cancel is only a request. Every cancel is now written to state and checked against the live orders at the start of the next run. Every placement also carries its own order reference. If IBKR never answers a placement, the executor looks the order up by that reference instead of guessing, and never places it again.
-
-## Matching sales by record is not matching them by share
-
-Third finding. The original tax-lot matcher paired each sale with one purchase record and ignored quantities. A sale that spanned two purchase lots priced the whole quantity off one lot. That could flip the sign of the realised profit or loss.
-
-The sign matters because only a sale at a loss opens a wash-sale window: a rule that disallows a tax loss if the same stock is bought back within a set number of days. A loss wrongly reported as a gain let the strategist buy the stock back inside 31 days. And a sale smaller than its lot marked the whole lot used, so the next sale of that stock found no cost basis at all.
-
-`matchSellFifo` in `src/tax/fifo.ts` now replays the history and consumes the sale oldest lot first. It returns a weighted cost basis and a `longTermQty`: the shares held over a year, which qualify for the Australian capital-gains discount. Each trade record gets a `matchedLots[]` array. Since September it is a thin view over one lot engine (`src/tax/lots.ts`), the same one that builds the Australian tax report in Australian dollars. Unit tests cover it, including the multi-lot sign flip.
-
 ## IBKR's execution records win
 
 Fills reach the ledger by two paths. The executor records what the stream confirmed, and `src/execution/reconcile.ts` backfills from IBKR's execution history. The reconciler records each execution id once, however many times it sees it, so a fill that arrives by both paths is recorded once. If the stream said an order did not fill and IBKR's executions say it did, the executions win. The ledger is corrected with a logged `RECONCILED` line.
-
-## Tested, then switched off
-
-Some features did not survive their own tests.
-
-- **The regime overlay is retired.** It cut exposure when the market looked like a bear. A fair test needs bear markets the account's history does not contain, and every sell it triggers is a short-term taxable sale. It stays off (`ENABLE_REGIME=false`), and the Hedger agent that relied on it was retired with it.
-- **Tolerance bands lost.** Bands rebalance each holding when it leaves its own range, instead of on one drift threshold. I wrote the decision rule down and committed it before computing any result. From January 2022 to September 2026, after tax, bands returned 190.3% against 202.6% for the existing gate, with more than three times the trades. They stay off (`DRIFT_GATE=legacy`). The study is in `docs/backtesting.md`.
-- **Tax-loss harvesting is off.** It is US logic, and even when on it only reports candidates. The US-style 31-day re-buy block stays on as the cautious default.
 
 ## Your real portfolio stays out of git
 
@@ -149,6 +107,49 @@ The public repo ships `src/portfolios/sample.ts`, a template of eight exchange-t
 | Target weight | 20% | 10% | 10% | 10% | 15% | 10% | 15% | 10% |
 
 Weights must sum to 100 and `validateTargets()` enforces it. A real allocation goes in `src/portfolios/local.ts`, which is gitignored and takes precedence automatically. Caps, thresholds, cadences and the choice of optimiser are all environment variables. Nothing about a real position is in source.
+
+## Which currency the NAV is in
+
+The risk register ships in `docs/execution-risk-register.md`. It is a review of the executor against the live account, and its three findings are this section and the next two.
+
+The first is a units trap. The account is with Interactive Brokers Australia, in Australian dollars. The API's `/summary` endpoint reports `totalcashvalue` and `netliquidation` in that base currency. Read naively, the cash check compares US-dollar purchase costs with Australian-dollar cash, and the strategist sizes US shares as a fraction of a NAV stated in Australian dollars.
+
+`/summary` looks like the account's cash, but it isn't. The live `/ledger` endpoint shows a separate balance for each currency, which IBKR does not convert. On my account, US-dollar cash was $0, US-dollar settled cash was $0, and most of the NAV was in US stock. A cash account cannot borrow US dollars, so US purchases have to be funded by the US sales that run first. The sells-before-buys ordering guarantees that.
+
+So the executor uses `gateway.getUsdBalances()`. It reads `/ledger` and returns US-dollar cash and US-dollar NAV, skipping the `BASE` row (IBKR's total in the base currency, not a real currency). That last part matters: with `BASE` included, the NAV comes out roughly doubled.
+
+Checked against the live account (US-dollar cash $0.00, US-dollar NAV $29,155.64), quantities sized on the mixed-currency NAV are oversized by the exchange rate:
+
+| Order | Sized on the mixed-currency NAV | Sized on the US-dollar NAV |
+|---|---|---|
+| AVGO | 9 shares | 6 shares |
+| TLT | 39 shares | 27 shares |
+
+On the US-dollar NAV the weights sum to about 100%. The concentrated holding's true weight is 41.6%, not the 29% the mixed-currency maths reports.
+
+## A timeout is not a cancel
+
+Second finding. When the wait for a fill confirmation times out, dropping the order looks safe, on the assumption that the strategist rebuilds the queue from live positions. But the strategist reads positions only; it knows nothing about orders still open at the broker. If the order is still working at IBKR, the drift persists, the strategist generates the same order again, and the executor submits it a second time.
+
+So `gateway.cancelOrder()`, through bezant's `DELETE /accounts/{id}/orders/{orderId}`, runs after a confirmation timeout, a stream error or a timed-out partial fill, before the run halts.
+
+A cancel is only a request, though. Every cancel is written to state and checked against the live orders at the start of the next run. Every placement also carries its own order reference. If IBKR never answers a placement, the executor looks the order up by that reference instead of guessing, and never places it again.
+
+## Matching sales by record is not matching them by share
+
+Third finding. A tax-lot matcher that pairs each sale with one purchase record and ignores quantities gets multi-lot sales wrong. A sale that spans two purchase lots prices the whole quantity off one lot, and that can flip the sign of the realised profit or loss.
+
+The sign matters because only a sale at a loss opens a wash-sale window: a rule that disallows a tax loss if the same stock is bought back within a set number of days. A loss wrongly reported as a gain lets the strategist buy the stock back inside 31 days. And a sale smaller than its lot marks the whole lot used, so the next sale of that stock finds no cost basis at all.
+
+`matchSellFifo` in `src/tax/fifo.ts` replays the history and consumes the sale oldest lot first. It returns a weighted cost basis and a `longTermQty`: the shares held over a year, which qualify for the Australian capital-gains discount. Each trade record gets a `matchedLots[]` array. It is a thin view over one lot engine (`src/tax/lots.ts`), the same one that builds the Australian tax report in Australian dollars. Unit tests cover it, including the multi-lot sign flip.
+
+## Features that stay off
+
+Some features fail their own tests.
+
+- **The regime overlay is off.** It cut exposure when the market looked like a bear. A fair test needs bear markets the account's history does not contain, and every sell it triggers is a short-term taxable sale. It stays off (`ENABLE_REGIME=false`).
+- **Tolerance bands lose.** Bands rebalance each holding when it leaves its own range, instead of on one drift threshold. The decision rule was written down and committed before any result was computed. From January 2022 to September 2026, after tax, bands return 190.3% against 202.6% for the single drift gate, with more than three times the trades. They stay off (`DRIFT_GATE=legacy`). The study is in `docs/backtesting.md`.
+- **Tax-loss harvesting is off.** It is US logic, and even when on it only reports candidates. The US-style 31-day re-buy block stays on as the cautious default.
 
 ## Running it
 
@@ -174,6 +175,6 @@ The backtest engine runs on a Yahoo Finance daily price dataset that is also git
 - **Requires a running [bezant](https://github.com/isaacrowntree/bezant) gateway**, on `http://localhost:8080` by default.
 - **Not affiliated with Interactive Brokers.** This is not financial advice. It places real trades: **start on a paper account**, and read every guardrail before setting `TRADING_MODE=live`.
 
-The lesson from the register is that the dangerous bugs were not in the optimiser. They were units, identity and ordering. Australian dollars where US dollars were assumed, a queue position where an object reference was needed, a record where a share count was needed. Each was caught by reading the live account's actual responses against what the code assumed, and each now has a test.
+The lesson from the register is that the dangerous bugs are not in the optimiser. They are units, identity and ordering: Australian dollars where US dollars are assumed, a queue position where an object reference is needed, a record where a share count is needed. Each shows up by reading the live account's actual responses against what the code assumes, and each has a test.
 
 If bezant made IBKR programmable, Sovereign is the part that makes a portfolio follow a written policy, with brakes that are independent of the policy. Contributions welcome, especially on the optimisers and the risk engine.

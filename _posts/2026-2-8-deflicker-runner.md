@@ -1,8 +1,8 @@
 ---
 layout: post
 title: "deflicker-runner — killing LED PWM flicker in 4K video, in 400MB of RAM"
-description: "A streaming temporal-median deflicker for 4K footage shot under LED lights — five 540p frames in a deque instead of ~18 GB of decoded video, and a 96–211× upscale speedup that made the whole thing practical."
-excerpt: "A streaming temporal-median deflicker for 4K footage shot under LED lights — five 540p frames in a deque instead of ~18 GB of decoded video, and a 96–211× upscale speedup that made the whole thing practical."
+description: "A streaming temporal-median deflicker for 4K footage shot under LED lights — five 540p frames in a deque instead of ~18 GB of decoded video, and an upscale with cv2.resize that is 96–211× faster than SciPy's zoom."
+excerpt: "A streaming temporal-median deflicker for 4K footage shot under LED lights — five 540p frames in a deque instead of ~18 GB of decoded video, and an upscale with cv2.resize that is 96–211× faster than SciPy's zoom."
 image: /images/blog/deflicker-runner.jpg
 image_alt: Close-up of an optical camera lens reflecting light
 date: 2026-02-08
@@ -11,7 +11,7 @@ categories: [open-source]
 tags: [video, ffmpeg, python, deflicker, rolling-shutter, led-flicker, open-source]
 ---
 
-Zack Design's **[deflicker-runner](https://github.com/isaacrowntree/deflicker-runner)** is a Python pipeline that removes the flicker a camera records under overhead LED panels. A rolling-shutter camera, which reads its sensor one row at a time, catches the LEDs switching on and off as a pulse in brightness: only about 2%, but at about 20 beats per second, which the eye sees clearly. The naive fix needs the whole 4K clip decoded, about **18 GB** of memory. The streaming version keeps **five small greyscale frames** in a queue and runs on a full-length clip in **a few hundred megabytes**. **MIT licensed.**
+Zack Design's **[deflicker-runner](https://github.com/isaacrowntree/deflicker-runner)** is a Python pipeline that removes the flicker a camera records under overhead LED panels. A rolling-shutter camera, which reads its sensor one row at a time, catches the LEDs switching on and off as a pulse in brightness: only about 2%, but at about 20 beats per second, which the eye sees clearly. The naive fix needs the whole 4K clip decoded, about **18 GB** of memory. This tool streams instead: it keeps **five small greyscale frames** in a queue and runs on a full-length clip in **a few hundred megabytes**. **MIT licensed.**
 
 <div class="hero-cta-row" style="margin: 1.5rem 0;">
   <a href="https://github.com/isaacrowntree/deflicker-runner" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
@@ -21,18 +21,16 @@ This post covers:
 
 - why it exists, and the arithmetic that turns a 100 Hz light into a 19.88 Hz flicker;
 - the median-then-ratio loop at the centre of the tool;
-- the two-decoder design that lets it stream, and the resize call that was the bottleneck until `scipy.ndimage.zoom` was swapped for `cv2.resize`;
+- the two-decoder design that lets it stream, and why the upscale uses `cv2.resize`, not `scipy.ndimage.zoom`;
 - why filament bulbs need a separate full-resolution path;
 - the measured reduction on two festival clips;
-- the modes that did not earn their place, and how to run it yourself.
+- the modes that don't earn their place, and how to run it yourself.
 
 <!-- more -->
 
 ## Why it exists
 
-The footage was from the Port Macquarie Latin Festival 2026: 4K at 59.94 frames per second, indoors, under overhead LED panels. The walls and ceiling pulsed, and filament bulbs at the top of the frame flickered on their own. The pulse is only about 2% of the frame's brightness, but at about 20 beats per second the eye sees it clearly.
-
-The textbook fix is simple: for every pixel, take the median of its value over time. The catch is memory. Doing that over a whole 4K clip (3840 by 2160 pixels) means holding it all decoded, about 18 GB. This tool gets the same result while holding five small greyscale frames, about 2.6 MB of measurement data.
+The footage was from the Port Macquarie Latin Festival 2026: 4K at 59.94 frames per second, under overhead LED panels, with the walls and ceiling pulsing and filament bulbs at the top of the frame flickering on their own. The textbook fix, the median of each pixel's value over time, means holding the whole clip (3840 by 2160 pixels) decoded, about 18 GB. This tool gets the same result while holding five small greyscale frames, about 2.6 MB of measurement data.
 
 ## Why a 100 Hz light shows up as a 20 Hz flicker on video
 
@@ -83,9 +81,9 @@ For each frame, the small copy joins the queue. The full-resolution frame is rea
 
 The other modes are not streamed. The per-row ones (`running-mean`, `fft-notch`, `bcc`, `physical-model`, `global-row`, `hybrid`) keep only one average per row per frame, which is cheap. `pixel-smooth` loads every frame as 8-bit greyscale, shrinking the measurement size below 540p if needed to stay under about 4 GB.
 
-## The upscale was the bottleneck
+## The upscale is the bottleneck
 
-The median over five frames runs at about 41 frames per second and was never the problem. Enlarging the 540p correction map to 4K every frame was. With `scipy.ndimage.zoom` it took 83 ms, or 12 frames per second, slower than every other stage.
+The median over five frames runs at about 41 frames per second and isn't the problem. Enlarging the 540p correction map to 4K every frame is. With `scipy.ndimage.zoom` it takes 83 ms, or 12 frames per second, slower than every other stage.
 
 | Method | Time per frame | Equivalent frames per second |
 |---|---|---|
@@ -109,7 +107,7 @@ A filament two pixels wide at 4K doesn't exist at 540p, so the whole-frame path 
 2. **Follow each bulb.** Its position is tracked frame by frame and smoothed, so a moving camera doesn't lose it.
 3. **Correct it.** Each frame's brightness at the bulb is compared with the bulb's median over the clip. The difference is added back through a soft round patch (a Gaussian, 8 pixels wide by default), so the edge doesn't show.
 
-The memory story is in the repo's performance notes. The first version stored a correction for the whole scanned area: 301 frames by 720 rows by 3,840 columns by 4 bytes is 3.2 GB, almost all zeros. Storing a box per bulb cut that to about 50 MB with identical output, a 64 times reduction. The tracked version stores even less, one number per bulb per frame. The full-resolution scan of the top rows is still held in memory for the whole range, so spot-replace is meant for a few seconds at a time with `--start` and `--duration`.
+The memory sums are in the repo's performance notes. Storing a correction for the whole scanned area doesn't work: 301 frames by 720 rows by 3,840 columns by 4 bytes is 3.2 GB, almost all zeros. A box per bulb cuts that to about 50 MB with identical output, a 64 times reduction. Tracking stores even less, one number per bulb per frame. The full-resolution scan of the top rows is still held in memory for the whole range, so spot-replace is meant for a few seconds at a time with `--start` and `--duration`.
 
 `auto` runs the spot detector on the first three seconds. It picks `spot-replace` if it finds a bulb, otherwise `temporal-median`.
 
@@ -124,9 +122,9 @@ Whole-frame flicker, clip C1608, `temporal-median --radius=2`:
 | Ceiling | 57% | 58% | 85% |
 | Wall | 66% | 58% | 76% |
 
-Spot flicker, clip C1595, `spot-replace`: both filament bulbs, at 4K coordinates (24, 1406) and (8, 1760) in the top crop, were detected and corrected with the fixed thresholds.
+Spot flicker, clip C1595, `spot-replace`: both filament bulbs, at 4K coordinates (24, 1406) and (8, 1760) in the top crop, are detected and corrected with the fixed thresholds.
 
-## What did not earn its place
+## What doesn't earn its place
 
 Every mode is defined in `presets.yml`, and command-line flags override its defaults. `all` runs every mode on the same clip and prints a comparison table.
 
@@ -154,10 +152,10 @@ python3 deflicker.py all input.MP4 compare/                     # every mode, si
 
 Run `python3 deflicker.py` with no arguments for every option. A `SKILL.md` lets Claude Code run the sequence itself: diagnose the clip, pick an approach, process it, and verify the result.
 
-## What was learned
+## What it comes down to
 
-The memory problem was never the median. It was holding decoded 4K in memory, and the answer was to decode twice at two resolutions and keep a window of five. The speed problem was one library call.
+The memory problem isn't the median. It's holding decoded 4K in memory, and the answer is to decode twice at two resolutions and keep a window of five. The speed problem is one library call.
 
-On the headline number: the streaming code's own docstring estimates about 200 MB, against about 18 GB for the batch version, and the repo description says about 400 MB. I haven't measured the peak on a full-length clip, so read the title's number as an order of magnitude.
+On the headline number: the streaming code's own docstring estimates about 200 MB, against about 18 GB for decoding the whole clip, and the repo description says about 400 MB. I haven't measured the peak on a full-length clip, so read the title's number as an order of magnitude.
 
 Two ideas are sketched in `docs/performance.md` but not built. One is a GPU median using CuPy (NumPy's GPU counterpart), measured at 89 to 433 times faster but not needed at a radius of two. The other decodes, processes and encodes entirely on the GPU, which would remove two memory copies per frame. The repo also carries `motion_blur_flow.py`, a side experiment that uses the same temporal median to leave motion trails on in-focus moving subjects. Source on [GitHub](https://github.com/isaacrowntree/deflicker-runner).

@@ -21,7 +21,7 @@ This post covers:
 
 - the idea: a sweep for visibility, and a brake light driven by the board's own deceleration;
 - the parts and why each is there, including the two cheap components that stop the Arduino rebooting itself;
-- the honest state of brake detection: it works in principle, and comparing one raw sensor reading against a threshold is not good enough on a real road;
+- why one threshold doesn't detect braking: comparing one raw sensor reading against it is not good enough on a real road;
 - what's not done yet, and why publish it anyway.
 
 <!-- more -->
@@ -45,9 +45,9 @@ The capacitor and resistor are the two parts people skip. When the strip first l
 
 ![A wiring sketch: the USB power bank feeds a 5 volt supply and ground to both the Arduino and the LED strip; a 1000 microfarad capacitor bridges supply and ground next to the strip; the Arduino's data wire passes through a 220 ohm resistor before reaching the strip's first LED.](/images/blog/boosted-board-wiring.svg)
 
-## What I expected and what the board did
+## Why one threshold doesn't detect braking
 
-I expected a single threshold on deceleration to separate braking from everything else. It does not. A hard push-off registers as "braking" unless the sensitivity is tuned carefully, and vibration from the road surface puts enough noise on the reading that comparing a single sample against the threshold fires when it should not. The mechanism is sound; the signal processing is not. The next iteration needs to smooth the reading first, with a low-pass filter or a short rolling average, before comparing it to the threshold. A better threshold on its own will not fix it.
+A single threshold on deceleration looks like it should separate braking from everything else. It does not. A hard push-off registers as "braking" unless the sensitivity is tuned carefully, and vibration from the road surface puts enough noise on the reading that comparing a single sample against the threshold fires when it should not. The mechanism is sound; the signal processing is not. The fix is to smooth the reading first, with a low-pass filter or a short rolling average, before comparing it to the threshold. A better threshold on its own will not fix it.
 
 The sweep and underglow work as designed.
 

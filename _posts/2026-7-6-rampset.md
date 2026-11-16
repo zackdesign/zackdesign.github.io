@@ -154,7 +154,7 @@ Corrections sync as well. Fix a rep count in History on one phone, and the other
 
 Anyone can open Rampset and start. There's no password: your account is a **passkey**, the Face ID or fingerprint login your phone already keeps in sync across your devices. Add a recovery email and a lost phone is a six-digit code away from getting back in. Recovering signs the old phone out. Settings lists your passkeys and signed-in devices.
 
-All of it lives in one more Durable Object. Accounts, passkeys, sessions and codes sit in its SQLite, with no auth service or user database behind it. That's [durable-auth](/durable-auth/), the open-source library this part of Rampset became.
+All of it lives in one more Durable Object. Accounts, passkeys, sessions and codes sit in its SQLite, with no auth service or user database behind it. That's [durable-auth](/durable-auth/), the open-source library this part of Rampset is built on.
 
 - Codes and session tokens are stored only as hashes, and every challenge works once, for one purpose.
 - Sign-in and email routes are rate limited per client, and sync and backup per account.
@@ -174,7 +174,7 @@ Under that, the account Durable Object runs against real workerd SQLite. Unit te
 
 ## Run your own
 
-The repo now uses Bun as its package manager:
+The repo uses Bun as its package manager:
 
 ```bash
 git clone https://github.com/isaacrowntree/rampset

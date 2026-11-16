@@ -23,17 +23,15 @@ This post covers:
 - a filter that keeps only the 200 to 4,000 Hz range, so the vocals dominate and the crowd does not;
 - a sliding comparison of 5-second chunks against the whole original, done with the fast Fourier transform and normalised by local loudness;
 - grouping the matches into sections wherever the offset stays constant;
-- the two-and-a-half-second boundary uncertainty that a 5-second window buys you, and the two manual overrides it needed;
-- why the first version's joins were slightly wrong (an MP3 can only be seeked to the nearest compressed frame), and the one-input FFmpeg filter graph, using the sample-accurate `atrim` filter, that fixed them;
+- why cut points need a human ear: the two-and-a-half-second boundary uncertainty that a 5-second window buys you, and the two manual overrides it needs;
+- why seeking the MP3 per piece puts the joins slightly wrong (it lands on the nearest compressed frame), and the one-input FFmpeg filter graph, with the sample-accurate `atrim` filter, that cuts all five from one decode;
 - how to run it on your own song.
 
 <!-- more -->
 
 ## Why it exists
 
-The studio recording is the one on Spotify. The live recording has the arrangement the band actually plays: the pre-intro skipped, the breakdown compressed, a different ending. It also has crowd noise, the venue's speakers, and a phone microphone's idea of bass.
-
-Dancers at [Havana on the Hastings](https://www.havanahastingsdance.com.au/) rehearse to the studio version and perform to the band's. A choreography that works to one doesn't line up with the other. The recut is the live structure with clean audio to cue on.
+Dancers at [Havana on the Hastings](https://www.havanahastingsdance.com.au/) rehearse to the studio recording, the one on Spotify, and perform to the band's live arrangement: the pre-intro skipped, the breakdown compressed, a different ending. A choreography that works to one doesn't line up with the other. The phone recording is no good to rehearse with: crowd noise, the venue's speakers, and a phone microphone's idea of bass. The recut is the live structure with clean audio to cue on.
 
 ## Compare only the vocal range
 
@@ -94,11 +92,11 @@ The map reads like a cut list. The band skipped the pre-intro, dropped a repeate
 
 One thing the recut does differently from the map: it keeps the studio intro. If the first matched section starts more than a second into the original, `build_recut` puts everything before it at the front. Here that is the 12-second pre-intro.
 
-## The cut points were off by up to two and a half seconds
+## Why cut points need a human ear
 
-A 5-second window locates a section, not a downbeat. Each boundary can be wrong by up to half the window either way, and the first output made that audible at the first cut.
+A 5-second window locates a section, not a downbeat. Each boundary can be wrong by up to two and a half seconds, half the window, either way. On this song that is audible at the first cut.
 
-I fixed this song by hand. Listening, and using the loudness profile to find a natural phrase boundary, gave two overrides:
+This song is fixed by hand. Listening, and using the loudness profile to find a natural phrase boundary, gives two overrides:
 
 ```python
 OVERRIDES = {
@@ -107,7 +105,7 @@ OVERRIDES = {
 }
 ```
 
-They're in `analyze.py`, applied after the analysis and printed as they're used. I didn't solve the problem generally. A second pass with a shorter window around each boundary would, or beat tracking.
+They're in `analyze.py`, applied after the analysis and printed as they're used. They don't solve the problem generally. A second pass with a shorter window around each boundary would, or beat tracking.
 
 ## Cutting all five pieces from one decoded file
 
@@ -139,8 +137,8 @@ python3 analyze.py
 
 It prints the segment map and the skipped sections, then writes the recut to `output/`. The file names and the "Ya Te Olvide" labels are hard-coded in `analyze.py`. Any song works, but the output keeps that name.
 
-## What was learned
+## What the approach shows
 
 Keeping only the vocal range and normalising by local loudness was enough to match a phone recording to a studio master through crowd noise. The Fourier transform does the heavy lifting, and there are no learned components.
 
-Window size trades reliable detection against precise boundaries, and at 5 seconds the boundaries need a human ear. Seeking an MP3 once per segment isn't sample-accurate; trimming one decoded stream is. The repo is two commits and one file. Making it general means lifting the constants, the file names and the overrides into arguments. Source on [GitHub](https://github.com/isaacrowntree/audio-analysis-and-recut).
+Window size trades reliable detection against precise boundaries, and at 5 seconds the boundaries need a human ear. Seeking an MP3 once per segment isn't sample-accurate; trimming one decoded stream is. The repo is one file. Making it general means lifting the constants, the file names and the overrides into arguments. Source on [GitHub](https://github.com/isaacrowntree/audio-analysis-and-recut).

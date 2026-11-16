@@ -1,8 +1,8 @@
 ---
 layout: post
 title: "Stamp Scanner — iPhone + Mac + SAM 3 for cataloguing stamp collections"
-description: "A two-device pipeline for philately: the iPhone is a macro scanner gated on frame sharpness, the Mac runs SAM 3 on Metal to cut every stamp off a page, perceptual-hash dedup, and a local Qwen3-VL for identification. SAM 2.1 took 59–69 s per page and found two stamps; SAM 3 takes 3–29 s and finds all of them."
-excerpt: "The first pipeline ran SAM 2.1 and took 69 seconds to find two stamps on a page. The one that shipped runs SAM 3 with a text prompt, finds 27 in 18 seconds, deduplicates with a 64-bit pHash at Hamming distance 6, and writes straight into a SQLite file the Mac app watches. The VLM orientation pass was the dead end."
+description: "Photograph a stamp album page with an iPhone and a Mac cuts out every stamp with SAM 3, removes duplicates, identifies each with a local Qwen3-VL and matches it to a Stanley Gibbons number. No image leaves the Mac. SAM 3 finds every stamp on a page in 3–29 s; SAM 2.1 takes about a minute and finds two."
+excerpt: "Photograph an album page and the Mac cuts out every stamp (27 of 27 in 18 seconds with SAM 3, where SAM 2.1 finds two in about a minute), keeps the better of any duplicate, identifies each with a local vision model and matches it to a Stanley Gibbons number. Asking the model which way up a stamp is turns out to be the dead end."
 image: /images/blog/stamp-scanner.jpg
 image_alt: Close-up of a vintage postage stamp collection through a magnifying glass
 date: 2026-04-16
@@ -11,7 +11,7 @@ categories: [open-source, ai]
 tags: [swift, python, ios, mac, sam, vlm, philately, local-ai, open-source]
 ---
 
-Zack Design's **[stamp-scanner](https://github.com/isaacrowntree/stamp-scanner)** is a two-device workflow for cataloguing stamp collections. The iPhone is a close-up scanner that fires only when the frame is **still and sharp**. The Mac uses **SAM 3**, Meta's Segment Anything Model, to cut every stamp off a page. It removes duplicates, straightens and white-balances each crop, and hands identification to a **local vision-language model**. Everything lands in **one SQLite file** that the Mac app watches, and no image leaves the Mac. **MIT licensed.**
+Zack Design's **[stamp-scanner](https://github.com/isaacrowntree/stamp-scanner)** is a two-device workflow for cataloguing stamp collections. The iPhone is a close-up scanner that fires only when the frame is **still and sharp**. The Mac uses **SAM 3**, Meta's Segment Anything Model, to cut every stamp off a page. It removes duplicates, straightens and white-balances each crop, has a **local vision-language model** identify it, and **matches it to its Stanley Gibbons catalogue number**. Everything lands in **one SQLite file** that the Mac app watches, and no image leaves the Mac. **MIT licensed.**
 
 <div class="hero-cta-row" style="margin: 1.5rem 0;">
   <a href="https://github.com/isaacrowntree/stamp-scanner" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
@@ -25,7 +25,7 @@ This post covers:
 - the SAM 3 text prompt, and the mask filters that make it usable;
 - duplicate detection that keeps the better copy rather than the first one, and white balance that samples the stamp's own border;
 - one SQLite file with two writers;
-- what the vision model is and is not good for: the Ollama settings that return nothing, and the orientation model abandoned in favour of two buttons;
+- what the vision model is and is not good for: the Ollama settings that return nothing, and why orientation is two buttons rather than a model;
 - matching stamps to Stanley Gibbons catalogue numbers;
 - how to run it, and the tests.
 
@@ -33,9 +33,9 @@ This post covers:
 
 ## Why it exists
 
-A stamp collection is hundreds of small rectangles on album pages, and typing each one into a spreadsheet doesn't scale. Stamp-scanner photographs whole pages, cuts out every stamp, and fills in what it can.
+A stamp collection is hundreds of small rectangles on album pages, and typing each one into a spreadsheet doesn't scale. Stamp-scanner photographs whole pages, cuts out every stamp, and fills in what it can. It stays local because a collection is personal; the only outbound calls are catalogue lookups.
 
-Each device does the half it is good at. The iPhone's close-up camera is fast and sharp on stamp-sized subjects: the average crop in my library is 377 by 509 pixels. The Mac has the GPU SAM 3 wants, the memory the vision model wants, and the screen. It stays local because a collection is personal. The only outbound calls are catalogue lookups.
+Each device does the half it is good at. The iPhone's close-up camera is fast and sharp on stamp-sized subjects: the average crop in my library is 377 by 509 pixels. The Mac has the GPU SAM 3 wants, the memory the vision model wants, and the screen.
 
 ## How the pieces connect
 
@@ -65,11 +65,11 @@ iPhone (ios-app/)                    Mac (mac-app/)                 Python (tool
 
 SAM 3 here is the 3.45 GB `facebook/sam3` checkpoint, running on Metal, Apple's GPU framework. Duplicates are caught with a **perceptual hash**, a short fingerprint of what an image looks like. Identification uses **Qwen3-VL**, a vision-language model that answers questions about an image, served locally by Ollama.
 
-The night before the first commit, the pipeline used SAM 2.1-base. It took 59 to 69 seconds per page and found two stamps. After the switch to SAM 3, the worker log shows 27 stamps saved from one page in 18.3 seconds.
+SAM 2.1 isn't enough for this. With automatic masks, SAM 2.1-base takes 59 to 69 seconds per page and finds two stamps. SAM 3 with a text prompt saves 27 stamps from one page in 18.3 seconds.
 
 ## The phone decides when to shoot
 
-The old design had the phone wait for the accelerometer to settle. It doesn't any more: there is no motion-sensor code in the app. Instead, `MotionGate.swift` watches the preview frames using Core Image, Apple's image-processing framework. Each frame goes through three checks:
+Waiting for the accelerometer to settle is the obvious trigger, but stillness of the phone is not what matters; the picture is. There is no motion-sensor code in the app. `MotionGate.swift` watches the preview frames using Core Image, Apple's image-processing framework. Each frame goes through three checks:
 
 - **Is it moving?** The frame is shrunk to 192 pixels wide and compared with the previous one. An average pixel difference above 3% counts as movement.
 - **Is it sharp?** A 512-pixel square from the centre goes through a 3-by-3 Laplacian edge filter. The variance of that filter's output is the sharpness score.
@@ -112,18 +112,16 @@ It then resolves overlaps. A mask mostly inside a much larger one is dropped. Tw
 
 Each survivor is cut out with `cv2.minAreaRect`, the smallest rotated rectangle that encloses it. The rectangle is padded outward by 8% and warped square, which straightens the stamp. If the result is more than 5% wider than tall, it is turned to portrait.
 
-The comparison with the previous night comes from the logs, not a benchmark:
+The comparison comes from the worker logs, not a benchmark:
 
 | Model | Page | Time | Stamps found |
 |---|---|---:|---:|
-| SAM 2.1-base, automatic masks (15 April) | one page | 69.0 s | 2 |
-| SAM 2.1-base, automatic masks (15 April) | another page | 59.5 s | 2 |
-| SAM 3 with text prompt (16 April) | 21-stamp page | 26.3 s | 21 of 21 |
-| SAM 3 with text prompt (16 April) | 27-stamp page | 18.3 s | 27 of 27 |
-| SAM 3 with text prompt (16 April) | 15-stamp page | 11.3 s | 15 of 15 |
-| SAM 3 with text prompt (16 April) | empty frame | 3.8 s | 0 |
-
-The `.gitignore` still lists `sam2.1*.pt`.
+| SAM 2.1-base, automatic masks | one page | 69.0 s | 2 |
+| SAM 2.1-base, automatic masks | another page | 59.5 s | 2 |
+| SAM 3 with text prompt | 21-stamp page | 26.3 s | 21 of 21 |
+| SAM 3 with text prompt | 27-stamp page | 18.3 s | 27 of 27 |
+| SAM 3 with text prompt | 15-stamp page | 11.3 s | 15 of 15 |
+| SAM 3 with text prompt | empty frame | 3.8 s | 0 |
 
 ## Duplicates: keep the better copy, not the first one
 
@@ -151,7 +149,7 @@ The library lives at `~/Library/Application Support/StampScanner/library.sqlite`
 
 The Mac app opens the same file through GRDB, a Swift SQLite library. The Python side creates the table independently. So every one of the app's schema migrations checks `db.columns(in: "stamps")` before adding a column.
 
-At first the grid didn't update as stamps streamed in, because GRDB's `@Query` doesn't notice writes from another process. `DatabaseWatcher.swift` fixed it with a file-system watcher on `library.sqlite-wal`. The Swift side has no ingest logic at all.
+GRDB's `@Query` doesn't notice writes from another process, so on its own the grid wouldn't update as stamps stream in. `DatabaseWatcher.swift` puts a file-system watcher on `library.sqlite-wal` to catch them. The Swift side has no ingest logic at all.
 
 ## What the vision model is and is not good for
 
@@ -159,9 +157,9 @@ At first the grid didn't update as stamps streamed in, because GRDB's `@Query` d
 
 Two Ollama behaviours cost time and are noted in the code. Qwen3-VL returns nothing when the output limit, `num_predict`, is small. It also returns nothing at `temperature=0`, the setting that should make it deterministic, across several models. So the worker uses the default temperature and caps output at 2,048 tokens. The Ollama log puts the loaded 4-bit model at 10.9 GiB on an M3 Pro, with all 37 layers on the GPU.
 
-**Identification works.** One prompt asks for JSON only. It returns country, year, denomination, colour, subject, series, whether it was used, cancel type, printing and overprint. It takes about a minute per stamp, and each result is written back with its own `UPDATE`. The earlier model was Gemma. The commit that switched it says Qwen3-VL was "smaller, faster, more reliable output". A stale comment in `sam_worker.py` still mentions Gemma 4.
+**Identification works.** One prompt asks for JSON only. It returns country, year, denomination, colour, subject, series, whether it was used, cancel type, printing and overprint. It takes about a minute per stamp, and each result is written back with its own `UPDATE`. Qwen3-VL is used rather than Gemma for "smaller, faster, more reliable output", in the words of the commit that chose it.
 
-**Orientation didn't work.** The prompt asked which rotation makes the stamp upright: 0, 90, 180 or 270. The function's own docstring calls it "too slow/unreliable on local hardware", and marks it DEPRECATED. Only 3 of the 1,731 rows in the live library have `oriented=1`. Orientation is now two rotate buttons on each grid cell. A rotation sends a notification for just that record, so it doesn't re-fetch the whole grid.
+**Orientation doesn't work.** The prompt asks which rotation makes the stamp upright: 0, 90, 180 or 270. The function's own docstring calls it "too slow/unreliable on local hardware", and marks it DEPRECATED. Only 3 of the 1,731 rows in the live library have `oriented=1`. Orientation is two rotate buttons on each grid cell instead. A rotation sends a notification for just that record, so it doesn't re-fetch the whole grid.
 
 ## Matching against the Stanley Gibbons catalogue
 

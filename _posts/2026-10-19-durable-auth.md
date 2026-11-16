@@ -24,11 +24,9 @@ This post covers why a Durable Object suits sign-in, the security decisions and 
 
 **npm → [`durable-auth`](https://www.npmjs.com/package/durable-auth)** · **Example app → [`examples/basic`](https://github.com/isaacrowntree/durable-auth/tree/main/examples/basic)**
 
-## Where it came from
+## Why it exists
 
-Rampset started behind Cloudflare Access: a dashboard list of allowed emails in front of the whole Worker. That works for a household. It doesn't work for an app anyone should be able to open and use. The usual alternatives each cost something on an all-Cloudflare stack. Hosted auth is another vendor, and your users live there. Auth libraries want a database and an adapter, which on Workers means D1 and migrations, just to sign someone in.
-
-Rampset already ran a Durable Object per user for sync, and a Durable Object has the one property sign-in needs most: **it handles one request at a time, with its own SQLite.** So sign-in moved into one more of them, and once it had run in production, it came out as a library.
+Cloudflare Access, a dashboard list of allowed emails, works for a household but not for an app anyone can open. Hosted auth is another vendor holding your users, and auth libraries want a database and an adapter, which on Workers means D1 and migrations. A Durable Object already has the one property sign-in needs most: **it handles one request at a time, with its own SQLite.** durable-auth puts sign-in in one, and runs in production behind Rampset.
 
 ## Atomic without trying
 
@@ -42,7 +40,7 @@ Secrets never reach the database in the clear. Session tokens are 32 random byte
 
 ## A cookie isn't the person
 
-The gap I'd left open in Rampset was this: a session is a year-long cookie. Whoever holds it is "you". That might be someone who borrowed your unlocked phone, or someone who lifted the cookie. They could delete everything, or quietly put their own email on the account and recover it later.
+The gap step-up closes is this: a session is a year-long cookie. Whoever holds it is "you". That might be someone who borrowed your unlocked phone, or someone who lifted the cookie. They could delete everything, or quietly put their own email on the account and recover it later.
 
 So every session remembers when it last *proved* its user, either with a passkey or with an emailed code. Four actions need that proof to be under five minutes old: deleting the account, changing the recovery email, adding a passkey, and removing one.
 
@@ -98,16 +96,16 @@ return Response.json({ ok: true });
 
 Adding a recovery email that already belongs to someone else works the same way. It answers "sent", sends nothing, and counts against the same hourly cap. Otherwise the point at which the cap kicks in would give the game away.
 
-## Reviewed before it shipped
+## Holes an adversarial review looks for
 
-Before the first release, an adversarial review went through every route looking for ways in. It found four medium issues and a handful of low ones, none critical. These are fixed, each with a test:
+An adversarial review of every route, looking for ways in, found four medium issues and a handful of low ones, none critical. They are traps that are easy to miss in sign-in code, and each has a guard and a test:
 
-- A stale session could add a passkey to an account that had none.
-- The hourly cap on adding an email answered differently for a taken address.
-- Rolling a deploy back would have marked the schema older, so the next upgrade re-ran its `ALTER`s and the Durable Object would never start again.
-- The global cap on code guesses didn't exist yet.
-- Sign-up didn't keep the name it was approved under.
-- An old recovery email kept working for ten minutes after it was changed.
+- A stale session must not add a passkey, even to an account that has none.
+- The hourly cap on adding an email must answer the same for a taken address.
+- Rolling a deploy back must not mark the schema older; otherwise the next upgrade re-runs its `ALTER`s and the Durable Object never starts again.
+- Code guesses need a global cap, not just per-code and per-email ones.
+- Sign-up keeps the name it was approved under.
+- An old recovery email stops working the moment it is changed, not ten minutes later.
 
 Two are trade-offs rather than bugs, and the README says so: a stranger can spend an email's guess budget, and the profile is the user's to write.
 

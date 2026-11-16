@@ -1,8 +1,8 @@
 ---
 layout: post
 title: "local-llm-coding-guide — Qwen, Gemma, and llama.cpp as a coding assistant"
-description: "A guide to running Qwen and Gemma locally as a coding assistant, built around a benchmark script and a Claude Code harness — because the tok/s number I had published for the 12 GB pick was 113 at empty context and 27 at 16K, and both were true."
-excerpt: "A guide to running Qwen and Gemma locally as a coding assistant, built around a benchmark script and a Claude Code harness — because the tok/s number I had published for the 12 GB pick was 113 at empty context and 27 at 16K, and both were true."
+description: "A guide to running Qwen and Gemma locally as a coding assistant on a 12 GB RTX 4070 Ti and a 36 GB M3 Pro, with a benchmark script and a Claude Code harness that scores whether a model finishes the task. The 12 GB pick writes 113 tok/s at empty context and 27 at 16K, so the guide gives rules, not model names."
+excerpt: "A guide to running Qwen and Gemma locally as a coding assistant on a 12 GB RTX 4070 Ti and a 36 GB M3 Pro, with a benchmark script and a Claude Code harness that scores whether a model finishes the task. The 12 GB pick writes 113 tok/s at empty context and 27 at 16K, so the guide gives rules, not model names."
 image: /images/blog/local-llm-coding-guide.jpg
 image_alt: Abstract neural network illustration representing large language models
 date: 2026-03-14
@@ -11,7 +11,7 @@ categories: [ai, guides]
 tags: [llm, llama-cpp, ollama, mlx, qwen, gemma, local-ai, coding-assistant, guides]
 ---
 
-Zack Design's **[local-llm-coding-guide](https://github.com/isaacrowntree/local-llm-coding-guide)** is a guide to running the open-weight Qwen and Gemma models as a coding assistant on your own hardware: an RTX 4070 Ti graphics card with 12 GB of memory, and an M3 Pro MacBook with 36 GB. It is built around a **benchmark script** and a **Claude Code harness**, because the speed it once published for the 12 GB pick was 113 tokens per second at an empty conversation and 27 with 16,000 tokens loaded, and both were true. So it now gives **rules rather than model names**, with every number regenerated on your own machine.
+Zack Design's **[local-llm-coding-guide](https://github.com/isaacrowntree/local-llm-coding-guide)** is a guide to running the open-weight Qwen and Gemma models as a coding assistant on your own hardware: an RTX 4070 Ti graphics card with 12 GB of memory, and an M3 Pro MacBook with 36 GB. It is built around a **benchmark script** and a **Claude Code harness** that scores a model on whether it finishes a coding task. A single speed figure misleads: the 12 GB pick writes 113 tokens per second at an empty conversation and 27 with 16,000 tokens loaded. So it gives **rules rather than model names**, with every number regenerated on your own machine.
 
 <div class="hero-cta-row" style="margin: 1.5rem 0;">
   <a href="https://github.com/isaacrowntree/local-llm-coding-guide" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
@@ -22,21 +22,21 @@ This post covers:
 - why run a model locally at all;
 - the three rules, and the measured tables from both machines;
 - why a mixture-of-experts model (one that uses only a fraction of its weights for each token) is faster on a Mac;
-- the Claude Code harness that scores a model on whether it finishes a task rather than how fast it types: the incumbent mixture-of-experts model passed four tasks out of four, and both August releases that beat it on published benchmarks passed none;
+- the Claude Code harness that scores a model on whether it finishes a task rather than how fast it types: a mixture-of-experts model passes four tasks out of four, and two newer models that beat it on published benchmarks pass none;
 - the `--bare` flag that cuts what Claude Code sends with every request from 20,240 tokens to 663, and the reasoning setting that never reaches a local model;
-- what changed since March, and how to run the benchmarks yourself.
+- what else the guide covers, how to run the benchmarks yourself, and what the numbers say.
 
 <!-- more -->
 
-An earlier version of the guide listed Qwen3.6-35B-A3B at "about 30 to 38 tokens per second" on the 4070 Ti (a token is roughly three-quarters of a word). The repo's own `benchmark.sh` measured 113 on an empty conversation and about 27 at 16,000 tokens. The guide had published one without saying which. It covers five engines: llama.cpp, Ollama's MLX backend (MLX is Apple's machine-learning framework), mlx-lm, ExLlamaV3 and TensorRT-LLM.
+The guide covers five engines: llama.cpp, Ollama's MLX backend (MLX is Apple's machine-learning framework), mlx-lm, ExLlamaV3 and TensorRT-LLM. Speeds are in tokens per second; a token is roughly three-quarters of a word.
 
 ## Why run a model locally at all
 
 Sometimes a cloud model isn't available: on a flight, behind a client VPN, on code you can't send anywhere, or past a monthly token budget. A 9-billion-parameter model, with its weights compressed to 4 bits, fits a 12 GB card and handles "reformat this, add a docstring, write a test".
 
-The bigger option is a **mixture-of-experts** model. It stores many sets of weights but uses only a few for each token: Qwen3.6-35B-A3B has 35 billion in total and uses 3 billion at a time. Its published scores sit in Sonnet 4.5 territory: 73.4% on SWE-bench Verified and 37.0% on MCPMark. It holds 262,000 tokens of context natively. Those scores are for the full-precision model; the 12 GB card runs a 2-bit version, and the guide says so.
-
 ## Three rules instead of a model name
+
+Beyond a small dense model, the bigger option is a **mixture-of-experts** model. It stores many sets of weights but uses only a few for each token: Qwen3.6-35B-A3B has 35 billion in total and uses 3 billion at a time. Its published scores sit in Sonnet 4.5 territory: 73.4% on SWE-bench Verified and 37.0% on MCPMark. It holds 262,000 tokens of context natively. Those scores are for the full-precision model; the 12 GB card runs a 2-bit version, and the guide says so.
 
 Model names go stale in weeks. So the guide's advice is three rules, and a dated "Current picks" block names what satisfies them today.
 
@@ -78,7 +78,7 @@ The fix is `--n-cpu-moe`. It keeps some of the experts in ordinary system memory
 
 Fewer experts on the CPU is faster but uses more GPU memory. The trade is cheap for a mixture-of-experts model, because only about 3 billion parameters are active per token.
 
-Context length turned out to cost speed, not just memory. With `-ncmoe 8`, the card wrote about 100 tokens per second at 40,000 or 64,000 tokens of context. At 96,000 it dropped to 48. So the native Windows scripts now default to 64K.
+Context length costs speed, not just memory. With `-ncmoe 8`, the card writes about 100 tokens per second at 40,000 or 64,000 tokens of context. At 96,000 it drops to 48. So the native Windows scripts default to 64K.
 
 **M3 Pro, 36 GB**, measured 24 July 2026:
 
@@ -93,7 +93,7 @@ Context length turned out to cost speed, not just memory. With `-ncmoe 8`, the c
 
 Raw mlx-lm writes about 30% faster than Ollama's MLX backend on the same weights. Ollama spends that on its compressed conversation cache and serving convenience, and it reads prompts much faster.
 
-On unified memory, running out of room doesn't crash; it swaps. The dense 31B, at about 18 GB of weights, thrashes the swap file on a 36 GB machine. The 5-bit build of the 35B-A3B (26.5 GB) loaded only by pushing out the file cache and background apps. So the Mac's ceiling for a model running alone is the 4-bit build, at 22.1 GB.
+On unified memory, running out of room doesn't crash; it swaps. The dense 31B, at about 18 GB of weights, thrashes the swap file on a 36 GB machine. The 5-bit build of the 35B-A3B (26.5 GB) loads only by pushing out the file cache and background apps. So the Mac's ceiling for a model running alone is the 4-bit build, at 22.1 GB.
 
 ## Why a mixture-of-experts model is faster on a Mac
 
@@ -121,7 +121,7 @@ muse-glimmer:30b-q4_K_M-dflash     FAIL 232s       FAIL 247s       FAIL 316s    
 qwen3.8:27b-mtp-q4_K_M             TIMEOUT 905s    (not run)       (not run)       (not run)        0/1          -
 ```
 
-The incumbent won, and it wasn't close. Qwen 3.8 27B is dense. `llama-server`'s own timing logs show it lost on both counts:
+Gemma, the mixture-of-experts model, wins, and it isn't close. Qwen 3.8 27B is dense. `llama-server`'s own timing logs show it loses on both counts:
 
 | | Qwen 3.8 27B (dense) | Gemma 4 26B-A4B (mixture of experts) |
 |---|---:|---:|
@@ -130,42 +130,42 @@ The incumbent won, and it wasn't close. Qwen 3.8 27B is dense. `llama-server`'s 
 | Writing the answer, tokens per second | about 5 | about 25 |
 | First task | timed out at 900 s | finished in 89 s and 6 turns |
 
-Its 4-bit build with multi-token prediction fits in 18 GB, so memory wasn't the problem. Multi-token prediction speeds up writing. This workload is limited first by reading the prompt, and second by a five-times gap in writing speed.
+Its 4-bit build with multi-token prediction fits in 18 GB, so memory isn't the problem. Multi-token prediction speeds up writing. This workload is limited first by reading the prompt, and second by a five-times gap in writing speed.
 
-Muse Glimmer didn't fail slowly; it failed inertly. It took one or two turns and made no tool calls. To the fix-the-tests prompt it replied "Hi! How can I help you today?". That looks like a problem with Ollama's chat template for that model, not a verdict on the model.
+Muse Glimmer doesn't fail slowly; it fails inertly. It takes one or two turns and makes no tool calls. To the fix-the-tests prompt it replies "Hi! How can I help you today?". That looks like a problem with Ollama's chat template for that model, not a verdict on the model.
 
-I first blamed prompt caching, and the server logs disproved it. Turn one logged `created context checkpoint 1 of 32 (n_tokens = 21316, 233 MiB)`. Turn two logged `cached n_tokens = 21824`. The 262 seconds is paid once per session.
+Prompt caching looks like the culprit, and isn't: the server logs show it working. Turn one logs `created context checkpoint 1 of 32 (n_tokens = 21316, 233 MiB)`. Turn two logs `cached n_tokens = 21824`. The 262 seconds is paid once per session.
 
-The same harness later ran on the 4070 Ti, against llama-server directly. Qwen3.6-35B-A3B at 2-bit passed all four tasks, in about four minutes in total.
+On the 4070 Ti, with the harness pointed at llama-server directly, Qwen3.6-35B-A3B at 2-bit passes all four tasks, in about four minutes in total.
 
 ## Two things Claude Code implies that are not true with a local model
 
 **The context is mostly tools.** `claude --bare` cuts the input for a trivial prompt from 20,240 tokens to 663. Capturing the HTTP request shows why. It carries a 6,646-character system prompt and 28 tool definitions. Every MCP server you install (a plugin that gives Claude Code more tools) adds more.
 
-Asked to check email, a 26B model instead announced "Security Audit of Codebase", called a mobile-automation tool, and finally recited its own tool list. That is what a small model does when the menu outweighs the request. `--bare` keeps the file and shell tools: it created a file correctly in 3 turns, at 2,218 input tokens. Skills still resolve by name. `--disallowedTools` and `--mcp-config` are the finer controls.
+Asked to check email, a 26B model instead announces "Security Audit of Codebase", calls a mobile-automation tool, and finally recites its own tool list. That is what a small model does when the menu outweighs the request. `--bare` keeps the file and shell tools: it creates a file correctly in 3 turns, at 2,218 input tokens. Skills still resolve by name. `--disallowedTools` and `--mcp-config` are the finer controls.
 
 Every harness result above ran with the full 21,000-token opening. A `--bare` run would cut Qwen 3.8's cold start to about 27 seconds, so the verdict on dense models is provisional until it is re-run that way.
 
-**Reasoning effort doesn't arrive.** Claude Code shows "medium effort" and sends `"thinking": {"type": "adaptive"}` on every request. Ollama reports Gemma 4 26B-A4B as able to reason before answering. Yet it returned `thinking_tokens: 0` in all seven runs, including a 17-turn refactor. Ollama's Anthropic-compatibility layer doesn't map that field onto its own think mode. Turn reasoning on at the Ollama layer instead.
+**Reasoning effort doesn't arrive.** Claude Code shows "medium effort" and sends `"thinking": {"type": "adaptive"}` on every request. Ollama reports Gemma 4 26B-A4B as able to reason before answering. Yet it returns `thinking_tokens: 0` in all seven runs, including a 17-turn refactor. Ollama's Anthropic-compatibility layer doesn't map that field onto its own think mode. Turn reasoning on at the Ollama layer instead.
 
 Two more integration facts:
 
-- **Claude Code speaks only the Anthropic API.** Ollama and vllm-mlx speak it directly. Since January 2026, so does llama-server, at `/v1/messages`, as long as it runs with `--jinja` for tool calls. TabbyAPI and TensorRT-LLM still need a LiteLLM proxy in between to translate.
+- **Claude Code speaks only the Anthropic API.** Ollama and vllm-mlx speak it directly. So does llama-server, at `/v1/messages`, as long as it runs with `--jinja` for tool calls. TabbyAPI and TensorRT-LLM need a LiteLLM proxy in between to translate.
 - **Disable the web tools.** Claude Code offers `WebSearch` and `WebFetch` as server-side tools whose type is not `function`. llama-server rejects them with a 400 error until you turn them off with `--disallowedTools`.
 
-## What changed since March
+## What else the guide covers
 
-The repo started as a llama.cpp walkthrough. Since then it has added:
+Beyond the llama.cpp walkthrough, the repo covers:
 
-- **Qwen 3.6** in April, the first Sonnet-class model to fit 12 GB, through 2-bit compression.
-- **Gemma 4 through Ollama MLX**, after llama.cpp bug #21321 left it writing only `<unused25>` thinking tokens. That bug has since been fixed upstream.
+- **Qwen 3.6**, a Sonnet-class model that fits 12 GB through 2-bit compression.
+- **Gemma 4 through Ollama MLX**, which avoids llama.cpp bug #21321: on affected builds Gemma writes only `<unused25>` thinking tokens. The bug is fixed upstream.
 - **vLLM on Metal**, through Docker Model Runner.
 - **The benchmark runs** on the RTX 4070 Ti and the M3 Pro, and the Claude Code harness.
 - **A native Windows path** with PowerShell scripts: llama-server straight into Claude Code, with no WSL and no proxy.
 - **Remote access restricted to the local network**, with per-user API keys, instead of a public tunnel.
 - **A distributed setup** that splits one model across both machines over llama.cpp's RPC backend, for a model larger than either. A 6-bit build split across both leaves the Mac more free memory than a 5-bit build alone.
 
-TurboQuant, a 3-bit compression for the conversation cache, is tracked. The Hadamard rotation step it needs has been merged upstream, and the 3-bit types work on CUDA through forks. Compressing keys and values equally hurts Qwen, so the guide suggests keeping the keys at 8 bits. One fork measured its 4-bit cache at a 0.23% increase in perplexity over an 8-bit baseline. Perplexity is the standard measure of how well a model predicts text; lower is better.
+The guide tracks TurboQuant, a 3-bit compression for the conversation cache. The Hadamard rotation step it needs is merged upstream, and the 3-bit types work on CUDA through forks. Compressing keys and values equally hurts Qwen, so the guide suggests keeping the keys at 8 bits. One fork measured its 4-bit cache at a 0.23% increase in perplexity over an 8-bit baseline. Perplexity is the standard measure of how well a model predicts text; lower is better.
 
 ## Running the benchmarks yourself
 
@@ -182,10 +182,10 @@ DEPTH=16384 ./benchmark.sh ~/models/<model>.gguf   # decode speed with 16K token
 
 The harness expects Ollama on a Mac by default; `--base-url` points it at any other Anthropic-compatible server. On Windows, `windows\claude-local.ps1` starts llama-server if needed and opens Claude Code against it.
 
-## What was learned
+## What the numbers say
 
 A tokens-per-second figure without its context depth is half a number. A benchmark table copied from someone else's graphics card is not a measurement.
 
-Prompt-reading speed decides whether an agent loop is usable at all. Writing speed decides whether it is pleasant. On the same machine, a mixture-of-experts model with 4 billion active parameters beat a 27B dense model by about ten times on the first and five times on the second. And a local model's worst enemy is the tool list the client sends it.
+Prompt-reading speed decides whether an agent loop is usable at all. Writing speed decides whether it is pleasant. On the same machine, a mixture-of-experts model with 4 billion active parameters beats a 27B dense model by about ten times on the first and five times on the second. And a local model's worst enemy is the tool list the client sends it.
 
 Everything here regenerates from `benchmark.sh` and `bench-claude-code.sh`. Per-run JSON, error output and verifier output land in `bench/results/`. Read it on [GitHub](https://github.com/isaacrowntree/local-llm-coding-guide).
