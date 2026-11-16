@@ -6,18 +6,30 @@ excerpt: "Galleries watermarked at request time by a Worker in front of R2 stora
 image: /images/blog/nexxara-launch.jpg
 image_alt: Concert crowd illuminated by stage lights, phones held high
 date: 2025-11-15
-last_modified_at: 2025-11-15
+last_modified_at: 2026-11-16
 categories: [product]
 tags: [nexxara, saas, nextjs, cloudflare, supabase, event-media, product-launch]
 ---
 
-One run of a festival produces thousands of photos from several photographers, each of whom wants their own mark on their work, while the event operator wants the sponsor's mark on all of it. Today that means re-exporting every JPEG whenever a logo changes, then sharing a Dropbox link that expires. **[Nexxara](https://nexxara.media)** is Zack Design's event media platform, and its answer is to never bake a watermark into a file: photos sit untouched in Cloudflare R2 (Cloudflare's file storage, equivalent to Amazon S3), and a Cloudflare Worker, a small program running in Cloudflare's data centres at `files.nexxara.media`, lays up to three overlays onto each photo as it is requested, using the `draw` option of Cloudflare's Image Resizing service.
+Zack Design's **[Nexxara](https://nexxara.media)** is an event media platform for production companies and event photographers: photographers upload, event managers curate, and attendees open the gallery from a QR code. Its central idea is to **never bake a watermark into a file**. Photos sit untouched in Cloudflare R2 (Cloudflare's file storage, equivalent to Amazon S3), and a Cloudflare Worker, a small program running in Cloudflare's data centres at `files.nexxara.media`, lays **up to three overlays** onto each photo as it is requested, using the `draw` option of Cloudflare's Image Resizing service. It is in **closed beta**.
 
-This post covers how that Worker sizes and places overlays, the two Image Resizing behaviours that are not in the documentation (it fetches from the Worker that called it, and it refuses images over 100 megapixels), the vision-model pass that groups photos into scenes, the Durable Object that streams upload and analysis progress to the admin screen, and the Stripe library default that hangs a Worker.
+<div class="hero-cta-row" style="margin: 1.5rem 0;">
+  <a href="https://nexxara.media" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Request access</a>
+</div>
+
+This post covers:
+
+- what Nexxara does, and how Postgres decides which rows each user can see;
+- how the image Worker sizes and places watermarks as each photo is requested;
+- two Image Resizing behaviours that are not in the documentation: it fetches from the Worker that called it, and it refuses images over 100 megapixels;
+- grouping photos into scenes with a vision model, and a Durable Object that streams upload progress to the admin screen;
+- the Stripe library default that hangs a Worker, and reading video keyframes before playback.
 
 <!-- more -->
 
 ## What Nexxara does
+
+One run of a festival produces thousands of photos from several photographers, each of whom wants their own mark on their work, while the event operator wants the sponsor's mark on all of it. Today that means re-exporting every JPEG whenever a logo changes, then sharing a Dropbox link that expires.
 
 Production companies run events. Events have editions: the same festival in November and again in March. Each edition has photographers and videographers uploading, an event manager curating, and attendees who want the photos afterwards.
 

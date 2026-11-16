@@ -6,7 +6,7 @@ excerpt: "Two sister bedding sites each carried one monolithic Jekyll layout —
 image: /images/blog/client-sites-rebuilt.jpg
 image_alt: The four rebuilt homepages side by side — Mower Corner's cast-iron and safety-orange shopfront, Breeder's Choice in daylight green, Superior Shavings in industrial iron and red, and AC Service & Parts in bone and forest
 date: 2026-08-21
-last_modified_at: 2026-08-21
+last_modified_at: 2026-11-16
 categories: [engineering]
 tags: [jekyll, design-systems, css, seo, accessibility, github-pages, client-work, australia]
 redirect_from:
@@ -15,9 +15,15 @@ redirect_from:
   - /recent-website-updates/
 ---
 
-Zack Design has rebuilt four Australian client sites for 2026 — **[Mower Corner](https://mowercorner.com.au)**, **[AC Service & Parts](https://acparts.com.au)**, **[Breeder's Choice](https://breederschoice.com.au)** and **[Superior Shavings](https://superiorshavings.com.au)** — and the last two went live this week. The two bedding sites each carried a single monolithic Jekyll layout, 1,843 and 1,380 lines, loading Bootstrap 5.3.3, jQuery 3.7.1 and a Font Awesome kit from five CDN hosts before rendering a word. They now run 443 lines of hand-written CSS each on Jekyll 4.4.1 and GitHub Pages, and none of the four loads a CSS framework any more.
+Zack Design has rebuilt four Australian client sites for 2026 — **[Mower Corner](https://mowercorner.com.au)**, **[AC Service & Parts](https://acparts.com.au)**, **[Breeder's Choice](https://breederschoice.com.au)** and **[Superior Shavings](https://superiorshavings.com.au)** — and the last two went live this week. The two bedding sites each carried a single monolithic Jekyll layout, 1,843 and 1,380 lines, loading Bootstrap 5.3.3, jQuery 3.7.1 and a Font Awesome kit from five CDN hosts before rendering a word. They now run **443 lines of hand-written CSS** each on Jekyll 4.4.1 and GitHub Pages, and **none of the four loads a CSS framework** any more.
 
-This post walks through what the rebuild actually consists of: the line counts before and after; the stockist finder that still reads the owner's Dropbox CSV at page load and the two-pass state matcher that recovered 74 of 407 retailers a strict regex was dropping; the four things that made it safe to ship an unapproved redesign to `/preview/` on the client's live domain; a Liquid filter chain that doubled a URL; and the `<details>` menu, `Intl.DateTimeFormat` readout and reduced-motion reveal on Mower Corner.
+This post covers:
+
+- what was there before, and the line counts after;
+- four businesses, four registers: why four trades in two states, two of them sister brands, needed four designs;
+- the stockist finder that still reads the owner's Dropbox CSV at page load, and the two-pass state matcher that recovered 74 of 407 retailers a strict regex was dropping;
+- the four things that made it safe to ship an unapproved redesign to `/preview/` on the client's live domain, and a Liquid filter chain that doubled a URL;
+- the `<details>` menu, `Intl.DateTimeFormat` readout and reduced-motion reveal on Mower Corner.
 
 <!-- more -->
 

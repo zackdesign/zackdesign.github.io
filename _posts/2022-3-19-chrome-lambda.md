@@ -6,14 +6,23 @@ excerpt: "Chrome with a real screen and real extensions inside an AWS Lambda con
 image: /images/blog/chrome-lambda.jpg
 image_alt: Server racks glowing in a modern data centre corridor
 date: 2022-03-19
-last_modified_at: 2022-03-19
+last_modified_at: 2026-11-16
 categories: [engineering]
 tags: [aws, lambda, chrome, docker, serverless, puppeteer]
 ---
 
-Running Chrome with no screen ("headless") on AWS Lambda, Amazon's service for running a function on demand with no server to manage, is a solved problem. Running Chrome with a screen ("headful"), with real extensions loaded and real pixels being drawn, is not, because Chrome refuses to start without a display to draw on and a Lambda function does not have one. [chrome-lambda](https://github.com/isaacrowntree/chrome-lambda) is a reference container image that gives it a fake one.
+Running Chrome with no screen ("headless") on AWS Lambda, Amazon's service for running a function on demand with no server to manage, is a solved problem. Running Chrome with a screen ("headful"), with real extensions loaded and real pixels being drawn, is not, because Chrome refuses to start without a display to draw on and a Lambda function does not have one. **[chrome-lambda](https://github.com/isaacrowntree/chrome-lambda)** is a reference container image that gives it a fake one.
 
-This post covers when a browser with a screen is the only option, the three pieces the image is built from, and the order in which the startup script creates the virtual display and hands it to Chrome.
+<div class="hero-cta-row" style="margin: 1.5rem 0;">
+  <a href="https://github.com/isaacrowntree/chrome-lambda" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
+</div>
+
+This post covers:
+
+- when a browser with a screen is the only option;
+- the three pieces the image is built from, and the order in which the startup script creates the virtual display and hands it to Chrome;
+- the earlier writeups it builds on;
+- when to reach for it, and when plain headless Chrome is the better choice.
 
 <!-- more -->
 

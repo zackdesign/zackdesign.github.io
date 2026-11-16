@@ -6,19 +6,28 @@ excerpt: "tileserver-gl draws its 256-pixel tiles from the tile one zoom level u
 image: /images/blog/offline-maps-pipeline.jpg
 image_alt: A small campervan on a rural road at twilight beneath a perfectly conical mountain — the kind of place cell coverage runs out and offline maps start mattering
 date: 2026-05-28
-last_modified_at: 2026-09-01
+last_modified_at: 2026-11-16
 categories: [engineering]
 tags: [offline-maps, mbtiles, openmaptiles, openstreetmap, planetiler, tileserver-gl, maplibre, cloudflare-r2, react-native, campermate]
 consulting: true
 ---
 
-CamperMate ships nine offline base-map archives for Australia and New Zealand, 3.7 GB in total, built from OpenStreetMap with planetiler (which turns raw map data into tiles) and tileserver-gl (which draws them), and served from Cloudflare R2, Cloudflare's file storage. The first tier, published in May 2026, was one zoom level coarser than every filename claimed, had 752 blank tiles in Tasmania alone, and drew an opaque blank rectangle over New South Wales wherever Victoria was installed on top of it. The build log for every one of those archives said `done`.
+[CamperMate](https://campermate.com), the free-camping and campground app made at Triptech, ships nine offline base-map archives for Australia and New Zealand, 3.7 GB in total, built from OpenStreetMap with planetiler (which turns raw map data into tiles) and tileserver-gl (which draws them), and served from Cloudflare R2, Cloudflare's file storage. The first tier, published in May 2026, was one zoom level coarser than every filename claimed, had 752 blank tiles in Tasmania alone, and drew an opaque blank rectangle over New South Wales wherever Victoria was installed on top of it. The build log for every one of those archives said `done`.
 
-This is the pipeline as it runs now, with the mechanisms that took it from there to here: the one line in tileserver-gl that makes its 256-pixel tiles come from the zoom level above; labels that shrink to half size when you fix that; a warm-up probe that never reached the server instance it was warming; per-state map extracts that stop at a state line the archive's box crosses; a continent-scale tile no clipping margin can fix; a storage layout for duplicate tiles, measured on WebP rather than remembered from PNG; and the hole Apple's tile renderer leaves on every pinch, closed by porting MapLibre's tile pyramid. It was built for [CamperMate](https://campermate.com) — the free-camping and campground app across Australia and New Zealand, [iOS](https://apps.apple.com/app/campermate-australia-nz/id465040067) and [Android](https://play.google.com/store/apps/details?id=nz.co.campermate), 1M+ downloads, made at [Triptech](https://triptech.com) — whose users are in Fiordland, Kakadu and the Pilbara, where the map has to work without bars. The output is an MBTiles file, a single SQLite database holding every tile, which any client can read; the React Native consumer is at the end.
+This is the pipeline as it runs now. This post covers:
+
+- why the standard OpenStreetMap tile server draws a map from 2013, and splitting the map data from the drawing;
+- the build as it runs, and the one line in tileserver-gl that makes its 256-pixel tiles come from the zoom level above (and the labels that shrink to half size when you fix that);
+- a warm-up probe that never reached the server instance it was warming, and per-state map extracts that stop at a state line the archive's box crosses;
+- a continent-scale tile no clipping margin can fix, and how deep to draw;
+- storing each identical tile once and WebP at quality 80, measured on WebP rather than remembered from PNG, and what the tier costs now;
+- shipping it in React Native, where the hole Apple's tile renderer leaves on every pinch was closed by porting MapLibre's tile pyramid, plus style picks and what I would check first next time.
 
 <!-- more -->
 
 ## The standard recipe draws a map from 2013
+
+The pipeline was built for [CamperMate](https://campermate.com) — the free-camping and campground app across Australia and New Zealand, [iOS](https://apps.apple.com/app/campermate-australia-nz/id465040067) and [Android](https://play.google.com/store/apps/details?id=nz.co.campermate), 1M+ downloads, made at [Triptech](https://triptech.com) — whose users are in Fiordland, Kakadu and the Pilbara, where the map has to work without bars. The output is an MBTiles file, a single SQLite database holding every tile, which any client can read; the React Native consumer is at the end.
 
 The first thing every "offline OpenStreetMap tiles" guide tells you is to run [`overv/openstreetmap-tile-server`](https://hub.docker.com/r/overv/openstreetmap-tile-server/), which loads the map data into a PostGIS database and has Mapnik draw it in the same style as `openstreetmap.org`. I tried it. It works, and the output looks like 2013: olive land use, mustard buildings, brick motorways. It is also one stage, so a different look means editing the style language and re-drawing everything from the database. That was the whole evaluation; I moved on.
 

@@ -6,18 +6,32 @@ excerpt: "The question was 'can I fit a coil shock to a 2013 Trek Fuel EX 5 ebik
 image: /images/blog/bike-part-planner.jpg
 image_alt: Mountain biker riding a trail through a lush green forest
 date: 2026-04-12
-last_modified_at: 2026-04-12
+last_modified_at: 2026-11-16
 categories: [open-source]
 tags: [typescript, bikes, mtb, suspension, testing, open-source]
 redirect_from:
   - /bike-shock-planner/
 ---
 
-Zack Design has published [`bike-part-planner`](https://github.com/isaacrowntree/bike-part-planner), a **test-driven** engine in which every compatibility fact is code rather than a chart, for the question every rider searches before spending money: will this part actually fit my bike? It began as one question, "can I fit a coil shock to a 2013 Trek Fuel EX 5 that I've converted to an ebike with a Bafang BBS02 motor?", hence the original `bike-shock-planner` name, and the model's answer was not one I wanted. The frame takes a shock 184 mm long with 50 mm of stroke in the older imperial pin-mount fitting, which is not a size any mainstream brand still makes; exactly one new coil shock (the Push ElevenSix, built to order) exists in it; and there are zero documented coil builds anywhere online on the 2013 to 2016 frame with Trek's DRCV Full Floater suspension design. The rear-shock core was written in one day, 12 April 2026, including two same-day corrections to its own facts. The framework it became has 28 `check*` functions, no runtime dependencies, and 252 tests that run in 1.21 seconds.
+Zack Design's **[bike-part-planner](https://github.com/isaacrowntree/bike-part-planner)** is a **test-driven** engine for the question every mountain biker searches before spending money: will this part actually fit my bike? Every compatibility fact is code rather than a chart, and the answer is a **list of reasons** rather than a yes or no. The framework has 28 `check*` functions, **no runtime dependencies**, and 252 tests that run in 1.21 seconds. **MIT licensed.**
 
-This post walks through the fit checker that returns eleven separate mismatch reasons rather than a yes or no, the conversion kit modelled as a function that rewrites a shock's mounting hardware, why the spring-rate calculator carries a term for how much of the rider's weight sits on the rear wheel that the textbook formula omits, the assumption that 45% of an ebike's added mass rides on the rear wheel, the catalog's honest `publishedSku: false` entries, and the two tests that pin what forum research found.
+<div class="hero-cta-row" style="margin: 1.5rem 0;">
+  <a href="https://github.com/isaacrowntree/bike-part-planner" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
+</div>
+
+This post covers:
+
+- the fit checker that returns eleven separate mismatch reasons rather than a yes or no;
+- the conversion kit modelled as a function that rewrites a shock's mounting hardware;
+- why the spring-rate calculator carries a term for how much of the rider's weight sits on the rear wheel, and the assumption that 45% of an ebike's added mass rides there;
+- why the frame does not want a coil, and the two tests that pin what forum research found;
+- the pivots, how one shock question grew into 28 checkers, and why the data is code.
 
 <!-- more -->
+
+## Where it started
+
+It began as one question, "can I fit a coil shock to a 2013 Trek Fuel EX 5 that I've converted to an ebike with a Bafang BBS02 motor?", hence the original `bike-shock-planner` name, and the model's answer was not one I wanted. The frame takes a shock 184 mm long with 50 mm of stroke in the older imperial pin-mount fitting, which is not a size any mainstream brand still makes; exactly one new coil shock (the Push ElevenSix, built to order) exists in it; and there are zero documented coil builds anywhere online on the 2013 to 2016 frame with Trek's DRCV Full Floater suspension design. The rear-shock core was written in one day, 12 April 2026, including two same-day corrections to its own facts.
 
 ## Verdicts, not yes or no
 

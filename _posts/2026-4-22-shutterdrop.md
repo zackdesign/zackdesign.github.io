@@ -6,14 +6,24 @@ excerpt: "Tap your phone, the photo lands in a folder on your Mac. iOS + Android
 image: /images/blog/shutterdrop.jpg
 image_alt: A silver iPhone resting on a silver MacBook, hinting at the wireless tether between phone and laptop
 date: 2026-04-22
-last_modified_at: 2026-04-22
+last_modified_at: 2026-11-16
 categories: [open-source]
 tags: [swift, kotlin, python, ios, android, mac, photography, bonjour, open-source]
 ---
 
-Zack Design has published [`shutterdrop`](https://github.com/isaacrowntree/shutterdrop), a wireless tether that turns the phone in your pocket into a shutter for your Mac. Tap the camera preview on the phone and the photo lands in `~/Pictures/Shutterdrop/`, as a HEIC (Apple's compressed photo format) from iOS or a JPEG from Android. It does what Capture One's tethered shooting does for a camera on a USB cable, but over wifi from your iPhone or Android. No cable, no cloud, no account. The whole protocol is three HTTP endpoints; the receiver is one Python file, 585 lines, with `zeroconf` (the library that announces the receiver on the local network) as its only dependency outside the standard library.
+Zack Design's **[Shutterdrop](https://github.com/isaacrowntree/shutterdrop)** is a wireless tether that turns the phone in your pocket into a shutter for your Mac. Tap the camera preview on your iPhone or Android and the photo lands in `~/Pictures/Shutterdrop/`, as a HEIC (Apple's compressed photo format) from iOS or a JPEG from Android. It does what Capture One's tethered shooting does for a camera on a USB cable, but over wifi: **no cable, no cloud, no account**. The whole protocol is **three HTTP endpoints**; the receiver is one 585-line Python file whose only dependency outside the standard library is `zeroconf`, the library that announces it on the local network. **MIT licensed.**
 
-This post walks through what is actually in those 585 lines: why the parser for the upload body is hand-written and splits on a line break followed by the boundary rather than on the boundary alone, how a 6-digit pairing code survives being on a shared wifi (5 attempts, a half-second delay per guess, a 5-minute window), why the file is opened with flags that refuse to overwrite or follow a symbolic link and is renamed into place, how the receiver finds its own network address without sending a packet, and the places where the Android app is honestly behind the iOS one.
+<div class="hero-cta-row" style="margin: 1.5rem 0;">
+  <a href="https://github.com/isaacrowntree/shutterdrop" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
+</div>
+
+This post covers:
+
+- how a 6-digit pairing code survives a shared wifi network (5 attempts, a half-second delay per guess, a 5-minute window), and how the receiver finds its own network address without sending a packet;
+- why the parser for the upload body is hand-written, and splits on a line break followed by the boundary rather than on the boundary alone;
+- why the file is opened with flags that refuse to overwrite or follow a symbolic link, and is renamed into place;
+- the places where the Android app is honestly behind the iOS one;
+- how the pieces connect, and how to run it.
 
 <!-- more -->
 

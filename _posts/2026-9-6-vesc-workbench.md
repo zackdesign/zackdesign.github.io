@@ -6,20 +6,26 @@ excerpt: "VESC Tool's command line only talks over a cable. Its scripting runtim
 image: /images/blog/vesc-workbench.jpg
 image_alt: A LaCroix electric skateboard shot head-on against black — Hypertrucks splayed wide on pneumatic tyres, a blue anodised hanger, twin LED pods and a carbon deck.
 date: 2026-09-06
-last_modified_at: 2026-09-07
+last_modified_at: 2026-11-16
 categories: [open-source]
 tags: [lispbm, lisp, python, micropython, qml, makefile, vesc, embedded, firmware, reverse-engineering, ui-design, electric-skateboard]
 ---
 
-Zack Design has published **[vesc-workbench](https://github.com/isaacrowntree/vesc-workbench)**, a set of `make` targets that script VESC Tool, the desktop program for configuring a **VESC** motor controller (an open-source electronic speed controller, ESC, used in electric skateboards and bikes), over the phone app's Bluetooth bridge. That lets a controller sealed inside a skateboard deck be read, written and verified from a laptop with no USB cable. It exists because a FOCBOX Unity, a two-motor VESC, flashed to firmware 7.00 stopped talking to the DAVEGA X, the small display bolted to the deck, over two bytes: the telemetry packet the display draws (`COMM_GET_VALUES`, 25 fields) is byte-identical between VESC firmware 6.00 and 7.x, and the only difference on the wire is the major version number.
+Zack Design's **[vesc-workbench](https://github.com/isaacrowntree/vesc-workbench)** is a set of `make` targets that script VESC Tool, the desktop program for configuring a **VESC** motor controller (an open-source electronic speed controller, ESC, used in electric skateboards and bikes). It works over the phone app's **Bluetooth bridge**, so a controller sealed inside a skateboard deck can be read, written and verified from a laptop with **no USB cable**, and its settings kept in git. It began when a FOCBOX Unity on firmware 7.00 stopped talking to its DAVEGA X display **over two bytes**, and it ended with ten dashboards for that display. **MIT licensed.**
 
-This post walks through the mechanisms: why VESC Tool's command line cannot connect over the network and why a script loaded into it can; a 178-line script in LispBM, the small Lisp interpreter that runs on the controller, that rewrites those two bytes and recomputes the checksum; a serial-port call that silently switches the throttle input off and saves that to permanent storage; the display's own interactive prompt and the settings file that had it under-reading speed by 18%; a screen where a draw call costs 2.9 ms whether it covers 4 pixels or 9,600; and the test that caught every curve about to reach the screen with its colours reversed.
+<div class="hero-cta-row" style="margin: 1.5rem 0;">
+  <a href="https://github.com/isaacrowntree/vesc-workbench" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
+</div>
 
-**MIT licensed.**
+This post covers:
+
+- why VESC Tool's command line cannot connect over the network, and why a script loaded into it can;
+- diagnostics that tell two failures apart, and what the controller gets wrong, such as a serial-port call that silently switches the throttle input off and saves that to permanent storage;
+- a 178-line script in LispBM, the small Lisp interpreter that runs on the controller, that rewrites those two bytes and recomputes the checksum, and how it's tested;
+- the display's own interactive prompt, and the settings file that had it under-reading speed by 18%;
+- ten dashboards for a screen where a draw call costs 2.9 ms whether it covers 4 pixels or 9,600, and the test that caught every curve about to reach the screen with its colours reversed.
 
 <!-- more -->
-
-**Source → [github.com/isaacrowntree/vesc-workbench](https://github.com/isaacrowntree/vesc-workbench)** (MIT)
 
 ## Change a number, ride, forget what it was
 
@@ -137,6 +143,8 @@ All of this exists because of a smaller problem. I have a LaCroix Nazaré electr
 > Unsupported VESC FW: 7.01
 >
 > Supported VESC FW versions: 3.48 - 6.x
+
+In short, a FOCBOX Unity, a two-motor VESC, flashed to firmware 7.00 stopped talking to the DAVEGA X, the small display bolted to the deck, over two bytes: the telemetry packet the display draws (`COMM_GET_VALUES`, 25 fields) is byte-identical between VESC firmware 6.00 and 7.x, and the only difference on the wire is the major version number.
 
 DAVEGA closed in May 2024. Everyone downgrades. I checked whether that was true first: the vendor's update index at `davega.eu/fw/index_v5.json` still lists a **v5.07rc3, dated 2025-03-11**, newer than the v5.06 the changelog stops at, released after the shop closed and never announced. It carries the same gate strings as every version before it. No firmware DAVEGA shipped accepts VESC 7. [docs/firmware-archive.md](https://github.com/isaacrowntree/vesc-workbench/blob/master/docs/firmware-archive.md) records all eight images and their SHA-256s, since the endpoints will not answer forever.
 

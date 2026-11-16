@@ -6,16 +6,29 @@ excerpt: "A streaming temporal-median deflicker for 4K footage shot under LED li
 image: /images/blog/deflicker-runner.jpg
 image_alt: Close-up of an optical camera lens reflecting light
 date: 2026-02-08
-last_modified_at: 2026-02-08
+last_modified_at: 2026-11-16
 categories: [open-source]
 tags: [video, ffmpeg, python, deflicker, rolling-shutter, led-flicker, open-source]
 ---
 
-Zack Design has published [`deflicker-runner`](https://github.com/isaacrowntree/deflicker-runner) — a Python pipeline for removing the flicker that a camera records under overhead LED panels. LED drivers switch the light on and off very fast (pulse-width modulation, or PWM), and a rolling-shutter camera, which reads its sensor out one row at a time rather than all at once, catches that switching as a slow pulse in brightness. The pulse is only about 2% of frame brightness, but it sits at about 20 beats per second, which the eye sees clearly, and it repeats every three frames at 59.94 frames per second. The naive fix — for every pixel, take the median of its value across the clip — needs the whole clip decoded, which for 4K (3840 by 2160 pixels) is about 18 GB of memory. The streaming version keeps five small greyscale frames in a queue, about 2.6 MB of measurement data, and runs on a full-length clip in a few hundred megabytes.
+Zack Design's **[deflicker-runner](https://github.com/isaacrowntree/deflicker-runner)** is a Python pipeline that removes the flicker a camera records under overhead LED panels. A rolling-shutter camera, which reads its sensor one row at a time, catches the LEDs switching on and off as a pulse in brightness: only about 2%, but at about 20 beats per second, which the eye sees clearly. The naive fix needs the whole 4K clip decoded, about **18 GB** of memory. The streaming version keeps **five small greyscale frames** in a queue and runs on a full-length clip in **a few hundred megabytes**. **MIT licensed.**
 
-This post goes through the arithmetic that turns a 100 Hz light into a 19.88 Hz flicker, the median-then-ratio loop at the centre of the tool, the two-decoder design that lets it stream, the resize call that was the bottleneck until `scipy.ndimage.zoom` was swapped for `cv2.resize`, why filament bulbs need a separate full-resolution path, the measured reduction on two festival clips, and the modes that did not earn their place.
+<div class="hero-cta-row" style="margin: 1.5rem 0;">
+  <a href="https://github.com/isaacrowntree/deflicker-runner" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
+</div>
+
+This post covers:
+
+- the arithmetic that turns a 100 Hz light into a 19.88 Hz flicker;
+- the median-then-ratio loop at the centre of the tool;
+- the two-decoder design that lets it stream, and the resize call that was the bottleneck until `scipy.ndimage.zoom` was swapped for `cv2.resize`;
+- why filament bulbs need a separate full-resolution path;
+- the measured reduction on two festival clips;
+- the modes that did not earn their place.
 
 <!-- more -->
+
+LED drivers switch the light on and off very fast (pulse-width modulation, or PWM), and a rolling-shutter camera, which reads its sensor out one row at a time rather than all at once, catches that switching as a slow pulse in brightness. The pulse is only about 2% of frame brightness, but it sits at about 20 beats per second, and it repeats every three frames at 59.94 frames per second. The naive fix — for every pixel, take the median of its value across the clip — needs the whole clip decoded, which for 4K (3840 by 2160 pixels) is about 18 GB of memory. The streaming version keeps five small greyscale frames in a queue, about 2.6 MB of measurement data, and runs on a full-length clip in a few hundred megabytes.
 
 ## Why a 100 Hz light shows up as a 20 Hz flicker on video
 

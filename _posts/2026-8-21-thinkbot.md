@@ -6,18 +6,27 @@ excerpt: "A health endpoint returned a 500 whose body named the failing dependen
 image: /images/blog/thinkbot.jpg
 image_alt: A red run of failing monitoring ticks feeding into a triage card that names a merged pull request as the cause, with source chips for GitHub, Datadog, Sentry and Rollbar
 date: 2026-08-21 09:00:00 +1000
-last_modified_at: 2026-08-21
+last_modified_at: 2026-11-16
 categories: [open-source]
 tags: [cloudflare, workers, ai-agents, monitoring, typescript, incident-response, security, open-source]
 ---
 
-The companion piece to [clawdwatch](/clawdwatch/) — [`thinkbot`](https://github.com/triptechtravel/thinkbot) is a [Triptech Travel](https://github.com/triptechtravel) open-source project, authored and released by Isaac Rowntree in his Triptech engineering capacity and cross-posted here on the Zack Design blog. It is a single Cloudflare Worker (a small program that runs on Cloudflare's servers), 3,054 lines of TypeScript, that takes an alert, investigates it against GitHub, Datadog, Sentry and Cloudflare's own Worker telemetry, and reports what changed in one paragraph — or replies with the single word `NOTHING` and posts nothing. It exists because a health endpoint returned an HTTP 500 error whose body named the failing dependency for five hours, while the alert carried only `expected 200, got 500`. **MIT licensed.**
+**[thinkbot](https://github.com/triptechtravel/thinkbot)** is a [Triptech Travel](https://github.com/triptechtravel) open-source project, authored and released by Isaac Rowntree in his Triptech engineering capacity and cross-posted here; it is the companion piece to [clawdwatch](/clawdwatch/). It is a single Cloudflare Worker (a small program that runs on Cloudflare's servers), 3,054 lines of TypeScript, that takes an alert, investigates it against **GitHub, Datadog, Sentry and Cloudflare's own Worker telemetry**, and reports what changed in one paragraph, or replies with the single word `NOTHING` and posts nothing. It exists because a health endpoint's HTTP 500 error named the failing dependency for five hours, while the alert said only `expected 200, got 500`. **MIT licensed.**
 
-This post walks through the mechanisms and the failures that shaped them: the ordered triage procedure in the prompt and the rule that a failed tool may never read as an all-clear; the three ways a Worker agent fails silently that I found by running it against live incidents (background work cancelled with no error, a bundle of static files answering "method not allowed" to every inbox, and a reasoning model using up its whole output budget before writing a word); the side-by-side model comparison that changed the default model; and the tool that found a stalled site eight earlier triage turns had called a test flake.
+<div class="hero-cta-row" style="margin: 1.5rem 0;">
+  <a href="https://github.com/triptechtravel/thinkbot" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
+  <a href="https://triptechtravel.github.io/thinkbot/" target="_blank" rel="noopener" class="btn btn-outline-primary btn-lg">Documentation</a>
+</div>
+
+This post covers:
+
+- the ordered triage procedure in the prompt, and the rule that a failed tool may never read as an all-clear;
+- three ways a Worker agent fails silently: background work cancelled with no error, static files answering "method not allowed" to every inbox, and a reasoning model using up its whole output budget before writing a word;
+- the side-by-side model comparison that changed the default model;
+- the tool that found a stalled site eight earlier triage turns had called a test flake;
+- why the plain Slack notifier stays, and how to try it.
 
 <!-- more -->
-
-**Source → [github.com/triptechtravel/thinkbot](https://github.com/triptechtravel/thinkbot)** · **Docs → [triptechtravel.github.io/thinkbot](https://triptechtravel.github.io/thinkbot/)**
 
 ## The division of labour
 

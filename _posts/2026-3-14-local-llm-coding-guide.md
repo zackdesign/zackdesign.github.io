@@ -6,16 +6,29 @@ excerpt: "A guide to running Qwen and Gemma locally as a coding assistant, built
 image: /images/blog/local-llm-coding-guide.jpg
 image_alt: Abstract neural network illustration representing large language models
 date: 2026-03-14
-last_modified_at: 2026-09-18
+last_modified_at: 2026-11-16
 categories: [ai, guides]
 tags: [llm, llama-cpp, ollama, mlx, qwen, gemma, local-ai, coding-assistant, guides]
 ---
 
-Zack Design has published [`local-llm-coding-guide`](https://github.com/isaacrowntree/local-llm-coding-guide) — a guide to running the open-weight Qwen and Gemma models as a coding assistant on your own hardware: an RTX 4070 Ti graphics card with 12 GB of memory, and an M3 Pro MacBook with 36 GB, using the inference engines llama.cpp, Ollama's MLX backend (MLX being Apple's machine-learning framework), mlx-lm, ExLlamaV3 and TensorRT-LLM. An earlier version of this guide listed Qwen3.6-35B-A3B at "about 30 to 38 tokens per second" on the 4070 Ti (a token is roughly three-quarters of a word). Measured with the repo's own `benchmark.sh` on 25 July 2026, it generates 113 tokens per second when the conversation is empty and about 27 once 16,000 tokens of conversation are loaded. Both are real; the guide had published one without saying which.
+Zack Design's **[local-llm-coding-guide](https://github.com/isaacrowntree/local-llm-coding-guide)** is a guide to running the open-weight Qwen and Gemma models as a coding assistant on your own hardware: an RTX 4070 Ti graphics card with 12 GB of memory, and an M3 Pro MacBook with 36 GB. It is built around a **benchmark script** and a **Claude Code harness**, because the speed it once published for the 12 GB pick was 113 tokens per second at an empty conversation and 27 with 16,000 tokens loaded, and both were true. So it now gives **rules rather than model names**, with every number regenerated on your own machine.
 
-That is why the guide is now structured as rules rather than model names, with every number regenerated on your own hardware. This post covers the three rules, the measured tables from both machines, the Claude Code harness that scores a model on whether it finishes a task rather than how fast it types (the incumbent mixture-of-experts model passed four tasks out of four; both August releases that beat it on published benchmarks passed none), the `--bare` flag that cuts what Claude Code sends with every request from 20,240 tokens to 663, and the reasoning setting that never reaches a local model.
+<div class="hero-cta-row" style="margin: 1.5rem 0;">
+  <a href="https://github.com/isaacrowntree/local-llm-coding-guide" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
+</div>
+
+This post covers:
+
+- why run a model locally at all;
+- the three rules, and the measured tables from both machines;
+- why a mixture-of-experts model (one that uses only a fraction of its weights for each token) is faster on a Mac;
+- the Claude Code harness that scores a model on whether it finishes a task rather than how fast it types: the incumbent mixture-of-experts model passed four tasks out of four, and both August releases that beat it on published benchmarks passed none;
+- the `--bare` flag that cuts what Claude Code sends with every request from 20,240 tokens to 663, and the reasoning setting that never reaches a local model;
+- what changed since March.
 
 <!-- more -->
+
+The guide covers the inference engines llama.cpp, Ollama's MLX backend (MLX being Apple's machine-learning framework), mlx-lm, ExLlamaV3 and TensorRT-LLM. An earlier version of it listed Qwen3.6-35B-A3B at "about 30 to 38 tokens per second" on the 4070 Ti (a token is roughly three-quarters of a word). Measured with the repo's own `benchmark.sh` on 25 July 2026, it generates 113 tokens per second when the conversation is empty and about 27 once 16,000 tokens of conversation are loaded. Both are real; the guide had published one without saying which. That is why the guide is now structured as rules rather than model names, with every number regenerated on your own hardware.
 
 ## Why run a model locally at all
 

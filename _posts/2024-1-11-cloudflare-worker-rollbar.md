@@ -6,18 +6,31 @@ excerpt: "A zero-dependency Rollbar client for Cloudflare Workers — fetch only
 image: /images/blog/cloudflare-worker-rollbar.jpg
 image_alt: Black screen filled with JavaScript code illuminated in cool light
 date: 2024-01-11
-last_modified_at: 2024-01-11
+last_modified_at: 2026-11-16
 categories: [open-source]
 tags: [cloudflare-workers, rollbar, typescript, observability, edge, open-source]
 ---
 
-Triptech's production APIs run on Cloudflare Workers, small JavaScript programs that run in Cloudflare's data centres, and for a while the errors they threw went nowhere. Rollbar is the error-tracking service we report to, and its official JavaScript library comes in a Node.js build and a browser build; a Worker is neither. The Worker runtime is a sandboxed JavaScript engine with `fetch` for making HTTP requests and not much else. [`@triptech/cloudflare-worker-rollbar`](https://github.com/triptechtravel/cloudflare-worker-rollbar) is a [Triptech Travel](https://github.com/triptechtravel) open-source project — authored and released by Isaac Rowntree in his Triptech engineering capacity, and cross-posted here on the Zack Design blog. The whole client is 451 lines in `src/client.ts`, has zero runtime dependencies, and builds to an 11 kB `dist/index.js`.
+Triptech Travel's **[`@triptech/cloudflare-worker-rollbar`](https://github.com/triptechtravel/cloudflare-worker-rollbar)** is a client for Rollbar, the error-tracking service, built for Cloudflare Workers: small JavaScript programs that run in Cloudflare's data centres. It has **zero runtime dependencies** and needs only `fetch`. The whole client is 451 lines in `src/client.ts` and builds to an 11 kB `dist/index.js`. A wrapper around the request handler sends each report **after the response has gone**, so reporting never slows a request. Isaac Rowntree wrote and released it as part of his engineering work at [Triptech Travel](https://github.com/triptechtravel); it is cross-posted here on the Zack Design blog. **MIT licensed.**
 
-This post covers the 100-line first version and the gist it started from, what the 2.0 rewrite added (a wrapper for the request handler, a hand-written stack-trace parser, and redaction of secrets), how the wrapper sends its report after the response has already gone back so the report never slows a request, and the `RangeError: Maximum call stack size exceeded` that 2.0.0 shipped with.
+<div class="hero-cta-row" style="margin: 1.5rem 0;">
+  <a href="https://github.com/triptechtravel/cloudflare-worker-rollbar" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
+  <a href="https://www.npmjs.com/package/@triptech/cloudflare-worker-rollbar" target="_blank" rel="noopener" class="btn btn-outline-primary btn-lg">Install from npm</a>
+</div>
+
+This post covers:
+
+- the 100-line first version, and the gist it started from;
+- the 2.0 rewrite's wrapper around the request handler, which reports after the response has gone back;
+- a hand-written stack-trace parser, in place of a library;
+- redacting secrets, and the `RangeError: Maximum call stack size exceeded` that 2.0.0 shipped with;
+- what each report says about itself, and what the package does and doesn't do.
 
 <!-- more -->
 
 ## From a gist to a package
+
+Triptech's production APIs run on Cloudflare Workers, and for a while the errors they threw went nowhere. Rollbar's official JavaScript library comes in a Node.js build and a browser build; a Worker is neither. The Worker runtime is a sandboxed JavaScript engine with `fetch` for making HTTP requests and not much else.
 
 The first commit, on 11 January 2024, was a single `src/index.ts` of about a hundred lines, adapted from [a gist by dukejones](https://gist.github.com/dukejones/d160a1b2051ff7c1a485bdcf966f1bcc). A `Rollbar` class took a token and an environment name as its two constructor arguments, exposed `error(error, description)` and `message(message, attributes)`, and did one thing well: build the JSON body that Rollbar's "item" endpoint expects and send it with `fetch` to `https://api.rollbar.com/api/1/item/`.
 

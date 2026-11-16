@@ -6,6 +6,7 @@ excerpt: "A Durable Object does one thing at a time with its own SQLite, which i
 image: /images/blog/durable-auth.jpg
 image_alt: Glowing fingerprint-like ridges in violet and cyan on a dark background
 date: 2026-10-19
+last_modified_at: 2026-11-16
 categories: [open-source]
 tags: [cloudflare, durable-objects, passkeys, webauthn, authentication, typescript, security, open-source, claude-code]
 ---
@@ -17,7 +18,7 @@ Zack Design's **[durable-auth](https://github.com/isaacrowntree/durable-auth)** 
   <a href="https://liftlog.zackdesign.biz" target="_blank" rel="noopener" class="btn btn-outline-primary btn-lg">Try it in Rampset</a>
 </div>
 
-This post covers why a Durable Object suits sign-in, the security decisions and the code behind each, how it's tested with real passkeys, and what it deliberately doesn't do.
+This post covers why a Durable Object suits sign-in, the security decisions and the code behind each, how it's tested with real passkeys, the code you write to use it, and what it deliberately doesn't do.
 
 <!-- more -->
 

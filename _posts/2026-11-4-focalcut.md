@@ -6,14 +6,25 @@ excerpt: "A festival shoot leaves hours of footage of people dancing, and a reel
 image: /images/blog/focalcut.jpg
 image_alt: A MilkDrop light-show frame, a green and red kaleidoscopic mandala on a dark teal ground, from focalcut's audio-reactive overlay
 date: 2026-11-04
-last_modified_at: 2026-11-04
+last_modified_at: 2026-11-16
 categories: [open-source, ai]
 tags: [video, video-editing, dance, recap-reel, beat-sync, premiere, davinci-resolve, opentimelineio, sam3, milkdrop, projectm, ffmpeg, claude-code, ai]
 ---
 
-Zack Design has published **[focalcut](https://github.com/isaacrowntree/focalcut)**, an MIT-licensed tool for cutting dance and event footage by who the camera is following. Point it at a folder of dance footage and it finds where the camera's attention moves from one dancer or couple to the next, then exports per-subject clips and a timeline for Premiere, DaVinci Resolve, Final Cut or Avid. Point it at a curated folder from a festival and it cuts **recap reels**. Each reel comes as a landscape and a portrait cut on the music's beats, told in acts, with velocity edits, motivated transitions, portrait reframing that follows a dancer, shake checks and an optional MilkDrop light show. Each comes with a Premiere XML so an editor can keep working, and a review page for choosing, banning and reframing shots.
+Zack Design's **[focalcut](https://github.com/isaacrowntree/focalcut)** is a tool for video editors that cuts dance and event footage by **who the camera is following**. Point it at a folder of dance footage and it finds where the camera's attention moves from one dancer or couple to the next, then exports per-subject clips and a timeline for Premiere, DaVinci Resolve, Final Cut or Avid. Point it at a curated folder from a festival and it cuts **recap reels** on the music's beats, in landscape and portrait, ready for an editor to finish. **The editor's picks always win.** **MIT licensed.**
 
-This week it cut seven reels from three shoots: landscape and portrait for an EDM festival and a Latin street festival, and three cuts for a salsa congress. This post covers how focalcut finds the subject, the editing rules it encodes and why each is its own piece of code, the one rule above all of them (**the editor's picks always win**), and four things that broke on real footage and how they were fixed.
+<div class="hero-cta-row" style="margin: 1.5rem 0;">
+  <a href="https://github.com/isaacrowntree/focalcut" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
+  <a href="https://isaacrowntree.com/focalcut/" target="_blank" rel="noopener" class="btn btn-outline-primary btn-lg">Documentation</a>
+</div>
+
+This post covers:
+
+- why a reel is hard to cut, and how a vision model reading contact sheets splits a library by subject;
+- the steps from a folder to a reel, and the editing rules it encodes, each its own piece of code;
+- the one rule above all of them: the editor's picks always win;
+- four things that broke on real footage and how they were fixed;
+- the light show, effects that target the subject, and how to run it yourself.
 
 <!-- more -->
 
@@ -40,6 +51,8 @@ focalcut export "/footage" -f fcp7                          # or edl, aaf, otio
 ```
 
 ## From a folder to a reel
+
+Each reel comes as a landscape and a portrait cut on the music's beats, told in acts, with velocity edits, motivated transitions, portrait reframing that follows a dancer, shake checks and an optional MilkDrop light show. Each comes with a Premiere XML so an editor can keep working, and a review page for choosing, banning and reframing shots. This week it cut seven reels from three shoots: landscape and portrait for an EDM festival and a Latin street festival, and three cuts for a salsa congress.
 
 `focalcut reel run` works through a chain of cached steps:
 

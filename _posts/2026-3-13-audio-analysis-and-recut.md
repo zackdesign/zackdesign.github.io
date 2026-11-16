@@ -6,14 +6,25 @@ excerpt: "A 275-line Python and FFmpeg tool that cross-correlates a phone record
 image: /images/blog/audio-analysis-and-recut.jpg
 image_alt: Close-up of a mixing console in a professional recording studio
 date: 2026-03-13
-last_modified_at: 2026-03-13
+last_modified_at: 2026-11-16
 categories: [open-source]
 tags: [audio, dsp, python, ffmpeg, cross-correlation, open-source]
 ---
 
-Zack Design has published [`audio-analysis-and-recut`](https://github.com/isaacrowntree/audio-analysis-and-recut) — a single 275-line Python script plus FFmpeg that takes a 1 minute 56 second phone recording of a band playing "Ya Te Olvide" live, works out which five sections of the 4 minute 40 second studio original they played and in what order, and cuts those sections out of the studio track so you get the live arrangement at studio quality. The first version's joins were slightly wrong, because it handed FFmpeg the same file five times with a seek and a duration for each piece, and an MP3 can only be seeked to the nearest compressed frame; the fix was one input and FFmpeg's sample-accurate `atrim` filter.
+Zack Design's **[audio-analysis-and-recut](https://github.com/isaacrowntree/audio-analysis-and-recut)** is a single **275-line Python script**, plus FFmpeg, that rebuilds a band's live arrangement from the song's studio recording. Given a 1 minute 56 second phone recording of a band playing "Ya Te Olvide" live, it works out which five sections of the 4 minute 40 second studio original they played, and in what order. Then it cuts those sections out of the studio track, so you get **the live arrangement at studio quality**. The matching uses the fast Fourier transform and **no learned components**.
 
-This post walks through the matching: a filter that keeps only the 200 to 4,000 Hz range so the vocals dominate and the crowd does not, a sliding comparison of 5-second chunks against the whole original done with the fast Fourier transform and normalised by local loudness, grouping the matches into sections wherever the offset stays constant, the two-and-a-half-second boundary uncertainty that a 5-second window buys you and the two manual overrides it needed, and the FFmpeg filter graph that does the cut.
+<div class="hero-cta-row" style="margin: 1.5rem 0;">
+  <a href="https://github.com/isaacrowntree/audio-analysis-and-recut" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
+</div>
+
+This post covers:
+
+- why the two recordings differ, and why dancers need the recut;
+- a filter that keeps only the 200 to 4,000 Hz range, so the vocals dominate and the crowd does not;
+- a sliding comparison of 5-second chunks against the whole original, done with the fast Fourier transform and normalised by local loudness;
+- grouping the matches into sections wherever the offset stays constant;
+- the two-and-a-half-second boundary uncertainty that a 5-second window buys you, and the two manual overrides it needed;
+- why the first version's joins were slightly wrong (an MP3 can only be seeked to the nearest compressed frame), and the one-input FFmpeg filter graph, using the sample-accurate `atrim` filter, that fixed them.
 
 <!-- more -->
 

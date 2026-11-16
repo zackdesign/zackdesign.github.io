@@ -6,12 +6,16 @@ excerpt: "A Redux coding dojo built around tic-tac-toe — every step is a commi
 image: /images/blog/tic-tac-toe-redux-dojo.jpg
 image_alt: Chess pieces arranged on a board — strategic state, one move at a time
 date: 2017-05-11
-last_modified_at: 2017-05-11
+last_modified_at: 2026-11-16
 categories: [open-source]
 tags: [redux, react, javascript, coding-dojo, open-source, teaching]
 ---
 
 Teaching Redux with a todo list produces blank faces: nobody can feel why a todo needs a reducer. Redux is a JavaScript library that keeps an application's whole state in one object and changes it only by running one function, the reducer, over a log of actions. Tic-tac-toe is nine cells, two players, one rule for "has someone won" and an obvious history, and it fits on a whiteboard. [tic-tac-toe-redux-dojo](https://github.com/isaacrowntree/tic-tac-toe-redux-dojo) is a workshop built on that game, where every step is a git commit and the finale is watching a finished game replay itself backwards, one move at a time.
+
+<div class="hero-cta-row" style="margin: 1.5rem 0;">
+  <a href="https://github.com/isaacrowntree/tic-tac-toe-redux-dojo" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
+</div>
 
 This post covers how the one-commit-per-step format runs in a room, the four stages the code moves through, and the moment where Redux stops feeling like ceremony.
 

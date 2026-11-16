@@ -6,6 +6,7 @@ excerpt: "Tap a pin in a dense pack on iOS and you get its neighbour. On Android
 image: /images/blog/marker-hit-regions.jpg
 image_alt: Three map pins side by side — the silhouette the user sees, the rectangular frame MapKit hit-tests, and the offset region Google Maps hit-tests above the bitmap
 date: 2026-09-18
+last_modified_at: 2026-11-16
 categories: [engineering]
 tags: [react-native, react-native-maps, mapkit, google-maps, mapbox, fabric, hit-testing, testing, xctest, robolectric, playwright, campermate]
 consulting: true
@@ -13,7 +14,16 @@ consulting: true
 
 [CamperMate](https://campermate.com) is a map. Its users are looking for a campsite in a pack of forty pins around Queenstown, and the whole product is the tap that opens the right one. From the first React Native build, that tap was wrong in a way we could describe but not explain: on iOS, in a dense pack, the pin you got was the one next to the one you touched. On Android it was the one underneath. On the website, on Mapbox, a finger in the empty corner beside one pin's pointer opened a different pin whose head was under that corner. We had followed the documentation for `react-native-maps`, for MapKit, for the Google Maps SDK and for Mapbox GL. None of it was wrong exactly. None of it described what the SDK hit-tests.
 
-We had lived with it for a year. What changed was that we started using Claude Fable 5.1 on the codebase and had it read the SDK sources instead of the docs, and then build something we had never had: a test rig on each platform that puts real fingers on real pins and reads the pixels back to see what actually happened. That rig is the story. Our own theories about the bug were wrong twice, and it was the rig, not the reasoning, that said so. Along the way it gave us a tap rule in JavaScript that decides against the pin as drawn and in the order it is painted, three bugs in `react-native-maps` on the new architecture, an Android tap that the app now hears about 22 ms after the finger lifts instead of 649 ms, and, when the same rule was ported to the website's Mapbox map, a warning that our port had got draw order wrong while every test passed.
+We had lived with it for a year. What changed was that we started using Claude Fable 5.1 on the codebase and had it read the SDK sources instead of the docs, and then build something we had never had: a test rig on each platform that puts real fingers on real pins and reads the pixels back to see what actually happened. That rig is the story. Our own theories about the bug were wrong twice, and it was the rig, not the reasoning, that said so.
+
+This post covers:
+
+- the question the SDKs do not answer, and a tap rule in JavaScript that decides against the pin as drawn and in the order it is painted;
+- why the first version made it worse;
+- the test rig, and what the screen showed in dense packs with real data;
+- three bugs in `react-native-maps` on the new architecture, and an Android tap that now reaches the app in 22 ms instead of 649 ms;
+- the website's Mapbox map, where the same rule, once ported, came with a warning that our port had got draw order wrong while every test passed;
+- whether this would have been easier without React Native, and what we would tell someone starting this.
 
 <!-- more -->
 

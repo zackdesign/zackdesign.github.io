@@ -6,20 +6,33 @@ excerpt: "A Go CLI for Slack generated from Slack's own OpenAPI spec — 174 typ
 image: /images/blog/slackbuzz-cli.jpg
 image_alt: The Slack mark beside a terminal window running slackbuzz inbox, slackbuzz reply, and slackbuzz status
 date: 2026-02-03
-last_modified_at: 2026-02-03
+last_modified_at: 2026-11-16
 categories: [open-source]
 tags: [go, cli, slack, developer-tools, ai-agents, open-source]
 ---
 
-The companion piece to [clickup-cli](/clickup-cli/) — [`slackbuzz-cli`](https://github.com/triptechtravel/slackbuzz-cli) is a [Triptech Travel](https://github.com/triptechtravel) open-source project, authored and released by Isaac Rowntree in his Triptech engineering capacity and cross-posted here on the Zack Design blog. It is a command-line Slack client, written in Go: it reads your mentions, replies to threads, uploads files, sets your status and searches the workspace from a shell. On 9 May 2026 version 0.11.0 replaced the third-party `slack-go` library with a client generated from Slack's published OpenAPI spec (the machine-readable description of Slack's HTTP API) — 174 methods, 70 files, 41,621 lines added — and `slackbuzz file upload` broke the same day, because Slack had switched off the old `files.upload` method and every fresh request now returned `method_deprecated`.
+Triptech's **[slackbuzz-cli](https://github.com/triptechtravel/slackbuzz-cli)** is a command-line Slack client, written in Go, and the companion piece to [clickup-cli](/clickup-cli/). It reads your mentions, replies to threads, uploads files, sets your status and searches the workspace **from a shell**, and every list and view command can print JSON, which is what makes it usable by AI coding agents such as Claude Code. Since version 0.11.0 its Slack client is **generated from Slack's own published spec**. It is a [Triptech Travel](https://github.com/triptechtravel) open-source project, authored and released by Isaac Rowntree in his Triptech engineering capacity and cross-posted here on the Zack Design blog. **MIT licensed.**
 
-This post covers the mechanisms worth stealing: how each command picks between the two kinds of Slack token (and why a direct message to yourself has to go out as the bot), the two holes in Slack's own spec that the generator has to patch, an app permission list derived by reading the source code for `slackapi.<Method>()` calls so the permissions can never drift from the code, the three-step upload flow that replaced the one Slack removed, and the outgoing-text clean-up that `message edit` skipped for a month.
+<div class="hero-cta-row" style="margin: 1.5rem 0;">
+  <a href="https://github.com/triptechtravel/slackbuzz-cli" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
+  <a href="https://triptechtravel.github.io/slackbuzz-cli/" target="_blank" rel="noopener" class="btn btn-outline-primary btn-lg">Documentation</a>
+</div>
+
+This post covers:
+
+- how each command picks between the two kinds of Slack token, and why a direct message to yourself has to go out as the bot;
+- generating the client from Slack's spec, and patching the two holes in it;
+- an app permission list derived by reading the source code for `slackapi.<Method>()` calls, so the permissions can never drift from the code;
+- the three-step upload flow that replaced the one Slack removed;
+- the outgoing-text clean-up that `message edit` skipped for a month, and what a typical morning with it looks like.
 
 <!-- more -->
 
 ## Why yet another Slack client
 
 The Slack desktop app takes over the whole screen and the whole of your attention. A terminal client flips the relationship: Slack comes to you when you choose to check it, in the shell you are already in, with output you can pipe into `jq` (the standard JSON filter), `grep` and `fzf` (a fuzzy picker). Every list and view command takes `--json`, `--jq` and `--template`, which is what makes it usable by Claude Code, Copilot and Cursor.
+
+On 9 May 2026 version 0.11.0 replaced the third-party `slack-go` library with a client generated from Slack's published OpenAPI spec (the machine-readable description of Slack's HTTP API) — 174 methods, 70 files, 41,621 lines added — and `slackbuzz file upload` broke the same day, because Slack had switched off the old `files.upload` method and every fresh request now returned `method_deprecated`.
 
 ## Two kinds of token, chosen per command
 

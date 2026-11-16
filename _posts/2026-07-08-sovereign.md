@@ -6,18 +6,33 @@ excerpt: "One holding had run to 41.6% of my Interactive Brokers account. Sovere
 image: /images/blog/sovereign.jpg
 image_alt: A compass resting on a map — steering a portfolio by a set heading rather than by hand
 date: 2026-07-08
-last_modified_at: 2026-07-08
+last_modified_at: 2026-11-16
 categories: [open-source]
 tags: [ibkr, trading, typescript, portfolio, quant, risk, backtesting, interactive-brokers, open-source, claude-code, bezant]
 ---
 
-Zack Design has published [**Sovereign**](https://github.com/isaacrowntree/sovereign-ibkr-fund), an open-source portfolio manager for Interactive Brokers (IBKR), built on [bezant](https://github.com/isaacrowntree/bezant). The reason it exists is one number: a single holding had grown to **41.6% of my whole account**, and trimming it by hand meant placing real orders late at night, in US dollars, on a cash account (one that cannot borrow) whose base currency is Australian dollars. Sovereign is nine TypeScript programs, each with one job, that hold a target mix of holdings, notice when the real mix has drifted from it, work out the smallest trades that bring it back, and place them through bezant. The same inputs always produce the same trades, and 509 test cases across 40 files pin down the ways that can go wrong.
+Zack Design's **[Sovereign](https://github.com/isaacrowntree/sovereign-ibkr-fund)** is an open-source portfolio manager for Interactive Brokers (IBKR) accounts, built on [bezant](https://github.com/isaacrowntree/bezant). It exists because one holding had grown to **41.6% of my whole account**. Sovereign is nine TypeScript programs, each with one job, that hold a target mix of holdings, notice when the real mix has drifted from it, work out the smallest trades that bring it back, and place them through bezant. **The same inputs always produce the same trades**, and 509 test cases across 40 files pin down the ways that can go wrong. **Dual-licensed Apache-2.0 or MIT.**
+
+<div class="hero-cta-row" style="margin: 1.5rem 0;">
+  <a href="https://github.com/isaacrowntree/sovereign-ibkr-fund" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
+  <a href="https://github.com/isaacrowntree/bezant" target="_blank" rel="noopener" class="btn btn-outline-primary btn-lg">bezant on GitHub</a>
+</div>
+
+This post covers:
+
+- why it exists, and the nine agents, none of which calls a language model;
+- the executor's rule that one small probe order must fill before it trusts the connection with a batch, and why that probe is removed from the queue by object reference rather than by position;
+- the three caps in absolute dollars that sit outside the order-sizing maths;
+- the three bugs found by the pre-launch **risk register**, a written review of every way the executor could lose money: net asset value (the account's total worth, "NAV" from here on) read in the wrong currency and counted twice, a confirmation timeout that could place the same trade twice, and a tax-lot matcher that paired sales with purchases by record and ignored how many shares each held;
+- reconciling fills against IBKR's records, running it under any scheduler, keeping your real portfolio out of git, and its status.
 
 <!-- more -->
 
 **Source:** [github.com/isaacrowntree/sovereign-ibkr-fund](https://github.com/isaacrowntree/sovereign-ibkr-fund) (Apache-2.0 OR MIT) · Built on **[bezant](https://github.com/isaacrowntree/bezant)**
 
-This post covers the executor's rule that one small probe order must fill before it trusts the connection with a batch, and why that probe is removed from the queue by object reference rather than by position; the three caps in absolute dollars that sit outside the order-sizing maths; and the three bugs found by the pre-launch risk register, a written review of every way the executor could lose money: net asset value (the account's total worth, "NAV" from here on) read in the wrong currency and counted twice, a confirmation timeout that could place the same trade twice, and a tax-lot matcher that paired sales with purchases by record and ignored how many shares each held. All three are fixed in v0.1.0; the register that found them ships in `docs/execution-risk-register.md`.
+## Why it exists
+
+A single holding had grown to **41.6% of my whole account**, and trimming it by hand meant placing real orders late at night, in US dollars, on a cash account (one that cannot borrow) whose base currency is Australian dollars. Sovereign does that trimming on written rules instead.
 
 ## Nine agents and not one language-model call
 
@@ -77,6 +92,8 @@ Order sizes are worked out as a percentage of NAV. If the NAV is garbage, the pe
 In front of that, `navSanityViolation` and `priceSanityViolations` refuse to size anything when the numbers look impossible: a NAV of zero or less, a NAV below a floor, a NAV that has moved more than a configured percentage since the last cycle, or a price that has jumped more than a configured percentage. The strategist logs, alerts and gives up rather than generating orders against a NAV that reads zero or a price that reads a hundred times too low. On top of that, loss thresholds first reduce exposure and then stop trading altogether, and everything stateful lives in `STATE_DIR`, outside the checkout, so a deploy cannot overwrite the ledger.
 
 ## The NAV was in the wrong currency
+
+The pre-launch risk register found three bugs, described in this and the next two sections. All three are fixed in v0.1.0; the register that found them ships in `docs/execution-risk-register.md`.
 
 The risk register is a review of the executor against the live account before unpausing it, and its first finding was a units error. The account is held with Interactive Brokers Australia, with Australian dollars as its base currency. The API's `/summary` endpoint reports `totalcashvalue` and `netliquidation` in the base currency, so the cash check was comparing US-dollar purchase costs against Australian-dollar cash, and the strategist was sizing US shares as a fraction of a NAV stated in Australian dollars.
 

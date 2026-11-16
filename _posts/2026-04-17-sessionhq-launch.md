@@ -6,14 +6,25 @@ excerpt: "Our multi-tenant check-in platform is live at Havana on the Hastings â
 image: /images/blog/sessionhq-launch.jpg
 image_alt: Studio operator checking members in with the SessionHQ platform
 date: 2026-04-17
-last_modified_at: 2026-04-17
+last_modified_at: 2026-11-16
 categories: [product]
 tags: [sessionhq, saas, nextjs, supabase, cloudflare, square, product-launch]
 ---
 
-Nine weeks and 283 commits after the first scaffold on 12 February, **[SessionHQ](https://sessionhq.org)** is running the front desk at [Havana on the Hastings](https://www.havanahastingsdance.com.au/) in Port Macquarie: a member walks in, types a PIN, taps a wristband on the tablet or scans a QR code with their phone, one class is deducted from their pass, and the admin's live feed updates. It is Zack Design's own product, built for many studios on one database from the first migration, and at launch it carries 888 unit tests and 107 browser tests (written with Playwright, which drives a real browser) across 22 spec files.
+Zack Design's **[SessionHQ](https://sessionhq.org)** is a check-in and payments platform for dance studios, gyms and martial arts schools, built for **many studios on one database** from the first migration. A member walks in, types a PIN, taps a wristband on the tablet or scans a QR code with their phone; one class is deducted from their pass, and the admin's live feed updates. Nine weeks and **283 commits** after the first scaffold on 12 February, it is running the front desk at [Havana on the Hastings](https://www.havanahastingsdance.com.au/) in Port Macquarie, with **888 unit tests** behind it.
 
-This post covers how the studio's identity is carried inside each user's sign-in token so that Postgres enforces the separation between studios without trusting application code, the nightly job that renews passes and charges cards on file, how tap-to-check-in and card payments work from a plain web page, and four bugs that only showed up on a real tablet at a real front desk: Android Chrome refusing to read Supabase timestamps, a sign-in cookie Android could not read, a Square library returning numbers JSON cannot encode, and a Workers promise that was cancelled before it ran.
+<div class="hero-cta-row" style="margin: 1.5rem 0;">
+  <a href="https://sessionhq.org" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Visit SessionHQ</a>
+</div>
+
+This post covers:
+
+- what SessionHQ does at the door, on the member's phone and in the admin;
+- how each studio's identity is carried inside the sign-in token, so that Postgres keeps studios apart without trusting application code;
+- the nightly job that renews passes and charges cards on file;
+- tap-to-check-in and card payments from a plain web page;
+- four bugs that only showed up on a real tablet at a real front desk;
+- what else is in from day one, why we built it, our founding partner, and what's next.
 
 <!-- more -->
 
@@ -25,6 +36,8 @@ Small studios run on spreadsheets, paper sign-in sheets and a payments app that 
 - **Passes just work.** Class packs, casual rates and unlimited passes; `apply_pass_to_checkin` deducts one class at check-in time, and the nightly `pass-renewals` job charges the saved card when a pack runs out.
 - **Payments where the student is.** Square's Web Payments SDK turns the card details into a one-time token inside the browser; our API only ever sees that token (`source_id`) or a stored card reference (`square_card_id`), never the card number.
 - **Admins see the truth.** Tonight's attendance, revenue, unpaid check-ins and pass status reports.
+
+At launch it carries 888 unit tests and 107 browser tests (written with Playwright, which drives a real browser) across 22 spec files.
 
 ## Each studio's identity travels inside the sign-in token
 

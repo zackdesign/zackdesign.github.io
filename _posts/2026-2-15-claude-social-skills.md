@@ -6,18 +6,30 @@ excerpt: "The first version was three Python plugins that mostly agreed with the
 image: /images/blog/claude-social-skills.jpg
 image_alt: Smartphone screen displaying a folder of social media apps
 date: 2026-02-15
-last_modified_at: 2026-09-18
+last_modified_at: 2026-11-16
 categories: [open-source, ai]
 tags: [claude-code, plugins, social-media, email, ebay, bun, typescript, openapi, open-source]
 ---
 
-Zack Design has published version 2 of [`claude-social-skills`](https://github.com/isaacrowntree/claude-social-skills): one command, `social`, that talks to X, Bluesky, Mastodon, Reddit, Facebook, Instagram, Threads, YouTube, eBay and your mail, with one Claude Code skill per platform. It runs directly on [Bun](https://bun.sh) with no build step, and where a platform publishes a machine-readable description of its API the tool is generated from it and pinned, so the day the API changes is the day the build fails. **MIT licensed.**
+Zack Design's **[`claude-social-skills`](https://github.com/isaacrowntree/claude-social-skills)** is one command, `social`, that talks to X, Bluesky, Mastodon, Reddit, Facebook, Instagram, Threads, YouTube, eBay and your mail, with **one Claude Code skill per platform**. This is version 2. It runs directly on [Bun](https://bun.sh) with no build step. Where a platform publishes a machine-readable description of its API, the tool is **generated from it and pinned**, so the day the API changes is the day the build fails. **MIT licensed.**
 
-The first version, in February, was three Python plugins: four social scripts, an eBay lister, and a prompt-only email skill. They worked the day they were written. By September the eBay category commands were calling endpoints eBay had retired, the Facebook scripts were two Graph versions behind, and the email skill documented eight flags the installed mail client no longer accepted. Nothing had told us. This post is about the rebuild, and about what happens when you point a tool at the real servers instead of the docs.
+<div class="hero-cta-row" style="margin: 1.5rem 0;">
+  <a href="https://github.com/isaacrowntree/claude-social-skills" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
+</div>
+
+This post covers:
+
+- why version 1 needed rebuilding;
+- the shape: one command, one HTTP layer, and one generic call that reaches every platform;
+- generating four of the platforms from what they publish;
+- what the live servers said, from five retired eBay calls to eight mail-client flags that no longer exist, and what was not verified;
+- setup, and what I would tell someone starting this.
 
 <!-- more -->
 
-**Source → [github.com/isaacrowntree/claude-social-skills](https://github.com/isaacrowntree/claude-social-skills)** (MIT)
+## Version 1 drifted from the platforms
+
+The first version, in February, was three Python plugins: four social scripts, an eBay lister, and a prompt-only email skill. They worked the day they were written. By September the eBay category commands were calling endpoints eBay had retired, the Facebook scripts were two Graph versions behind, and the email skill documented eight flags the installed mail client no longer accepted. Nothing had told us. This post is about the rebuild, and about what happens when you point a tool at the real servers instead of the docs.
 
 ## One command, one HTTP layer, one escape hatch
 

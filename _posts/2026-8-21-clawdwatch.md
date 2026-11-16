@@ -6,18 +6,28 @@ excerpt: "The previous version of this monitor alerted once on day one of a mult
 image: /images/blog/clawdwatch.jpg
 image_alt: A strip of uptime ticks, one per check run, mostly cyan and broken by a red run of failures bracketed with "OPENED · 35m · RECOVERED"
 date: 2026-08-21
-last_modified_at: 2026-08-21
+last_modified_at: 2026-11-16
 categories: [open-source]
 tags: [cloudflare, workers, d1, monitoring, typescript, ai-agents, security, open-source]
 ---
 
-[`clawdwatch`](https://github.com/triptechtravel/clawdwatch) is a [Triptech Travel](https://github.com/triptechtravel) open-source project — authored and released by Isaac Rowntree in his Triptech engineering capacity, and cross-posted here on the Zack Design blog, alongside [clickup-cli](/clickup-cli/) and [slackbuzz-cli](/slackbuzz-cli/). It is an uptime monitor that requests your endpoints on a schedule, and it runs entirely inside a single Cloudflare Worker (a small program on Cloudflare's servers): a timer runs the checks, a state machine with no hidden inputs decides when something is genuinely broken, and the result goes to Slack, a signed webhook, a direct call to another Worker, or an AI agent. The version it replaces alerted exactly once on a multi-day outage and then went silent while still down. This one is 3,840 lines of production TypeScript with 3,801 lines of tests beside it — 271 unit tests and 40 more against a real database in workerd, the open-source runtime that Workers run on. **MIT licensed.**
+Triptech's **[clawdwatch](https://github.com/triptechtravel/clawdwatch)** is an uptime monitor that requests your endpoints on a schedule, and it runs entirely inside a **single Cloudflare Worker** (a small program on Cloudflare's servers). A timer runs the checks, a state machine with no hidden inputs decides when something is **genuinely broken**, and the result goes to Slack, a signed webhook, a direct call to another Worker, or **an AI agent**. It is a [Triptech Travel](https://github.com/triptechtravel) open-source project, authored and released by Isaac Rowntree in his Triptech engineering capacity and cross-posted here on the Zack Design blog, alongside [clickup-cli](/clickup-cli/) and [slackbuzz-cli](/slackbuzz-cli/). **MIT licensed.**
 
-This post walks through what the v3 rewrite changed and why: the "still unhealthy" transition the old state machine could not express, why three storage systems became one (the rewrite commit deleted 2,386 lines), how a secret can be referred to by name in a database anyone with the dashboard can edit without its value ever landing in a row, why a failing response body is scrubbed of secrets *before* it is cut short, the test that keeps the API document an agent reads in step with the routes that exist, and the thing the docs claim about signed action links that the code does not yet do.
+<div class="hero-cta-row" style="margin: 1.5rem 0;">
+  <a href="https://github.com/triptechtravel/clawdwatch" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
+  <a href="https://triptechtravel.github.io/clawdwatch/" target="_blank" rel="noopener" class="btn btn-outline-primary btn-lg">Documentation</a>
+</div>
+
+This post covers what the v3 rewrite changed and why:
+
+- where an AI model is allowed into monitoring, and where it is not;
+- the "still unhealthy" transition the old state machine could not express;
+- why three storage systems became one (the rewrite commit deleted 2,386 lines);
+- how a secret can be referred to by name in a database anyone with the dashboard can edit without its value ever landing in a row, and why a failing response body is scrubbed of secrets *before* it is cut short;
+- handing an incident to an agent: the test that keeps the API document it reads in step with the routes that exist, and the thing the docs claim about signed action links that the code does not yet do;
+- verifying logins that arrive through Cloudflare Access, getting it running, and what it cost.
 
 <!-- more -->
-
-**Source → [github.com/triptechtravel/clawdwatch](https://github.com/triptechtravel/clawdwatch)** · **Docs → [triptechtravel.github.io/clawdwatch](https://triptechtravel.github.io/clawdwatch/)**
 
 ## Where the model is allowed, and where it is not
 
@@ -26,6 +36,8 @@ There is an obvious version of an AI-era monitoring tool where a model looks at 
 Everything below is either "make the detection boring and trustworthy" or "make the handoff useful."
 
 ## The state machine could not say "still down"
+
+The version it replaces alerted exactly once on a multi-day outage and then went silent while still down. This one is 3,840 lines of production TypeScript with 3,801 lines of tests beside it — 271 unit tests and 40 more against a real database in workerd, the open-source runtime that Workers run on.
 
 The transition function is 118 lines in `src/engine/transition.ts`, and its signature is the design:
 

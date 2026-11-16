@@ -6,18 +6,31 @@ excerpt: "A Go CLI for ClickUp that reads the task ID off your git branch, links
 image: /images/blog/clickup-cli.jpg
 image_alt: The ClickUp mark beside a terminal window running clickup task view, clickup link pr, and clickup status set "review"
 date: 2026-02-03
-last_modified_at: 2026-09-18
+last_modified_at: 2026-11-16
 categories: [open-source]
 tags: [go, cli, clickup, github, ai-agents, cobra, open-source]
 ---
 
-[`clickup-cli`](https://github.com/triptechtravel/clickup-cli) is a [Triptech Travel](https://github.com/triptechtravel) open-source project — authored and released by Isaac Rowntree in his Triptech engineering capacity, cross-posted here on the Zack Design blog. It is a command-line tool, written in Go, for ClickUp, the project-management web app Triptech tracks its work in. It shipped on 3 February 2026 as 69 Go files and 6,663 lines whose whole job was to read a ClickUp task ID out of the name of the current git branch, so that `clickup task view`, `clickup status set "review"` and `clickup link pr` need no arguments. It is the most-starred thing released under the Triptech org to date — sixteen stars when this was written, and thirty-six by August 2026, which for a workflow tool nobody marketed is a quietly pleasing result.
+Triptech Travel's **[`clickup-cli`](https://github.com/triptechtravel/clickup-cli)** is a command-line tool, written in Go, for ClickUp, the project-management web app Triptech tracks its work in. It reads the **ClickUp task ID from the name of your git branch**, so `clickup task view`, `clickup status set "review"` and `clickup link pr` need no arguments. It keeps a **local search index**, because ClickUp's own search parameter is silently ignored. Isaac Rowntree wrote and released it as part of his engineering work at [Triptech Travel](https://github.com/triptechtravel); it is cross-posted here on the Zack Design blog. **MIT licensed.**
 
-This post walks through the parts that took real work: the pattern that pulls a task ID out of a branch name and the list of words it must ignore, the three-stage matcher that turns "review" into the right status name, the discovery that ClickUp's `search=` parameter is accepted and ignored (and the local index, built in 38 seconds, that replaced paging through the API), a JSON field that is a number until someone logs time and then becomes a string, and a retry policy that refuses to repeat a request that creates things.
+<div class="hero-cta-row" style="margin: 1.5rem 0;">
+  <a href="https://github.com/triptechtravel/clickup-cli" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
+  <a href="https://triptechtravel.github.io/clickup-cli" target="_blank" rel="noopener" class="btn btn-outline-primary btn-lg">Documentation</a>
+</div>
+
+This post covers:
+
+- the pattern that pulls a task ID out of a branch name, and the list of words it must ignore;
+- the three-stage matcher that turns "review" into the right status name;
+- ClickUp's `search=` parameter, which is accepted and ignored, and the local index, built in 38 seconds, that replaced paging through the API;
+- a JSON field that is a number until someone logs time and then becomes a string, and a retry policy that refuses to repeat a request that creates things;
+- a typical day with it, why Go, and what was learned.
 
 <!-- more -->
 
 ## Reading the task ID from the branch name
+
+The CLI shipped on 3 February 2026 as 69 Go files and 6,663 lines whose whole job was to read a ClickUp task ID out of the name of the current git branch, so that `clickup task view`, `clickup status set "review"` and `clickup link pr` need no arguments. It is the most-starred thing released under the Triptech org to date — sixteen stars when this was written, and thirty-six by August 2026, which for a workflow tool nobody marketed is a quietly pleasing result.
 
 The web app does not know what branch you are on, so you retype the same task ID hundreds of times a week. The CLI reads it from `git rev-parse --abbrev-ref HEAD` and matches it with two regular expressions in `internal/git/taskid.go`:
 

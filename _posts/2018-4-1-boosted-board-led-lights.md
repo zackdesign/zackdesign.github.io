@@ -6,14 +6,23 @@ excerpt: "An Arduino Uno, an accelerometer and 30 addressable LEDs under a Boost
 image: /images/blog/boosted-board-led-lights.jpg
 image_alt: Skater riding a longboard on an asphalt ramp in golden light
 date: 2018-04-01
-last_modified_at: 2018-04-01
+last_modified_at: 2026-11-16
 categories: [engineering]
 tags: [arduino, hardware, led, fastled, electric-skateboard, hobby-project]
 ---
 
-An electric skateboard at dusk is fast, silent and invisible, and the rider behind you has no way to know you are slowing down. This build puts an Arduino Uno (a small hobbyist microcontroller board), an accelerometer that senses motion on three axes, and a metre of individually addressable colour LEDs under a [Boosted board](https://en.wikipedia.org/wiki/Boosted_(company)): a sweeping light pattern for visibility, and a red brake light that comes on when the board measures itself slowing down, rather than when a switch is pressed. Source is on [GitHub](https://github.com/isaacrowntree/boosted-board-led-lights).
+An electric skateboard at dusk is fast, silent and invisible, and the rider behind you has no way to know you are slowing down. This build puts an Arduino Uno (a small hobbyist microcontroller board), an accelerometer that senses motion on three axes, and a metre of individually addressable colour LEDs under a [Boosted board](https://en.wikipedia.org/wiki/Boosted_(company)): a **sweeping light pattern** for visibility, and a **red brake light** that comes on when the board measures itself slowing down, rather than when a switch is pressed. Source is on [GitHub](https://github.com/isaacrowntree/boosted-board-led-lights). **MIT licensed.**
 
-This post covers the parts and why each is there, the two cheap components that stop the Arduino rebooting itself, and the honest state of brake detection: it works in principle, and comparing one raw sensor reading against a threshold is not good enough on a real road.
+<div class="hero-cta-row" style="margin: 1.5rem 0;">
+  <a href="https://github.com/isaacrowntree/boosted-board-led-lights" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
+</div>
+
+This post covers:
+
+- the idea: a sweep for visibility, and a brake light driven by the board's own deceleration;
+- the parts and why each is there, including the two cheap components that stop the Arduino rebooting itself;
+- the honest state of brake detection: it works in principle, and comparing one raw sensor reading against a threshold is not good enough on a real road;
+- what's not done yet, and why publish it anyway.
 
 <!-- more -->
 

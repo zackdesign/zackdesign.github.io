@@ -6,18 +6,30 @@ excerpt: "A routine Dragonfly redeploy was taking down Sequin, the change-data-c
 image: /images/blog/taking-over-sequin.jpg
 image_alt: A long-exposure photograph of a river forcing its way through a channel of dark rock — the water never stops moving, finding a path around every obstruction
 date: 2026-07-01
-last_modified_at: 2026-07-01
+last_modified_at: 2026-11-16
 categories: [engineering]
 tags: [sequin, cdc, change-data-capture, postgres, elixir, redis, dragonfly, cloudflare-access, railway, open-source, campermate, typesense]
 ---
 
-[Sequin](https://github.com/sequinstream/sequin) is an open-source change-data-capture engine for Postgres, written in Elixir: it watches a database and streams every row change onward. It reads Postgres's own stream of changes (a logical replication slot) and sends every insert, update and delete to destinations such as Typesense (a search engine), webhooks, Kafka and SQS, with Elixir functions in the middle to transform or filter each row. I run it as the pipeline between the source Postgres database and the search index for [CamperMate](https://campermate.com), the free-camping and campground app across Australia and New Zealand ([iOS](https://apps.apple.com/app/campermate-australia-nz/id465040067) and [Android](https://play.google.com/store/apps/details?id=nz.co.campermate), over a million downloads). In March every consumer in that pipeline started stopping at once, with no deploy and no traffic change, and the only thing that cleared it was a restart. The trigger was a managed Dragonfly instance redeploying itself. The cause was three lines in a state machine.
+[Sequin](https://github.com/sequinstream/sequin) is an open-source change-data-capture engine for Postgres, written in Elixir: it watches a database and streams every row change onward. I run it as the pipeline between the source Postgres database and the search index for [CamperMate](https://campermate.com), the free-camping and campground app across Australia and New Zealand ([iOS](https://apps.apple.com/app/campermate-australia-nz/id465040067) and [Android](https://play.google.com/store/apps/details?id=nz.co.campermate), over a million downloads). In March every consumer in that pipeline started stopping at once, with no deploy and no traffic change, and only a restart cleared it. The trigger was a managed Dragonfly instance redeploying itself. The cause was three lines in a state machine.
+
+<div class="hero-cta-row" style="margin: 1.5rem 0;">
+  <a href="https://github.com/triptechtravel/sequin" target="_blank" rel="noopener" class="btn btn-primary btn-lg">The fork on GitHub</a>
+</div>
+
+This post covers adopting a dependency whose maintainer had gone:
+
+- what the crash actually was: `{:shutdown, :err_keeping_mutex}` is not a value a `GenStateMachine`, Elixir's state-machine process type, is allowed to return;
+- why a supervisor configured to restart all of its children when one dies turned one process's death into a total outage;
+- taking over the fork, and the fix and the second fix;
+- the firewall-rule test that passed in CI for the wrong reason;
+- the Cloudflare Access plug (a piece of request middleware) that now signs people into the fork's console without Sequin's own login form.
 
 <!-- more -->
 
-This is the story of adopting a dependency whose maintainer had gone: what the crash actually was (`{:shutdown, :err_keeping_mutex}` is not a value a `GenStateMachine`, Elixir's state-machine process type, is allowed to return), why a supervisor configured to restart all of its children when one dies turned one process's death into a total outage, the fix and the second fix, the firewall-rule test that passed in CI for the wrong reason, and the Cloudflare Access plug (a piece of request middleware) that now signs people into the fork's console without Sequin's own login form.
-
 ## What Sequin does for CamperMate
+
+Sequin reads Postgres's own stream of changes (a logical replication slot) and sends every insert, update and delete to destinations such as Typesense (a search engine), webhooks, Kafka and SQS, with Elixir functions in the middle to transform or filter each row.
 
 The source of truth is Postgres on [Neon](https://neon.tech). Search is [Typesense](https://typesense.org). A translation workflow and a change cache for the mobile app need to know when a row changes. Sequin reads the database's write-ahead log through a replication slot and fans each change out with retries and backfills, so the index and the database cannot disagree for long.
 

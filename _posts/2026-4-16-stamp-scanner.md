@@ -6,18 +6,31 @@ excerpt: "The first pipeline ran SAM 2.1 and took 69 seconds to find two stamps 
 image: /images/blog/stamp-scanner.jpg
 image_alt: Close-up of a vintage postage stamp collection through a magnifying glass
 date: 2026-04-16
-last_modified_at: 2026-04-16
+last_modified_at: 2026-11-16
 categories: [open-source, ai]
 tags: [swift, python, ios, mac, sam, vlm, philately, local-ai, open-source]
 ---
 
-Zack Design has published [`stamp-scanner`](https://github.com/isaacrowntree/stamp-scanner), a two-device workflow for cataloguing stamp collections. The iPhone is a tethered close-up scanner that fires only when the frame is still and sharp. The Mac runs SAM 3 — Meta's Segment Anything Model, which cuts the outline of every object out of a photo; here the 3.45 GB `facebook/sam3` checkpoint running on Apple's Metal GPU framework — to separate every stamp on a page, removes duplicate stamps with a perceptual hash (a short fingerprint of what an image looks like, so two photos of the same stamp get nearly the same fingerprint), straightens and white-balances each crop, and hands identification to Qwen3-VL, a local vision-language model that answers questions about an image, served by Ollama. The night before the first commit the pipeline was SAM 2.1-base and took 59 to 69 seconds per page to find two stamps; the worker log after the switch shows 27 stamps saved from one page in 18.3 seconds. Everything lands in one SQLite file (a database in a single file) that the SwiftUI app watches and that any other tool can open.
+Zack Design's **[stamp-scanner](https://github.com/isaacrowntree/stamp-scanner)** is a two-device workflow for cataloguing stamp collections. The iPhone is a close-up scanner that fires only when the frame is **still and sharp**. The Mac uses **SAM 3**, Meta's Segment Anything Model, to cut every stamp off a page, removes duplicates, straightens and white-balances each crop, and hands identification to a **local vision-language model**. Everything lands in **one SQLite file** that the Mac app watches, and no image leaves the Mac. **MIT licensed.**
 
-This post walks through the sharpness gate on the phone (a threshold of 350 on an edge-detail score, not an accelerometer), the SAM 3 text prompt and the mask filters that make it usable, the duplicate detection and why it keeps the higher-quality copy rather than the first one, the white balance that samples the stamp's own border, the Ollama behaviour that returns nothing at temperature 0, and the orientation model that was abandoned in favour of two buttons.
+<div class="hero-cta-row" style="margin: 1.5rem 0;">
+  <a href="https://github.com/isaacrowntree/stamp-scanner" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
+</div>
+
+This post covers:
+
+- how the iPhone, the Mac and the Python workers connect;
+- the sharpness gate on the phone: a threshold of 350 on an edge-detail score, not an accelerometer;
+- the SAM 3 text prompt, and the mask filters that make it usable;
+- duplicate detection that keeps the higher-quality copy rather than the first one, and white balance that samples the stamp's own border;
+- one SQLite file with two writers, and what the vision model is and is not good for: the Ollama behaviour that returns nothing at temperature 0, and the orientation model abandoned in favour of two buttons;
+- why two devices and why local, and the tests.
 
 <!-- more -->
 
 ## How the pieces connect
+
+The iPhone is a tethered close-up scanner. The Mac runs SAM 3 — Meta's Segment Anything Model, which cuts the outline of every object out of a photo; here the 3.45 GB `facebook/sam3` checkpoint running on Apple's Metal GPU framework — to separate every stamp on a page, removes duplicate stamps with a perceptual hash (a short fingerprint of what an image looks like, so two photos of the same stamp get nearly the same fingerprint), straightens and white-balances each crop, and hands identification to Qwen3-VL, a local vision-language model that answers questions about an image, served by Ollama. The night before the first commit the pipeline was SAM 2.1-base and took 59 to 69 seconds per page to find two stamps; the worker log after the switch shows 27 stamps saved from one page in 18.3 seconds. Everything lands in one SQLite file (a database in a single file) that the SwiftUI app watches and that any other tool can open.
 
 ```
 iPhone (ios-app/)                    Mac (mac-app/)                 Python (tools/)

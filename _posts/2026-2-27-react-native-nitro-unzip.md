@@ -6,17 +6,28 @@ excerpt: "A React Native ZIP library built on Nitro Modules — about 500 files 
 image: /images/blog/react-native-nitro-unzip.jpg
 image_alt: Android phone displaying app development tools on a desk
 date: 2026-02-27
-last_modified_at: 2026-02-27
+last_modified_at: 2026-11-16
 categories: [open-source]
 tags: [react-native, nitro, ios, android, typescript, performance, open-source]
 consulting: true
 ---
 
-Zack Design has published [`react-native-nitro-unzip`](https://github.com/isaacrowntree/react-native-nitro-unzip), a ZIP module for React Native built on [Nitro Modules](https://nitro.margelo.com/), a framework for writing the native half of a React Native library. On a 350 MB archive of 10,000 files it extracts about 500 files per second on iOS and 474 files per second on Android, with per-file progress and cancellation delivered through JSI, React Native's direct JavaScript-to-native interface, rather than the older message-passing bridge, which turns every event into a JSON string. Getting from the first commit to a version that built inside an app that used it took 28 commits and seven releases on the same day, and almost none of that was ZIP code.
+Zack Design's **[react-native-nitro-unzip](https://github.com/isaacrowntree/react-native-nitro-unzip)** is a ZIP module for React Native apps, built on [Nitro Modules](https://nitro.margelo.com/), a framework for writing the native half of a React Native library. On a 350 MB archive of 10,000 files it extracts about **500 files per second on iOS** and **474 on Android**. Per-file progress and cancellation reach JavaScript through **JSI**, React Native's direct JavaScript-to-native interface, rather than the older message-passing bridge, which turns every event into a JSON string. **MIT licensed.**
+
+<div class="hero-cta-row" style="margin: 1.5rem 0;">
+  <a href="https://github.com/isaacrowntree/react-native-nitro-unzip" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
+  <a href="https://isaacrowntree.github.io/react-native-nitro-unzip/" target="_blank" rel="noopener" class="btn btn-outline-primary btn-lg">Documentation</a>
+</div>
+
+This post covers:
+
+- the throughput numbers, and how far to trust them;
+- what the Nitro spec gives you for free;
+- the three Nitro 0.34 API changes and four Android build problems that ate the afternoon;
+- what `cancel()` actually does on each platform (they differ, and the iOS answer is weaker than I wanted);
+- what the password support is and is not at 0.2.4, and what is tested.
 
 <!-- more -->
-
-This post covers what the Nitro spec gives you for free, the three Nitro 0.34 API changes and four Android build problems that ate the afternoon, what `cancel()` actually does on each platform (they differ, and the iOS answer is weaker than I wanted), and what the password support is and is not at 0.2.4.
 
 ## The numbers
 
@@ -57,6 +68,8 @@ console.log(`Extracted ${result.extractedFiles} files in ${result.duration}ms`);
 ```
 
 ## Seven releases in one afternoon
+
+Getting from the first commit to a version that built inside an app that used it took 28 commits and seven releases on the same day, and almost none of that was ZIP code.
 
 The module was written against Nitro's older examples. Nitro 0.34 had moved on, and each release fixed the next thing the app using the module hit.
 

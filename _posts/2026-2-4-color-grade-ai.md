@@ -6,14 +6,26 @@ excerpt: "A Claude Code skill that measures a video frame and fits a .cube 3D LU
 image: /images/blog/color-grade-ai.jpg
 image_alt: Cinema camera with a large lens in a professional production setting
 date: 2026-02-04
-last_modified_at: 2026-09-18
+last_modified_at: 2026-11-16
 categories: [open-source, ai]
 tags: [video, color-grading, lut, davinci-resolve, premiere, claude-code, ai]
 ---
 
-Zack Design has published [`color-grade-ai`](https://github.com/isaacrowntree/color-grade-ai) — a Claude Code skill that takes one video frame, measures what is wrong with its colour, and writes a correction as a LUT (a look-up table: a file that says, for every input colour, what output colour to show) in the `.cube` text format that DaVinci Resolve, Adobe Premiere Pro and `ffmpeg -vf lut3d` all load. From the day `auto_grade.py` landed in April until August, the headline command told you to warm up a scene that was already too warm. The analyser reports a gain per colour channel, computed as green's average divided by that channel's average, so a gain below 1 means the channel is already too strong. The code read it the other way round. A synthetic warm cast measured a red gain of 0.800 and a blue gain of 1.391 and was told to apply `warm_shift`. Nobody noticed because the summary loop crashed with a `KeyError` on any frame that had a cast, after printing the report.
+Zack Design's **[color-grade-ai](https://github.com/isaacrowntree/color-grade-ai)** is a Claude Code skill for colour-correcting video. It takes one video frame, measures what is wrong with its colour, and writes a correction as a **LUT** (a look-up table: a file that says, for every input colour, what output colour to show) in the `.cube` text format that DaVinci Resolve, Adobe Premiere Pro and `ffmpeg -vf lut3d` all load. The measuring uses **classical colour science and no machine learning**, and an **eleven-defect evaluation set** now scores every change. **MIT licensed.**
 
-This post covers what the analyser measures at each step of the correction chain, why tone curves moved from HSL lightness to true luminance (14 of the 27 shipped LUTs changed, and saturated colours moved by up to 0.37 on a 0-to-1 scale), the solver that re-measures after each candidate correction and the eleven-defect evaluation set that scores it (81% of each defect removed on average, 60% in the worst case), the two ways real footage broke it, and the honest list of what a preset can and cannot fix.
+<div class="hero-cta-row" style="margin: 1.5rem 0;">
+  <a href="https://github.com/isaacrowntree/color-grade-ai" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
+  <a href="https://isaacrowntree.github.io/color-grade-ai" target="_blank" rel="noopener" class="btn btn-outline-primary btn-lg">Documentation</a>
+</div>
+
+This post covers:
+
+- what the analyser measures at each step of the correction chain;
+- the four months its white-balance advice was backwards;
+- why tone curves moved from HSL lightness to true luminance (14 of the 27 shipped LUTs changed, and saturated colours moved by up to 0.37 on a 0-to-1 scale);
+- the solver that re-measures after each candidate correction, and the eleven-defect evaluation set that scores it (81% of each defect removed on average, 60% in the worst case);
+- the two ways real footage broke it;
+- the interactive preview, installing it as a Claude Code skill, and what was learned.
 
 <!-- more -->
 
@@ -39,6 +51,8 @@ ruby generate_chain_lut.rb studio_balanced.cube \
 The `@0.8` suffix is each node's strength, and the chain is baked into one `.cube` that loads as a single LUT in any editor.
 
 ## The white-balance advice was backwards
+
+From the day `auto_grade.py` landed in April until August, the headline command told you to warm up a scene that was already too warm. The analyser reports a gain per colour channel, computed as green's average divided by that channel's average, so a gain below 1 means the channel is already too strong. The code read it the other way round. A synthetic warm cast measured a red gain of 0.800 and a blue gain of 1.391 and was told to apply `warm_shift`. Nobody noticed because the summary loop crashed with a `KeyError` on any frame that had a cast, after printing the report.
 
 ![Left: the red, green and blue gains measured on a warm frame, red at 0.800 below the 1.0 line and blue at 1.391 above it. Right: a gain below one means the channel is already too strong, so the correct advice is to cool the shot; the code advised warming it.](/images/blog/color-grade-gain-direction.svg)
 

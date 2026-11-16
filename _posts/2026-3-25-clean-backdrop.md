@@ -6,18 +6,31 @@ excerpt: "The first version healed studio backdrops with the LaMa inpainting mod
 image: /images/blog/clean-backdrop.jpg
 image_alt: Black and white photography studio with lighting gear and seamless backdrop
 date: 2026-03-25
-last_modified_at: 2026-03-25
+last_modified_at: 2026-11-16
 categories: [open-source]
 tags: [python, photography, cuda, birefnet, image-processing, open-source]
 ---
 
-Zack Design has published [`clean-backdrop`](https://github.com/isaacrowntree/clean-backdrop), a free tool that removes cast shadows, scuffs and paper texture from studio portrait backdrops without touching the subject. It went through three versions in the three days between the first commit and the last: v1 healed blemishes with LaMa, a neural network that fills in masked-out regions of a photo (inpainting); v2 limited LaMa to small isolated marks; and v3 removed LaMa entirely because it smudged. What shipped is two Gaussian blurs and a distance map on a mask of the subject produced by [BiRefNet-Portrait](https://github.com/ZhengPeng7/BiRefNet), a neural network that separates a person from the background, run on the GPU through ONNX Runtime. It is a free alternative to Retouch4me Clean Backdrop.
+Zack Design's **[`clean-backdrop`](https://github.com/isaacrowntree/clean-backdrop)** is a free tool for photographers that removes cast shadows, scuffs and paper texture from studio portrait backdrops **without touching the subject**. It finds the subject with [BiRefNet-Portrait](https://github.com/ZhengPeng7/BiRefNet), a neural network that separates a person from the background, then cleans the backdrop with **two Gaussian blurs and a distance map**, running on the GPU. There's no inpainting AI in it any more: that came out because it smudged. It is a free alternative to Retouch4me Clean Backdrop. **MIT licensed.**
 
-This post walks through why the inpainting model was the wrong tool, the shadow-lift formula, the mask-weighted blur that keeps the subject from bleeding into the background, the floor detector that fired wrongly on headshots and had its threshold moved from 60 to 100, the two soft-edged masks that removed the "bar" artefacts, and the cuDNN detail (NVIDIA's neural-network library) that decides whether segmentation runs on the GPU at all.
+<div class="hero-cta-row" style="margin: 1.5rem 0;">
+  <a href="https://github.com/isaacrowntree/clean-backdrop" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
+  <a href="https://isaacrowntree.github.io/clean-backdrop/" target="_blank" rel="noopener" class="btn btn-outline-primary btn-lg">Documentation</a>
+</div>
+
+This post covers:
+
+- why the inpainting model was the wrong tool;
+- the shadow-lift formula, and the mask-weighted blur that keeps the subject from bleeding into the background;
+- the floor detector that fired wrongly on headshots, and had its threshold moved from 60 to 100;
+- the two soft-edged masks that removed the "bar" artefacts;
+- the cuDNN detail (NVIDIA's neural-network library) that decides whether segmentation runs on the GPU at all, and how to run it.
 
 <!-- more -->
 
 ## Start with the AI, because that is what everyone does
+
+`clean-backdrop` went through three versions in the three days between the first commit and the last: v1 healed blemishes with LaMa, a neural network that fills in masked-out regions of a photo (inpainting); v2 limited LaMa to small isolated marks; and v3 removed LaMa entirely because it smudged. What shipped is two Gaussian blurs and a distance map on a mask of the subject produced by [BiRefNet-Portrait](https://github.com/ZhengPeng7/BiRefNet), a neural network that separates a person from the background, run on the GPU through ONNX Runtime.
 
 The first version, still in the repo as `clean_backdrop.py`, followed the obvious recipe. Separate the subject from the background with `rembg`, build a mask of blemishes from a stack of heuristics (fine detail above a threshold, pixels darker than their wide surroundings, detected edges, vertical seams, dark bars where the wall meets the floor), grow the mask outward a little, and hand it to LaMa:
 

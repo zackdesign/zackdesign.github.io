@@ -6,14 +6,19 @@ excerpt: "A Dockerised wrapper around Eric Meadows-Jönsson's Elixir workshop �
 image: /images/blog/elixir-dojo.jpg
 image_alt: Instructor writing an equation on a whiteboard during a coding dojo
 date: 2017-11-01
-last_modified_at: 2017-11-01
+last_modified_at: 2026-11-16
 categories: [open-source]
 tags: [elixir, functional-programming, docker, coding-dojo, open-source, teaching]
 ---
 
 A half-day Elixir workshop loses its first forty minutes to "does everyone have Erlang installed?". Elixir is a language that runs on the Erlang virtual machine (the BEAM), so a working setup means installing Erlang, then Elixir, then `mix` (Elixir's build and test tool), at versions that agree with each other and with whatever is already on the laptop. Across a room of Macs, Windows laptops and Ubuntu virtual machines, that is forty minutes of fighting package managers before anyone writes a line of Elixir. [elixir-dojo](https://github.com/isaacrowntree/elixir-dojo) removes that step: it wraps Eric Meadows-Jönsson's [Elixir workshop](https://github.com/ericmj/workshop) in a Docker image, a packaged Linux environment that runs the same way on any machine, so the only thing a participant installs is Docker.
 
-This post covers where the line sits between what runs in the container and what stays on the laptop, the one shared folder that lets participants keep their own editor, and the command sequence a facilitator hands out at the door.
+<div class="hero-cta-row" style="margin: 1.5rem 0;">
+  <a href="https://github.com/isaacrowntree/elixir-dojo" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
+  <a href="https://github.com/ericmj/workshop" target="_blank" rel="noopener" class="btn btn-outline-primary btn-lg">The original workshop</a>
+</div>
+
+This post covers where the line sits between what runs in the container and what stays on the laptop, the one shared folder that lets participants keep their own editor, the command sequence a facilitator hands out at the door, and why a hands-on dojo suits Elixir better than a talk.
 
 <!-- more -->
 
