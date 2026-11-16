@@ -1,8 +1,8 @@
 ---
 layout: post
 title: "audio-analysis-and-recut — reconstructing a live set from the studio master"
-description: "A 275-line Python and FFmpeg tool that cross-correlates a phone recording of a live set against the studio track, finds the five sections the band actually played, and rebuilds the arrangement from clean audio."
-excerpt: "A 275-line Python and FFmpeg tool that cross-correlates a phone recording of a live set against the studio track, finds the five sections the band actually played, and rebuilds the arrangement from clean audio."
+description: "A 258-line Python and FFmpeg tool that cross-correlates a phone recording of a live set against the studio track, finds the five sections the band actually played, and rebuilds the arrangement from clean audio."
+excerpt: "A 258-line Python and FFmpeg tool that cross-correlates a phone recording of a live set against the studio track, finds the five sections the band actually played, and rebuilds the arrangement from clean audio."
 image: /images/blog/audio-analysis-and-recut.jpg
 image_alt: Close-up of a mixing console in a professional recording studio
 date: 2026-03-13
@@ -11,7 +11,7 @@ categories: [open-source]
 tags: [audio, dsp, python, ffmpeg, cross-correlation, open-source]
 ---
 
-Zack Design's **[audio-analysis-and-recut](https://github.com/isaacrowntree/audio-analysis-and-recut)** is a single **275-line Python script**, plus FFmpeg, that rebuilds a band's live arrangement from the song's studio recording. Given a 1 minute 56 second phone recording of a band playing "Ya Te Olvide" live, it works out which five sections of the 4 minute 40 second studio original they played, and in what order. Then it cuts those sections out of the studio track, so you get **the live arrangement at studio quality**. The matching uses the fast Fourier transform and **no learned components**.
+Zack Design's **[audio-analysis-and-recut](https://github.com/isaacrowntree/audio-analysis-and-recut)** is a single **258-line Python script**, plus FFmpeg, that rebuilds a band's live arrangement from the song's studio recording. Given a 1 minute 56 second phone recording of a band playing "Ya Te Olvide" live, it works out which five sections of the 4 minute 40 second studio original they played, and in what order. Then it cuts those sections out of the studio track, so you get **the live arrangement at studio quality**. The matching uses the fast Fourier transform and **no learned components**.
 
 <div class="hero-cta-row" style="margin: 1.5rem 0;">
   <a href="https://github.com/isaacrowntree/audio-analysis-and-recut" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
@@ -24,17 +24,20 @@ This post covers:
 - a sliding comparison of 5-second chunks against the whole original, done with the fast Fourier transform and normalised by local loudness;
 - grouping the matches into sections wherever the offset stays constant;
 - the two-and-a-half-second boundary uncertainty that a 5-second window buys you, and the two manual overrides it needed;
-- why the first version's joins were slightly wrong (an MP3 can only be seeked to the nearest compressed frame), and the one-input FFmpeg filter graph, using the sample-accurate `atrim` filter, that fixed them.
+- why the first version's joins were slightly wrong (an MP3 can only be seeked to the nearest compressed frame), and the one-input FFmpeg filter graph, using the sample-accurate `atrim` filter, that fixed them;
+- how to run it on your own song.
 
 <!-- more -->
 
-## Two recordings of one song
+## Why it exists
 
-The studio recording is the one on Spotify. The live recording has the arrangement the band actually plays — the pre-intro skipped, the breakdown compressed, a different ending — and also crowd noise, the sound of the venue's speakers, and a phone microphone's idea of bass. Dancers at [Havana on the Hastings](https://www.havanahastingsdance.com.au/) rehearse to the studio version and perform to the band's, and a choreography that works to one does not line up with the other. The recut is the live structure with clean audio to cue on.
+The studio recording is the one on Spotify. The live recording has the arrangement the band actually plays: the pre-intro skipped, the breakdown compressed, a different ending. It also has crowd noise, the venue's speakers, and a phone microphone's idea of bass.
+
+Dancers at [Havana on the Hastings](https://www.havanahastingsdance.com.au/) rehearse to the studio version and perform to the band's. A choreography that works to one doesn't line up with the other. The recut is the live structure with clean audio to cue on.
 
 ## Compare only the vocal range
 
-Both files are decoded by FFmpeg to mono 16-bit samples at 22,050 per second and read straight from its output into NumPy. The band-pass filter is the bluntest possible one: transform to frequencies, zero everything outside the range, transform back.
+FFmpeg decodes both files to mono 16-bit samples at 22,050 per second, and NumPy reads them straight from its output. The band-pass filter is the bluntest possible one: transform to frequencies, zero everything outside 200 to 4,000 Hz, and transform back.
 
 ```python
 def bandpass(audio, sr, low=200, high=4000):
@@ -45,11 +48,15 @@ def bandpass(audio, sr, low=200, high=4000):
     return np.fft.irfft(spectrum, len(audio))
 ```
 
-That is crude, and for matching it does not matter: the point is to make the comparison depend on the melody and words rather than on room rumble and cheering. The average level is subtracted from both signals afterwards.
+That is crude, and for matching it doesn't matter. The point is to make the comparison depend on the melody and words, not on room rumble and cheering. The average level is subtracted from both signals afterwards.
 
 ## Finding where each five-second chunk sits in the original
 
-The question for each short piece of the live recording is "where in the studio track does this sound most like?" Sliding the piece along the whole original and scoring every position is called cross-correlation, and doing it directly is slow. The fast Fourier transform turns that sliding comparison into one multiplication: the original is transformed once, padded with zeros to the next power of two. Each 5-second chunk of the performance, taken every half second, is reversed, transformed, multiplied against the original and transformed back, which gives its match score at every possible position in one pass. The best position's score is normalised by the chunk's own loudness and by the original's loudness over that same window, and the window loudness comes from a running total rather than a loop:
+For each short piece of the live recording, the question is: where in the studio track does this sound most alike? Sliding the piece along the whole original and scoring every position is called cross-correlation. Done directly, it is slow.
+
+The fast Fourier transform turns that sliding comparison into one multiplication. The original is transformed once, padded with zeros to the next power of two. Then a 5-second chunk of the performance is taken every half second. Each one is reversed, transformed, multiplied against the original and transformed back. That gives its match score at every possible position in one pass.
+
+The best position's score is normalised by the chunk's own loudness and by the original's loudness over the same window. The window loudness comes from a running total rather than a loop:
 
 ```python
 orig_sq = orig_bp ** 2
@@ -63,7 +70,7 @@ Each chunk yields a time in the performance, a time in the original, a normalise
 
 ## Grouping into segments
 
-A verse played straight through produces a run of chunks that all agree on the same offset. `detect_segments` walks the results and starts a new segment whenever the offset moves by more than 3 seconds; anything shorter than 2 seconds is dropped as noise. On this recording that produces five segments:
+A verse played straight through produces a run of chunks that all agree on the same offset. `detect_segments` walks the results and starts a new segment whenever the offset moves by more than 3 seconds. Anything shorter than 2 seconds is dropped as noise. On this recording that produces five segments:
 
 ```
 SEGMENT MAP:
@@ -83,11 +90,15 @@ Skipped from original:
 
 ![Two timelines: the 4:40 studio recording with the five sections the band played coloured and the parts they skipped in grey, and the 1:56 live recording where those five sections sit back to back, with lines joining each live section to where it came from.](/images/blog/audio-recut-segment-map.svg)
 
-The map reads like a cut list: the band skipped the pre-intro, dropped a repeated verse and most of the breakdown, and landed on a different ending.
+The map reads like a cut list. The band skipped the pre-intro, dropped a repeated verse and most of the breakdown, and landed on a different ending.
+
+One thing the recut does differently from the map: it keeps the studio intro. If the first matched section starts more than a second into the original, `build_recut` puts everything before it at the front. Here that is the 12-second pre-intro.
 
 ## The cut points were off by up to two and a half seconds
 
-A 5-second window locates a section, not a downbeat. Each boundary can be wrong by up to half the window either way, and listening to the first output made that audible at the first cut. The script carries two hand overrides, found by listening and by using the loudness profile to find a natural phrase boundary:
+A 5-second window locates a section, not a downbeat. Each boundary can be wrong by up to half the window either way, and the first output made that audible at the first cut.
+
+I fixed this song by hand. Listening, and using the loudness profile to find a natural phrase boundary, gave two overrides:
 
 ```python
 OVERRIDES = {
@@ -96,11 +107,13 @@ OVERRIDES = {
 }
 ```
 
-I did not solve this generally. A second pass with a shorter window around each boundary, or beat tracking, would; the tool as published is tuned to one song, with the file names and these two overrides hard-coded in `analyze.py`.
+They live in my working copy and aren't in the published script yet, so a fresh clone cuts at the analysed times. I didn't solve the problem generally. A second pass with a shorter window around each boundary would, or beat tracking.
 
 ## Cutting all five pieces from one decoded file
 
-The first `build_recut` passed the original to FFmpeg once per segment, using `-ss` to seek to the start and `-t` for the length, and joined the pieces. Each seek decodes the MP3 independently and lands on the nearest compressed frame, and the commit that replaced it records the joins landing on those frame boundaries rather than at the analysed times. The second version decodes the file once and trims each piece out of that one stream:
+The first `build_recut` passed the original to FFmpeg once per segment. It used `-ss` to seek to the start and `-t` for the length, then joined the pieces. But each seek decodes the MP3 independently and lands on the nearest compressed frame. The commit that replaced it records the joins landing on those frame boundaries, not at the analysed times.
+
+The second version decodes the file once and trims each piece out of that one stream:
 
 ```python
 f"[0:a]atrim=start={seg['orig_start']:.3f}:end={seg['orig_end']:.3f},asetpts=PTS-STARTPTS[s{idx}]"
@@ -108,18 +121,26 @@ f"[0:a]atrim=start={seg['orig_start']:.3f}:end={seg['orig_end']:.3f},asetpts=PTS
 filter_complex = ";".join(trim_parts) + f";{concat_inputs}concat=n={idx}:v=0:a=1[out]"
 ```
 
-One decode, trims accurate to the sample, and `asetpts=PTS-STARTPTS` on each piece to restart its clock at zero so that `concat` sees pieces that follow on from each other. The output is written as `output/ya_te_olvide_recut.wav` in 16-bit PCM; the README still says `.mp3`, which was the first version.
+That is one decode, with trims accurate to the sample. `asetpts=PTS-STARTPTS` restarts each piece's clock at zero, so `concat` sees pieces that follow on from each other. The published script writes `output/ya_te_olvide_recut.mp3` at LAME's highest variable-bit-rate quality (`-q:a 0`). My working copy writes a 16-bit WAV instead, to skip the second lossy encode.
 
-## Usage
+## Trying it
+
+You need Python 3 with NumPy, and FFmpeg with `ffprobe` on your `$PATH`.
 
 ```bash
+git clone https://github.com/isaacrowntree/audio-analysis-and-recut.git
+cd audio-analysis-and-recut
+pip install numpy
+mkdir -p staging
 cp original_song.mp3 staging/original.mp3
 cp performance_recording.mp3 staging/performance.mp3
 python3 analyze.py
 ```
 
-Dependencies are Python 3 with NumPy and an FFmpeg with `ffprobe` on `$PATH`.
+It prints the segment map and the skipped sections, then writes the recut to `output/`. The file names and the "Ya Te Olvide" labels are hard-coded in `analyze.py`. Any song works, but the output keeps that name.
 
 ## What was learned
 
-Keeping only the vocal range and normalising by local loudness was enough to match a phone recording to a studio master through crowd noise; the Fourier transform does the heavy lifting and there are no learned components. Window size trades reliable detection against precise boundaries, and at 5 seconds the boundaries need a human ear. Seeking an MP3 per segment is not sample-accurate; trimming a single decoded stream is. The repo is two commits and one file, and generalising it to a song that is not "Ya Te Olvide" means lifting the constants and the overrides into arguments. Source on [GitHub](https://github.com/isaacrowntree/audio-analysis-and-recut).
+Keeping only the vocal range and normalising by local loudness was enough to match a phone recording to a studio master through crowd noise. The Fourier transform does the heavy lifting, and there are no learned components.
+
+Window size trades reliable detection against precise boundaries, and at 5 seconds the boundaries need a human ear. Seeking an MP3 once per segment isn't sample-accurate; trimming one decoded stream is. The repo is two commits and one file. Making it general means lifting the constants, the file names and the overrides into arguments. Source on [GitHub](https://github.com/isaacrowntree/audio-analysis-and-recut).

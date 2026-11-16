@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "cloudflare-worker-rollbar — a Rollbar client built for Workers"
-description: "A zero-dependency Rollbar client for Cloudflare Workers: 451 lines, fetch only, a handler wrapper that reports in the background after the response has gone, and the circular-reference bug that took the first production release down."
+description: "A zero-dependency Rollbar client for Cloudflare Workers: fetch only, a handler wrapper that reports in the background after the response has gone, and the circular-reference bug that took the first production release down."
 excerpt: "A zero-dependency Rollbar client for Cloudflare Workers — fetch only, a handler wrapper that reports after the response has gone, and the circular-reference stack overflow that shipped in 2.0.0."
 image: /images/blog/cloudflare-worker-rollbar.jpg
 image_alt: Black screen filled with JavaScript code illuminated in cool light
@@ -11,7 +11,7 @@ categories: [open-source]
 tags: [cloudflare-workers, rollbar, typescript, observability, edge, open-source]
 ---
 
-Triptech Travel's **[`@triptech/cloudflare-worker-rollbar`](https://github.com/triptechtravel/cloudflare-worker-rollbar)** is a client for Rollbar, the error-tracking service, built for Cloudflare Workers: small JavaScript programs that run in Cloudflare's data centres. It has **zero runtime dependencies** and needs only `fetch`. The whole client is 451 lines in `src/client.ts` and builds to an 11 kB `dist/index.js`. A wrapper around the request handler sends each report **after the response has gone**, so reporting never slows a request. Isaac Rowntree wrote and released it as part of his engineering work at [Triptech Travel](https://github.com/triptechtravel); it is cross-posted here on the Zack Design blog. **MIT licensed.**
+Triptech Travel's **[`@triptech/cloudflare-worker-rollbar`](https://github.com/triptechtravel/cloudflare-worker-rollbar)** is a client for Rollbar, the error-tracking service, built for Cloudflare Workers: small JavaScript programs that run in Cloudflare's data centres. It has **zero runtime dependencies** and needs only `fetch`. It builds to an 11 kB `dist/index.js`. A wrapper around the request handler sends each report **after the response has gone**, so reporting never slows a request. Isaac Rowntree wrote and released it as part of his engineering work at [Triptech Travel](https://github.com/triptechtravel); it is cross-posted here on the Zack Design blog. **MIT licensed.**
 
 <div class="hero-cta-row" style="margin: 1.5rem 0;">
   <a href="https://github.com/triptechtravel/cloudflare-worker-rollbar" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
@@ -20,19 +20,21 @@ Triptech Travel's **[`@triptech/cloudflare-worker-rollbar`](https://github.com/t
 
 This post covers:
 
-- the 100-line first version, and the gist it started from;
+- why Rollbar's own library doesn't fit a Worker, and the first version;
 - the 2.0 rewrite's wrapper around the request handler, which reports after the response has gone back;
 - a hand-written stack-trace parser, in place of a library;
 - redacting secrets, and the `RangeError: Maximum call stack size exceeded` that 2.0.0 shipped with;
-- what each report says about itself, and what the package does and doesn't do.
+- what each report says about itself, how to try it, and what the package doesn't do.
 
 <!-- more -->
 
+## Why it exists
+
+Triptech's production APIs run on Cloudflare Workers, and for a while the errors they threw went nowhere. Rollbar's official JavaScript library comes in a Node.js build and a browser build. A Worker is neither. The Worker runtime is a sandboxed JavaScript engine with `fetch` for making HTTP requests and not much else.
+
 ## From a gist to a package
 
-Triptech's production APIs run on Cloudflare Workers, and for a while the errors they threw went nowhere. Rollbar's official JavaScript library comes in a Node.js build and a browser build; a Worker is neither. The Worker runtime is a sandboxed JavaScript engine with `fetch` for making HTTP requests and not much else.
-
-The first commit, on 11 January 2024, was a single `src/index.ts` of about a hundred lines, adapted from [a gist by dukejones](https://gist.github.com/dukejones/d160a1b2051ff7c1a485bdcf966f1bcc). A `Rollbar` class took a token and an environment name as its two constructor arguments, exposed `error(error, description)` and `message(message, attributes)`, and did one thing well: build the JSON body that Rollbar's "item" endpoint expects and send it with `fetch` to `https://api.rollbar.com/api/1/item/`.
+The first commit, on 11 January 2024, was a single `src/index.ts`. It was adapted from [a gist by dukedorje](https://gist.github.com/dukedorje/d160a1b2051ff7c1a485bdcf966f1bcc). A `Rollbar` class took a token and an environment name as its two constructor arguments. It exposed `error(error, description)` and `message(message, attributes)`. It did one thing well: build the JSON body that Rollbar's "item" endpoint expects, and send it with `fetch` to `https://api.rollbar.com/api/1/item/`.
 
 ```typescript
 const stack = ErrorStackParser.parse(error);
@@ -50,32 +52,23 @@ const rollbarBody = {
 };
 ```
 
-It had one dependency, `error-stack-parser`, and one quirk: if the token was missing, the constructor returned early and every method silently did nothing. That was deliberate for local development and a trap in production.
+It had one dependency, `error-stack-parser`, and one quirk. If the token was missing, the constructor returned early and every method silently did nothing. That was deliberate for local development, and a trap in production.
 
-The 2.0.0 rewrite (January 2026) replaced it with four files (`client.ts`, `stack-parser.ts`, `types.ts`, `index.ts`), a configuration object instead of positional arguments, six log levels, and a test suite that runs in 310 ms:
+The 2.0.0 rewrite (January 2026) split it into four files: `client.ts`, `stack-parser.ts`, `types.ts` and `index.ts`. It takes a configuration object instead of positional arguments. It has six logging methods (`debug`, `info`, `warning`, `log`, `error`, `critical`), and a test suite:
 
 | | First version | 2.0 |
 |---|---|---|
-| Source | one file, about 100 lines | four files, 451 lines in `client.ts` |
+| Source | one file | four files |
 | Runtime dependencies | one (`error-stack-parser`) | none |
 | Constructor | token and environment as positional arguments | one configuration object |
 | Missing token | silently does nothing | throws |
-| Tests | none | 43, in 310 ms |
+| Tests | none | the stack parser, the client and the handler wrapper |
 
-```
- ✓ tests/stack-parser.test.ts (11 tests) 5ms
- ✓ tests/client.test.ts (24 tests) 11ms
- ✓ tests/wrapper.test.ts (8 tests) 12ms
-
- Test Files  3 passed (3)
-      Tests  43 passed (43)
-```
-
-The constructor now throws on a missing `accessToken`. Silent no-ops are gone.
+The constructor now throws `Rollbar accessToken is required` on a missing token. Silent no-ops are gone.
 
 ## One wrapper around the request handler
 
-The integration most Workers want is one line: hand the function that handles requests to `rollbar.wrap()` and stop writing try/catch.
+The integration most Workers want is one line. Hand the function that handles requests to `rollbar.wrap()`, and stop writing try/catch.
 
 ```typescript
 export default {
@@ -94,7 +87,7 @@ export default {
 }
 ```
 
-Inside `wrap()` the mechanism is short. The handler runs inside a try block. Anything thrown that is not an `Error` object is turned into one (`new Error(String(err))`), so a bare `throw 'nope'` still reports with `class: 'Error'`. `buildRequestContext(request)` copies the URL, method, headers, query parameters and the caller's IP address (the `cf-connecting-ip` header) into the report. Then:
+Inside `wrap()` the mechanism is short. The handler runs inside a try block. Anything thrown that isn't an `Error` object is turned into one (`new Error(String(err))`). So a bare `throw 'nope'` still reports, with `class: 'Error'`. `buildRequestContext(request)` copies the URL, method, headers and query parameters into the report. It adds the caller's IP address from the `cf-connecting-ip` header. Then:
 
 ```typescript
 const reportPromise = this.error(error, reportContext)
@@ -105,11 +98,11 @@ if (ctx?.waitUntil) {
 }
 ```
 
-Workers give each request an execution context with a `waitUntil` method: hand it a promise, and the runtime keeps the Worker alive until that promise settles, even after the response has been sent. If the Worker passed its context in, the report is handed to `waitUntil` and the HTTP 500 error response goes back to the caller immediately, with the report to Rollbar finishing in the background. Without a context (in tests, or when a caller forgot to pass it) the report is awaited before the response goes back, because the alternative is losing the report. The figure shows the two orderings.
+Workers give each request an execution context with a `waitUntil` method. Hand it a promise, and the runtime keeps the Worker alive until that promise settles, even after the response has been sent. If the Worker passed its context in, the report goes to `waitUntil`. The HTTP 500 response goes back to the caller immediately, and the report to Rollbar finishes in the background. Without a context (in tests, or when a caller forgot to pass it) the report is awaited first. The alternative is losing the report. The figure shows the two orderings.
 
 ![Two timelines. With the Worker's execution context, the 500 response goes back to the caller immediately and the report to Rollbar continues in the background while the runtime keeps the Worker alive. Without a context, the report is sent and waited for first, and the 500 goes back only after Rollbar has answered.](/images/blog/rollbar-waituntil-timing.svg)
 
-The default response is a JSON `{ error: 'Internal Server Error' }` with status 500; the `errorResponse` option replaces it, and `rethrow: true` throws the error again after reporting it. `tests/wrapper.test.ts` checks the background path directly:
+The default response is a JSON `{ error: 'Internal Server Error' }` with status 500. The `errorResponse` option replaces it, and `rethrow: true` throws the error again after reporting it. `tests/wrapper.test.ts` checks the background path directly:
 
 ```typescript
 const wrapped = rollbar.wrap(handler)
@@ -117,17 +110,30 @@ await wrapped(request, {}, { waitUntil })
 expect(waitUntil).toHaveBeenCalledWith(expect.any(Promise))
 ```
 
+To tie errors to a user, `rollbar.withPerson({ id, username, email })` returns a copy of the client that adds that person to every report.
+
 ## Reading a stack trace without a library
 
-Dropping `error-stack-parser` meant writing the parser. `src/stack-parser.ts` is 177 lines and three regular expressions, one for each shape a stack-trace line can take: a V8 (Chrome and Workers) line with a function name (`at fn (file:10:15)`), a V8 line with no function name (`at file:10:15`), and Firefox's `fn@file:10:15`. Two details matter more than the regular expressions. Rollbar wants the frames oldest first, which is the reverse of the order `error.stack` prints them in, so the parsed list is reversed before it is sent. And a line that matches none of the three patterns is not dropped; it becomes a frame with `filename: '(unparsed)'` and the raw line as its `method`, because a stack trace with a hole in it is worse than one with an odd-looking frame.
+Dropping `error-stack-parser` meant writing the parser. `src/stack-parser.ts` uses three regular expressions, one for each shape a stack-trace line can take:
+
+- a V8 (Chrome and Workers) line with a function name: `at fn (file:10:15)`;
+- a V8 line with no function name: `at file:10:15`;
+- Firefox's `fn@file:10:15`.
+
+Two details matter more than the regular expressions. Rollbar wants the frames oldest first, which is the reverse of the order `error.stack` prints them in. So the parsed list is reversed before it is sent. And a line that matches none of the three patterns isn't dropped. It becomes a frame with `filename: '(unparsed)'` and the raw line as its `method`. A stack trace with a hole in it is worse than one with an odd-looking frame.
 
 ## Redacting secrets, and the bug it hid
 
-Every report passes through `scrubObject()` before `send()`, which replaces the values of secret-looking fields. Eight field names are redacted by default (`password`, `secret`, `token`, `accessToken`, `access_token`, `apiKey`, `api_key`, `credential`), matched on the exact key ignoring case, and five headers (`authorization`, `cookie`, `set-cookie`, `x-api-key`, `x-auth-token`) are matched on any part of the name, so `x-auth-token-v2` is redacted too. The `scrubFields` option extends the list. The request body is never included unless `includeRequestBody: true` is set.
+Secret-looking values are replaced with `[SCRUBBED]` before anything is sent. That covers the `custom` data you attach, the global `payload` and the request headers.
 
-2.0.0 went to production with a `scrubObject` that walked into nested objects recursively and had no memory of where it had been. Reporting an error whose `custom` context contained an object that referred back to itself (the fix commit names DOM elements, React state, Google Maps objects and InstantSearch state as the usual sources) threw `RangeError: Maximum call stack size exceeded` from inside the error reporter. That was the whole bug: the scrubber followed the loop until the JavaScript engine ran out of stack, and the original error never reached Rollbar. `logMessage()` had a second copy of the problem, spreading unredacted `custom` data straight into the report.
+- **Eight field names** are redacted by default: `password`, `secret`, `token`, `accessToken`, `access_token`, `apiKey`, `api_key` and `credential`. They match the exact key, ignoring case.
+- **Five headers** are always redacted: `authorization`, `cookie`, `set-cookie`, `x-api-key` and `x-auth-token`. These match any part of the name, so `x-auth-token-v2` is redacted too.
 
-2.0.1 fixed both. `scrubObject` now carries a `WeakSet` of objects it has already visited and substitutes the string `'[Circular Reference]'` the second time it meets one:
+The `scrubFields` option extends the list. The request body is never included unless `includeRequestBody: true` is set.
+
+2.0.0 went to production with a `scrubObject()` that walked into nested objects and had no memory of where it had been. Some `custom` context contains an object that refers back to itself. The fix commit names DOM elements, React state, Google Maps objects and InstantSearch state as the usual sources. Reporting such an error threw `RangeError: Maximum call stack size exceeded` from inside the error reporter. That was the whole bug. The scrubber followed the loop until the JavaScript engine ran out of stack, and the original error never reached Rollbar. `logMessage()` had a second copy of the problem: it spread unredacted `custom` data straight into the report.
+
+2.0.1 fixed both. `scrubObject` now carries a `WeakSet` of objects it has already visited. The second time it meets one, it substitutes the string `'[Circular Reference]'`:
 
 ```typescript
 function scrubObject<T extends Record<string, unknown>>(
@@ -142,12 +148,34 @@ function scrubObject<T extends Record<string, unknown>>(
   // ...
 ```
 
-It is a `WeakSet` rather than a `Set` because a `WeakSet` does not stop the garbage collector reclaiming the caller's objects once the call is over. The fix added tests for self-referencing `custom` data and for the message path. The 2.0.0 changelog lists 41 tests; the suite is now 43.
+It is a `WeakSet` rather than a `Set` because a `WeakSet` doesn't stop the garbage collector reclaiming the caller's objects once the call is over. The fix added tests for self-referencing `custom` data and for the message path.
 
 ## What the report says about itself
 
-`buildPayload()` stamps every report with `platform: 'cloudflare-workers'`, `language: 'javascript'`, a Unix timestamp in seconds, and a `notifier` block naming the package and its version, so Rollbar's dashboard can tell these reports apart from the Node.js library's. `code_version` is set when the configuration has one, which is the deploy's git commit hash if you follow the example in `example/index.ts`: `codeVersion: env.GIT_SHA`. `send()` posts the JSON, reads Rollbar's `{ err, result }` response, logs `result.message` when `err` is not zero, and returns `null` instead of throwing if the network call fails. An error reporter that throws is not an improvement.
+`buildPayload()` stamps every report with a few fields:
 
-## What it is and is not
+- `platform: 'cloudflare-workers'` and `language: 'javascript'`;
+- a Unix timestamp in seconds;
+- a `notifier` block naming the package and its version, so Rollbar's dashboard can tell these reports apart from the Node.js library's.
 
-The package is 907 lines of TypeScript across the four files (451, 177, 232 and 47), ships both module formats (ESM and CommonJS) built with `tsup`, and needs nothing at runtime beyond `fetch`. It does not batch, retry or queue reports; it makes one `fetch` per report, which is the right trade for a Worker where `waitUntil` already means the call costs the caller nothing. Install it [from npm](https://www.npmjs.com/package/@triptech/cloudflare-worker-rollbar) or read the [source on GitHub](https://github.com/triptechtravel/cloudflare-worker-rollbar). If you are on 1.x, the constructor and `message()` changed; the README has the two-line migration.
+`code_version` is set when the configuration has one. If you follow `example/index.ts`, that's the deploy's git commit hash: `codeVersion: env.GIT_SHA`. `send()` posts the JSON and reads Rollbar's `{ err, result }` response. It logs `result.message` when `err` isn't zero. If the network call fails, it returns `null` instead of throwing. An error reporter that throws is not an improvement.
+
+## Trying it
+
+Install it [from npm](https://www.npmjs.com/package/@triptech/cloudflare-worker-rollbar):
+
+```bash
+npm install @triptech/cloudflare-worker-rollbar
+```
+
+Then store your Rollbar server token (the `post_server_item` one) as a Worker secret, as `example/wrangler.toml` suggests:
+
+```bash
+npx wrangler secret put ROLLBAR_TOKEN
+```
+
+Import it with `import { Rollbar } from '@triptech/cloudflare-worker-rollbar'` and wrap your handler as above. If you're on 1.x, two things changed: the constructor takes an object, and `message()` became `log()` plus the level methods. The README has the side-by-side migration.
+
+## What it does and doesn't do
+
+The package ships both module formats (ESM and CommonJS), built with `tsup`, and needs nothing at runtime beyond `fetch`. It doesn't batch, retry or queue reports. It makes one `fetch` per report. That's the right trade for a Worker, where `waitUntil` already means the call costs the caller nothing. The [source is on GitHub](https://github.com/triptechtravel/cloudflare-worker-rollbar).

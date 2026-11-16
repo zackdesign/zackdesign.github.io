@@ -1,8 +1,8 @@
 ---
 layout: post
 title: "SessionHQ — a multi-tenant studio check-in platform, live at its first front desk"
-description: "SessionHQ, our multi-tenant check-in platform for dance studios, gyms and martial arts schools, is live at founding partner Havana on the Hastings: 283 commits, 888 unit tests, the studio's identity carried inside the sign-in token, and the browser bugs we hit on a kiosk tablet."
-excerpt: "Our multi-tenant check-in platform is live at Havana on the Hastings — 283 commits, 888 unit tests, the studio's identity enforced from the sign-in token, and the Android and Workers bugs that shaped it."
+description: "SessionHQ, our multi-tenant check-in platform for dance studios, gyms and martial arts schools, is live at founding partner Havana on the Hastings: the studio's identity carried inside the sign-in token, and the browser bugs we hit on a kiosk tablet."
+excerpt: "Our multi-tenant check-in platform is live at Havana on the Hastings — the studio's identity enforced from the sign-in token, and the Android and Workers bugs that shaped it."
 image: /images/blog/sessionhq-launch.jpg
 image_alt: Studio operator checking members in with the SessionHQ platform
 date: 2026-04-17
@@ -11,7 +11,7 @@ categories: [product]
 tags: [sessionhq, saas, nextjs, supabase, cloudflare, square, product-launch]
 ---
 
-Zack Design's **[SessionHQ](https://sessionhq.org)** is a check-in and payments platform for dance studios, gyms and martial arts schools, built for **many studios on one database** from the first migration. A member walks in, types a PIN, taps a wristband on the tablet or scans a QR code with their phone; one class is deducted from their pass, and the admin's live feed updates. Nine weeks and **283 commits** after the first scaffold on 12 February, it is running the front desk at [Havana on the Hastings](https://www.havanahastingsdance.com.au/) in Port Macquarie, with **888 unit tests** behind it.
+Zack Design's **[SessionHQ](https://sessionhq.org)** is a check-in and payments platform for dance studios, gyms and martial arts schools, built for **many studios on one database** from the first migration. A member walks in, types a PIN, taps a wristband on the tablet or scans a QR code with their phone; one class is deducted from their pass, and the admin's live feed updates. Nine weeks after the first scaffold on 12 February, it is running the front desk at [Havana on the Hastings](https://www.havanahastingsdance.com.au/) in Port Macquarie.
 
 <div class="hero-cta-row" style="margin: 1.5rem 0;">
   <a href="https://sessionhq.org" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Visit SessionHQ</a>
@@ -37,7 +37,7 @@ Small studios run on spreadsheets, paper sign-in sheets and a payments app that 
 - **Payments where the student is.** Square's Web Payments SDK turns the card details into a one-time token inside the browser; our API only ever sees that token (`source_id`) or a stored card reference (`square_card_id`), never the card number.
 - **Admins see the truth.** Tonight's attendance, revenue, unpaid check-ins and pass status reports.
 
-At launch it carries 888 unit tests and 107 browser tests (written with Playwright, which drives a real browser) across 22 spec files.
+At launch it has unit tests and browser tests, the latter written with Playwright, which drives a real browser.
 
 ## Each studio's identity travels inside the sign-in token
 
@@ -69,7 +69,7 @@ Each job runs inside `runJob()`, which logs a one-line result and reports any fa
 
 ## Tap-to-check-in and card payments from a web page
 
-The kiosk is a web page, so reading a wristband uses Web NFC, the browser API for near-field communication tags. `src/lib/nfc.ts` is 39 lines: check that `"NDEFReader" in window`, call `ndef.scan({ signal })`, and hand the `serialNumber` from the `reading` event to the check-in flow. The tag's serial number is all the check-in flow matches on; nothing is ever written to the tag. Where `NDEFReader` does not exist, the reader is never started and PIN entry is the path.
+The kiosk is a web page, so reading a wristband uses Web NFC, the browser API for near-field communication tags. `src/lib/nfc.ts` is short: check that `"NDEFReader" in window`, call `ndef.scan({ signal })`, and hand the `serialNumber` from the `reading` event to the check-in flow. The tag's serial number is all the check-in flow matches on; nothing is ever written to the tag. Where `NDEFReader` does not exist, the reader is never started and PIN entry is the path.
 
 Square's per-studio access tokens are stored in Supabase Vault, the encrypted secrets store, by `store_square_tokens()`. The first version inserted straight into the `vault.secrets` table; the correct call is `vault.create_secret()`, and because Vault has no update function, rotating a token is a delete followed by a create.
 
@@ -96,8 +96,8 @@ The last one is the same primitive the Rollbar client on this blog leans on, and
 - **Idempotency.** A request that carries an `Idempotency-Key` header is remembered for 24 hours in `idempotency_keys`, keyed by the header, the studio and the endpoint, so a retried request cannot charge or check in twice.
 - **GDPR.** Consent timestamps on `members`, `POST /api/admin/members/[id]/anonymize` behind a typed confirmation, `GET /api/admin/members/[id]/export`, and an audit trail on check-ins, passes, payments and member updates.
 - **Personal data scrubbing** in Sentry's `beforeSend` hook: medical notes, PINs and payment tokens never leave the Worker.
-- **A design system of 21 base components** in `src/components/ui/`, on Tailwind 4 with Next.js 16 and React 19. Not shadcn; we wanted to own it.
-- **48 migrations**, applied in filename order, as the only schema definition.
+- **A design system of base components** in `src/components/ui/`, on Tailwind 4 with Next.js 16 and React 19. Not shadcn; we wanted to own it.
+- **Migrations**, applied in filename order, as the only schema definition.
 
 ## Why we built it
 

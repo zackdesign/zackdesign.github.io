@@ -35,9 +35,9 @@ The first version, in February, was three Python plugins: four social scripts, a
 
 The shape is borrowed from two earlier tools, [clickup-cli](/clickup-cli/) and [slackbuzz-cli](/slackbuzz-cli/), which both pull the vendor's live API specification and put a thin command on top. Here it is three layers.
 
-A single HTTP core, 99 lines, that every platform goes through: retries on 502, 503 and 504 for requests that are safe to repeat, one wait on a 429 for as long as the server asks up to ninety seconds, a typed error that carries the status and the response body, and a `--dry-run` flag that prints the request and sends nothing. No platform module calls `fetch` itself.
+A single HTTP core that every platform goes through: retries on 502, 503 and 504 for requests that are safe to repeat, one wait on a 429 for as long as the server asks up to ninety seconds, a typed error that carries the status and the response body, and a `--dry-run` flag that prints the request and sends nothing. No platform module calls `fetch` itself.
 
-A platform contract, 30 lines: a name, where its spec came from, which credentials it needs and how to get them, a function that returns an authenticated client, and a function that registers a handful of curated commands. That is all a platform is. The ten modules range from 97 lines for X to 360 for eBay, which has three authentication paths.
+A short platform contract: a name, where its spec came from, which credentials it needs and how to get them, a function that returns an authenticated client, and a function that registers a handful of curated commands. That is all a platform is. eBay's module is the largest, because it has three authentication paths.
 
 And a generic call for everything else:
 
@@ -84,7 +84,7 @@ Both of the original auth paths stay, on purpose. The Auth'n'Auth token is one s
 
 ## What was not verified
 
-Authenticated calls on Bluesky, Mastodon, Reddit, Facebook, Instagram, Threads and YouTube were not run against the real servers, because no credentials for them existed on the build machine. Each of those platforms was still exercised for real as far as the unauthenticated surface allows: the spec fetched, the public endpoints read, the auth flow driven up to the browser sign-in, and the token endpoint sent a bad code to confirm the shape of its refusal. Nothing that publishes, sends, moves or deletes was run anywhere. Every curated command on every platform is covered by a local fake that asserts the exact method, path, query, headers and body, 97 tests in all, and none of them touches the network. The README lists what was and was not exercised, because the difference matters and a green test suite does not show it.
+Authenticated calls on Bluesky, Mastodon, Reddit, Facebook, Instagram, Threads and YouTube were not run against the real servers, because no credentials for them existed on the build machine. Each of those platforms was still exercised for real as far as the unauthenticated surface allows: the spec fetched, the public endpoints read, the auth flow driven up to the browser sign-in, and the token endpoint sent a bad code to confirm the shape of its refusal. Nothing that publishes, sends, moves or deletes was run anywhere. Every curated command on every platform is covered by a local fake that asserts the exact method, path, query, headers and body, and none of those tests touches the network. The README lists what was and was not exercised, because the difference matters and a green test suite does not show it.
 
 ## Setup
 

@@ -1,8 +1,8 @@
 ---
 layout: post
 title: "react-native-nitro-unzip — a fast, Nitro-powered unzip module"
-description: "A React Native ZIP library built on Nitro Modules — about 500 files per second on iOS and 474 on Android against a 350 MB, 10,000-file archive, with progress delivered directly to JavaScript and nothing serialised through the bridge. It took 28 commits and seven releases in one day to build inside an app that used it, because Nitro 0.34 changed three things the module was written against."
-excerpt: "A React Native ZIP library built on Nitro Modules — about 500 files per second on iOS and 474 on Android on a 350 MB, 10,000-file archive, with progress and cancellation delivered directly to JavaScript. Shipping it took 28 commits and seven releases in a day, and this post is the list of what Nitro 0.34 and Android's prefab build actually require."
+description: "A React Native ZIP library built on Nitro Modules — about 500 files per second on iOS and 474 on Android against a 350 MB, 10,000-file archive, with progress delivered directly to JavaScript and nothing serialised through the bridge. It took seven releases in one day to build inside an app that used it, because Nitro 0.34 changed three things the module was written against."
+excerpt: "A React Native ZIP library built on Nitro Modules — about 500 files per second on iOS and 474 on Android on a 350 MB, 10,000-file archive, with progress and cancellation delivered directly to JavaScript. Shipping it took seven releases in a day, and this post is the list of what Nitro 0.34 and Android's prefab build actually require."
 image: /images/blog/react-native-nitro-unzip.jpg
 image_alt: Android phone displaying app development tools on a desk
 date: 2026-02-27
@@ -69,7 +69,7 @@ console.log(`Extracted ${result.extractedFiles} files in ${result.duration}ms`);
 
 ## Seven releases in one afternoon
 
-Getting from the first commit to a version that built inside an app that used it took 28 commits and seven releases on the same day, and almost none of that was ZIP code.
+Getting from the first commit to a version that built inside an app that used it took seven releases on the same day, and almost none of that was ZIP code.
 
 The module was written against Nitro's older examples. Nitro 0.34 had moved on, and each release fixed the next thing the app using the module hit.
 
@@ -98,7 +98,7 @@ Then Android. Four separate build failures, in order:
 
 Two smaller ones rounded out the day: `registerNatives()` in place of the deprecated `initialize()` in the JNI adapter (the C++ side of the Java bridge), and `module_name = 'NitroUnzip'` in the podspec so the Swift module name matched what nitrogen generated.
 
-None of this is a complaint about Nitro. The generated bindings are the reason the JavaScript side is 36 lines. It is a record of what the build of an app using the module actually requires, because the module's own CI passing tells you none of it.
+None of this is a complaint about Nitro. The generated bindings are the reason the JavaScript side is so small. It is a record of what the build of an app using the module actually requires, because the module's own CI passing tells you none of it.
 
 ## What cancel actually does
 

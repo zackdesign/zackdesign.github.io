@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" width="1200" height="520" role="img" aria-label="Three steps in order when the container starts: first Xvfb starts and owns a virtual display called :99 that draws into memory; second the DISPLAY variable is set to :99 so anything launched afterwards draws there; third the Lambda runtime starts and Puppeteer launches Chrome, which draws its pixels into Xvfb's memory without knowing there is no monitor">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" width="1200" height="520" role="img" aria-label="Three steps in order when the container starts: first Xvfb starts and owns a virtual display called :99 that draws into memory; second the DISPLAY variable is set to :99 so anything launched afterwards draws there; third the Lambda runtime starts and the handler launches Chrome, which draws its pixels into Xvfb's memory without knowing there is no monitor">
   <defs>
     <style>
       .bg{fill:#0f1115}
@@ -35,12 +35,12 @@
   <text class="s" x="600" y="426" text-anchor="middle">draws to display :99</text>
 
   <text class="h" x="1000" y="60" text-anchor="middle">3. Lambda runtime starts</text>
-  <text class="s" x="1000" y="88" text-anchor="middle">and Puppeteer launches Chrome</text>
+  <text class="s" x="1000" y="88" text-anchor="middle">and the handler launches Chrome</text>
   <rect class="t" x="850" y="130" width="300" height="80" rx="12"/>
   <text class="lbl" x="1000" y="178" text-anchor="middle">Lambda runtime bootstrap</text>
   <path class="arrow" d="M1000 210 V245" marker-end="url(#head)"/>
   <rect class="t" x="850" y="250" width="300" height="80" rx="12"/>
-  <text class="lbl" x="1000" y="298" text-anchor="middle">Chrome, with extensions</text>
+  <text class="lbl" x="1000" y="298" text-anchor="middle">google-chrome-stable</text>
   <text class="s" x="1000" y="400" text-anchor="middle">Chrome opens display :99 and draws</text>
   <text class="s" x="1000" y="426" text-anchor="middle">real pixels; it never learns it is fake</text>
 

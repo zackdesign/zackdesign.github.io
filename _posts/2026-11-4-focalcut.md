@@ -146,6 +146,6 @@ focalcut reel run "/footage/Show 2026"
 focalcut reel serve "/footage/Show 2026"                                         # review pages on localhost
 ```
 
-The reel path wants a CUDA GPU (two scoring workers fit a 12 GB card) and ffmpeg. SAM 3 is a gated model under Meta's own licence, so accept it on Hugging Face first. The [documentation](https://isaacrowntree.com/focalcut/) covers install, the library pipeline, recap reels, the editor's picks, every editing concept, and which chip decodes, encodes and renders what. The code is about 19,000 lines of Python with 276 tests.
+The reel path wants a CUDA GPU (two scoring workers fit a 12 GB card) and ffmpeg. SAM 3 is a gated model under Meta's own licence, so accept it on Hugging Face first. The [documentation](https://isaacrowntree.com/focalcut/) covers install, the library pipeline, recap reels, the editor's picks, every editing concept, and which chip decodes, encodes and renders what.
 
 It's honest about its scope. It is built on dance footage, and its rules (8-counts, couples, social floors) say so. The reels are a strong first cut that an editor finishes in Premiere, not a replacement for one. The source is at [github.com/isaacrowntree/focalcut](https://github.com/isaacrowntree/focalcut), MIT licensed.
