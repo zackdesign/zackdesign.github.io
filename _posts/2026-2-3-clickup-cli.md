@@ -11,11 +11,11 @@ categories: [open-source]
 tags: [go, cli, clickup, github, ai-agents, cobra, open-source]
 ---
 
-Triptech Travel's **[`clickup-cli`](https://github.com/triptechtravel/clickup-cli)** is a command-line tool, written in Go, for ClickUp, the project-management web app Triptech tracks its work in. It reads the **ClickUp task ID from the name of your git branch**, so `clickup task view`, `clickup status set "review"` and `clickup link pr` need no arguments. It keeps a **local search index** that answers in half a second across 4,086 tasks, because ClickUp's own search parameter is silently ignored. Every list and view command emits JSON, so AI coding agents can drive ClickUp without a browser. Isaac Rowntree wrote and released it as part of his engineering work at [Triptech Travel](https://github.com/triptechtravel); it is cross-posted here on the Zack Design blog. **MIT licensed.**
+**[`clickup-cli`](https://github.com/isaacrowntree/clickup-cli)** is a command-line tool, written in Go, for ClickUp, the project-management web app Triptech tracks its work in. It reads the **ClickUp task ID from the name of your git branch**, so `clickup task view`, `clickup status set "review"` and `clickup link pr` need no arguments. It keeps a **local search index** that answers in half a second across 4,086 tasks, because ClickUp's own search parameter is silently ignored. Every list and view command emits JSON, so AI coding agents can drive ClickUp without a browser. Isaac Rowntree wrote it during his engineering work at [Triptech Travel](https://github.com/triptechtravel), and it now lives on [his own GitHub](https://github.com/isaacrowntree), where he maintains it. **MIT licensed.**
 
 <div class="hero-cta-row" style="margin: 1.5rem 0;">
-  <a href="https://github.com/triptechtravel/clickup-cli" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
-  <a href="https://triptechtravel.github.io/clickup-cli" target="_blank" rel="noopener" class="btn btn-outline-primary btn-lg">Documentation</a>
+  <a href="https://github.com/isaacrowntree/clickup-cli" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
+  <a href="https://isaacrowntree.com/clickup-cli" target="_blank" rel="noopener" class="btn btn-outline-primary btn-lg">Documentation</a>
 </div>
 
 This post covers:
@@ -132,9 +132,9 @@ The same defect sits one field over. A time entry's `start`, `end` and `at` swin
 Install it with the script, Homebrew or Go:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/triptechtravel/clickup-cli/main/scripts/install.sh | sh
-brew install triptechtravel/tap/clickup
-go install github.com/triptechtravel/clickup-cli/cmd/clickup@latest
+curl -fsSL https://raw.githubusercontent.com/isaacrowntree/clickup-cli/main/scripts/install.sh | sh
+brew install isaacrowntree/tap/clickup
+go install github.com/isaacrowntree/clickup-cli/cmd/clickup@latest
 ```
 
 Then `clickup auth login` with your API token, and `clickup space select` to choose a default space. A typical day:
@@ -168,4 +168,4 @@ Mocked tests pass while the live API disagrees: about search, and about fields t
 - create a task, search for it, and check it's found;
 - log time on a subtask, then read the parent and check it still decodes.
 
-The ClickUp v2 spec is pinned in the repo and patched, because upstream changes it without notice and the documented types aren't the types the API sends. Triptech uses it for all of its engineering work. If you're on ClickUp and spend any real fraction of your day in a terminal, [install it](https://github.com/triptechtravel/clickup-cli) and tell the team what's missing.
+The ClickUp v2 spec is pinned in the repo and patched, because upstream changes it without notice and the documented types aren't the types the API sends. Triptech uses it for all of its engineering work. If you're on ClickUp and spend any real fraction of your day in a terminal, [install it](https://github.com/isaacrowntree/clickup-cli) and open an issue for anything that's missing.

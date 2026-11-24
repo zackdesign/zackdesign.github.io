@@ -11,11 +11,11 @@ categories: [open-source]
 tags: [go, cli, slack, developer-tools, ai-agents, open-source]
 ---
 
-Triptech's **[slackbuzz-cli](https://github.com/triptechtravel/slackbuzz-cli)** is a command-line Slack client, written in Go, and the companion piece to [clickup-cli](/clickup-cli/). It reads your mentions, replies to threads, uploads files, sets your status and searches the workspace **from a shell**, and every list and view command can print JSON, which is what makes it usable by AI coding agents such as Claude Code. Its Slack client is **generated from Slack's own published spec**. It is a [Triptech Travel](https://github.com/triptechtravel) open-source project, authored and released by Isaac Rowntree in his Triptech engineering capacity and cross-posted here on the Zack Design blog. **MIT licensed.**
+**[slackbuzz-cli](https://github.com/isaacrowntree/slackbuzz-cli)** is a command-line Slack client, written in Go, and the companion piece to [clickup-cli](/clickup-cli/). It reads your mentions, replies to threads, uploads files, sets your status and searches the workspace **from a shell**, and every list and view command can print JSON, which is what makes it usable by AI coding agents such as Claude Code. Its Slack client is **generated from Slack's own published spec**. Isaac Rowntree wrote it during his engineering work at [Triptech Travel](https://github.com/triptechtravel), and it now lives on [his own GitHub](https://github.com/isaacrowntree), where he maintains it. **MIT licensed.**
 
 <div class="hero-cta-row" style="margin: 1.5rem 0;">
-  <a href="https://github.com/triptechtravel/slackbuzz-cli" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
-  <a href="https://triptechtravel.github.io/slackbuzz-cli/" target="_blank" rel="noopener" class="btn btn-outline-primary btn-lg">Documentation</a>
+  <a href="https://github.com/isaacrowntree/slackbuzz-cli" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Source on GitHub</a>
+  <a href="https://isaacrowntree.com/slackbuzz-cli/" target="_blank" rel="noopener" class="btn btn-outline-primary btn-lg">Documentation</a>
 </div>
 
 This post covers:
@@ -116,11 +116,11 @@ Channel and user names are resolved in `internal/api/fuzzy.go`, with the three s
 
 ## Setting it up
 
-Install via Homebrew or Go, or grab a binary from [releases](https://github.com/triptechtravel/slackbuzz-cli/releases):
+Install via Homebrew or Go, or grab a binary from [releases](https://github.com/isaacrowntree/slackbuzz-cli/releases):
 
 ```sh
-brew install triptechtravel/tap/slackbuzz
-go install github.com/triptechtravel/slackbuzz-cli/cmd/slackbuzz@latest
+brew install isaacrowntree/tap/slackbuzz
+go install github.com/isaacrowntree/slackbuzz-cli/cmd/slackbuzz@latest
 ```
 
 Then create the Slack app with every scope it needs:
@@ -142,4 +142,4 @@ slackbuzz file upload diagram.png '#engineering' --thread-ts 1706000000.000000
 
 ## Why generate from the spec
 
-A dependency that wraps an API you don't control is a liability twice over. It hurts once when the API moves, and again when the wrapper doesn't. This project generates from the vendor's spec, patches the spec's gaps in one file, and derives permissions from the code's own calls. So the next `method_deprecated` is a one-afternoon fix with tests, not an archaeology project. Smoke tests against live Slack (`make smoke`) exist because a mocked suite can't tell you an endpoint is gone. Source lives on [GitHub](https://github.com/triptechtravel/slackbuzz-cli).
+A dependency that wraps an API you don't control is a liability twice over. It hurts once when the API moves, and again when the wrapper doesn't. This project generates from the vendor's spec, patches the spec's gaps in one file, and derives permissions from the code's own calls. So the next `method_deprecated` is a one-afternoon fix with tests, not an archaeology project. Smoke tests against live Slack (`make smoke`) exist because a mocked suite can't tell you an endpoint is gone. Source lives on [GitHub](https://github.com/isaacrowntree/slackbuzz-cli).
