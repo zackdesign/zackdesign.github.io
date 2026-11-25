@@ -9,7 +9,7 @@ permissions:
 jobs:
   automerge:
     if: github.actor == 'dependabot[bot]'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       # Build the site with the PR's Gemfile.lock so a broken bump never merges
       - uses: actions/checkout@v7
